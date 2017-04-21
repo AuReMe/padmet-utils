@@ -35,6 +35,7 @@ From git repository:
         │    ├── padmet_to_askomic.py
         │    ├── padmet_to_asp.py
         │    ├── padmet_to_sbml.py
+        │    ├── pgdb_to_padmet.py
         │    ├── pre_pantograph.py
         │    ├── reactions_to_sbml.py
         │    ├── sbml_to_gene.py

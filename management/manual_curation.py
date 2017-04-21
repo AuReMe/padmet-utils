@@ -2,12 +2,12 @@
 """
 @author: Meziane AITE, meziane.aite@inria.fr
 Description:
-This script allows to combine reaction_creator.py and update_padmetSpec.py.
+This script allows to combine rxn_creator.py and update_padmetSpec.py.
 This script was created specially for AuReMe and the default metabolic network
 reconstruction workflow.
-If the file reaction_to_add_delete exist: calling update_padmetSpec
-If the file new_reaction_data exist: calling reaction_creator.py
-Update padmetSpec and creating a new padmet (new_padmet) or overwritte the input
+If the file reaction_to_add_delete exist: calls update_padmetSpec
+If the file new_reaction_data exist: calls rxn_creator.py
+Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
 
 usage:
     manual_curation.py --padmetSpec=FILE --reaction_to_add_delete=FILE  [--new_reaction_data=FILE] [--padmetRef=FILE] [--new_padmet=FILE] [-v]
@@ -18,7 +18,7 @@ option:
     --padmetSpec=FILE    pathname to the padmet to update
     --padmetRef=FILE    pathname of the padmet representing the reference database
     --reaction_to_add_delete=FILE    pathname to the file used for update_padmetSpec.py
-    --reaction_creator=FILE    pathname to the file used for reaction_creator.py
+    --reaction_creator=FILE    pathname to the file used for rxn_creator.py
     --new_padmet=FILE    pathname to the ouput. if None. Overwritting padmetSpec
     -v    print info
 """
@@ -29,8 +29,8 @@ from time import time
 
 def main():
     #set the path to the scripts based on the current path.
-    dir_path_reaction_creator = os.path.dirname(os.path.realpath(__file__)).replace("/aureme","")+"/misc/reaction_creator.py"
-    dir_path_update_padmetSpec = os.path.dirname(os.path.realpath(__file__)).replace("/aureme","")+"/misc/update_padmetSpec.py"
+    dir_path_reaction_creator = os.path.dirname(os.path.realpath(__file__))+"/rxn_creator.py"
+    dir_path_update_padmetSpec = os.path.dirname(os.path.realpath(__file__))+"/misc/update_padmetSpec.py"
     args = docopt.docopt(__doc__)
     chronoDepart = time()
     reaction_to_add_delete = args["--reaction_to_add_delete"]
