@@ -6,20 +6,78 @@ version: 2.4
 geometry: margin=2cm
 ---
 
-                  ___                      _
-                 |  _`\                   ( )
-                 | (_) )   __     _ _    _| |  ___ ___     __
-                 | ,  /  /'__`\ /'_` ) /'_` |/' _ ` _ `\ /'__`\
-                 | |\ \ (  ___/( (_| |( (_| || ( ) ( ) |(  ___/
-                 (_) (_)`\____)`\__,_)`\__,_)(_) (_) (_)`\____)
-
-                        @author: Meziane AITE
-
 ################################################################################
 
 ##Descirption
 The main concept underlying padmet-utils is to provide solutions that ensure the consistency, the internal standardization and the reconciliation of the information used within any workflow that combines several tools involving metabolic networks reconstruction or analysis. The PADMet package is at the core of the AuReMe workflow, dedicated to the primary reconstruction of genome-scale metabolic networks from raw data. It allows the study of organisms for which few experimental data are available. Its main feature is to undergo the reconstruction of the metabolic network by combining several
 heterogeneous knowledge and data sources, including the information reported by several scaffold metabolic networks for cousin species.
+
+## Installation
+
+From git repository:
+
+	cd ~/programs
+	git clone https://gitlab.inria.fr/maite/padmet-utils.git
+
+## Architecture
+
+        .
+        ├── README.md
+        ├── connection
+        │    ├── biggAPI_to_padmet.py
+        │    ├── biggTSV_to_padmet.py
+        │    ├── compounds_to_sbml.py
+        │    ├── enhanced_meneco_output.py
+        │    ├── enhanced_sgs_output.py
+        │    ├── extract_rxn_with_gene_assoc.py
+        │    ├── gbk_to_faa.py
+        │    ├── gene_to_targets.py
+        │    ├── padmet_to_askomic.py
+        │    ├── padmet_to_asp.py
+        │    ├── padmet_to_sbml.py
+        │    ├── pre_pantograph.py
+        │    ├── reactions_to_sbml.py
+        │    ├── sbml_to_gene.py
+        │    ├── sbml_to_padmet.py
+        │    └── wikipage_creation.py
+        ├── exploration
+        │    ├── change_biomass_cobra.py
+        │    ├── change_biomass_cobra_allspecies.py
+        │    ├── change_biomass_cobra_givencpd.py
+        │    ├── check_db.py
+        │    ├── compare_sbml_padmet.py
+        │    ├── extract_pwy_sources.py
+        │    ├── extract_pwy_sources_with_filter.py
+        │    ├── fba_test.py
+        │    ├── get_pwy_from_rxn.py
+        │    ├── report_network.py
+        │    └── visu_path.py
+        ├── management
+        │    ├── add_seeds_rxn.py
+        │    ├── change_compart.py
+        │    ├── manual_curation.py
+        │    ├── rxn_creator.py
+        │    └── updata_padmetSpec.py
+        └── wiki-docker
+            ├── defautl
+            ├── docker-compose
+            ├── Dockerfile
+            ├── LocalSettings.php
+            ├── Makefile
+            ├── README
+            ├── supervisord.conf
+            └── wikiManager
+                ├── configuration.php
+                ├── deletaPage.php
+                ├── getPage.php
+                ├── globals.php
+                ├── mediaWiki_README.txt
+                ├── sendPage.php
+                ├── sendPage_dir.php
+                ├── Wikimate.php
+                └── vendor
+
+
 
 ##Documentation
 
