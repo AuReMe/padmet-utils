@@ -30,7 +30,7 @@ from time import time
 def main():
     #set the path to the scripts based on the current path.
     dir_path_reaction_creator = os.path.dirname(os.path.realpath(__file__))+"/rxn_creator.py"
-    dir_path_update_padmetSpec = os.path.dirname(os.path.realpath(__file__))+"/misc/update_padmetSpec.py"
+    dir_path_update_padmetSpec = os.path.dirname(os.path.realpath(__file__))+"/update_padmetSpec.py"
     args = docopt.docopt(__doc__)
     chronoDepart = time()
     reaction_to_add_delete = args["--reaction_to_add_delete"]
