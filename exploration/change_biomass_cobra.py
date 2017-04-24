@@ -61,7 +61,7 @@ if __name__ == '__main__':
             # print(biomassrxn2._metabolites)
             #test flux balance analysis
             #print(biomassrxn2._metabolites)
-            model2.optimize(solver='glpk')
+            model2.optimize()
             if (model2.solution.f > 1e-5):
                 dict_output["positive"][metabolite1] = model2.solution.f
             else:
