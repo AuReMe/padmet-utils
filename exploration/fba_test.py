@@ -101,7 +101,7 @@ def main():
         for k,v in dict_output["negative"].items():
             print("%s %s negative" %(k,v))
         print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(has_been_tested)))
-        print("%s/%s compounds with positive flux" %(len(dict_output["negative"].keys()), len(has_been_tested)))
+        print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(has_been_tested)))
 
 
 

@@ -33,11 +33,7 @@ if __name__ == '__main__':
         print("biomass reaction must be at OBJECTIVE_COEFFICIENT=1")
         exit()
         
-    metabolites = biomassrxn._metabolites
-    # print(metabolites)
-    # only append to the list compounds that are reactants
-    bms_metabolites_list = [x.id for x in metabolites]
-    bms_reactants = [x.id for x in metabolites if metabolites[x] < 0]
+    bms_reactants = biomassrxn.reactants
     # for metabo in metabolites:
     #     metabolites_list.append(metabo.id)
 

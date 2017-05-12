@@ -35,8 +35,8 @@ options:
     --output=FILE    pathname of the output
     -v   print info.
 """
-from lib.padmetRef import PadmetRef
-from lib.padmetSpec import PadmetSpec
+from padmet.padmetRef import PadmetRef
+from padmet.padmetSpec import PadmetSpec
 from time import time
 import docopt
 import os

@@ -13,7 +13,7 @@ options:
     --mnx=FILE     path to the metatnetx file for reaction, reac_xref.tsv.
 """
 from libsbml import *
-from lib.sbmlPlugin import convert_from_coded_id
+from padmet.sbmlPlugin import convert_from_coded_id
 
 def main():
     args = docopt.docopt(__doc__)
