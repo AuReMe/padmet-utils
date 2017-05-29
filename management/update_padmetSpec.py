@@ -70,9 +70,15 @@ def main():
                 else:
                     if verbose: print("copy: %s %s/%s" %(element_id, count, nb_elements))
                     padmetSpec.copyNode(padmetRef, element_id)
-                    padmetSpec.dicOfNode[element_id].misc["SOURCE"] = [source]
+                    try:
+                        padmetSpec.dicOfNode[element_id].misc["SOURCE"].append(source)
+                    except KeyError:
+                        padmetSpec.dicOfNode[element_id].misc["SOURCE"] = [source]
                     if len(comment) != 0:
-                        padmetSpec.dicOfNode[element_id].misc["COMMENT"] = [comment]
+                        try:
+                            padmetSpec.dicOfNode[element_id].misc["COMMENT"].append(comment)
+                        except KeyError:
+                            padmetSpec.dicOfNode[element_id].misc["COMMENT"] = [comment]
             elif action == "delete":
                 if verbose:
                     print("delete: %s %s/%s" %(element_id, count, nb_elements))

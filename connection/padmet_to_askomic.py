@@ -38,12 +38,13 @@ options:
     --output_dir=DIR
     -v
 """
-from lib.padmetSpec import PadmetSpec
-from lib.padmetRef import PadmetRef
+from padmet.padmetSpec import PadmetSpec
+from padmet.padmetRef import PadmetRef
 from itertools import izip_longest
 import os
 import csv
 import docopt
+import time
 
 def main():
     args = docopt.docopt(__doc__)
@@ -84,22 +85,22 @@ def main():
 
         if verbose: print("\tExtracting reactions")
         all_rxn_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "reaction"]
-        extract_nodes(all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"tag":padmetRef_name})
+        if all_rxn_nodes: extract_nodes(all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"tag":padmetRef_name})
         if verbose: print("\t%s reactions" %len(all_rxn_nodes))
 
         if verbose: print("\tExtracting compounds")
         all_cpd_nodes = set([padmetRef.dicOfNode[rlt.id_out] for rlt in padmetRef.getAllRelation() if rlt.type in ["consumes","produces"]])
-        extract_nodes(all_cpd_nodes, "compound", padmetRef_folder+"cpd.tsv")
+        if all_cpd_nodes: extract_nodes(all_cpd_nodes, "compound", padmetRef_folder+"cpd.tsv")
         if verbose: print("\t%s compounds" %len(all_cpd_nodes))
     
         if verbose: print("\tExtracting pathways")
         all_pwy_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "pathway"]
-        extract_nodes(all_pwy_nodes, "pathway", padmetRef_folder+"pwy.tsv")
+        if all_pwy_nodes: extract_nodes(all_pwy_nodes, "pathway", padmetRef_folder+"pwy.tsv")
         if verbose: print("\t%s pathways" %len(all_pwy_nodes))
 
         if verbose: print("\tExtracting xrefs")
         all_xref_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "xref"]
-        extract_nodes(all_xref_nodes, "xref", padmetRef_folder+"xref.tsv")
+        if all_xref_nodes: extract_nodes(all_xref_nodes, "xref", padmetRef_folder+"xref.tsv")
         if verbose: print("\t%s xrefs" %len(all_xref_nodes))
 
     else:
@@ -111,30 +112,29 @@ def main():
 
         if verbose: print("\tExtracting all reactions")
         spec_all_rxn_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"] 
-        fieldnames = ["reaction","tag"]
-        with open(padmetSpec_folder+"rxn.tsv", 'w') as f:
-            writer = csv.writer(f, delimiter="\t")
-            writer.writerow(fieldnames)
-            for rxn_node in spec_all_rxn_nodes:
-                writer.writerow([rxn_node.id, padmetSpec_name])
+        if spec_all_rxn_nodes:
+            fieldnames = ["reaction","tag"]
+            with open(padmetSpec_folder+"rxn.tsv", 'w') as f:
+                writer = csv.writer(f, delimiter="\t")
+                writer.writerow(fieldnames)
+                for rxn_node in spec_all_rxn_nodes:
+                    writer.writerow([rxn_node.id, padmetSpec_name])
         if verbose: print("\t%s reactions" %len(spec_all_rxn_nodes))
 
         if verbose: print("\tExtracting specific reactions")
         spec_unique_rxn_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([node.id for node in spec_all_rxn_nodes]).difference(set([node.id for node in all_rxn_nodes]))] 
         if spec_unique_rxn_nodes: extract_nodes(spec_unique_rxn_nodes, "reaction", padmetSpec_folder+"unique_rxn.tsv", {"tag":padmetSpec_name})
-        if verbose: print("%s reactions" %len(spec_unique_rxn_nodes))
+        if verbose: print("\t%s reactions" %len(spec_unique_rxn_nodes))
 
         if verbose: print("\tExtracting specific compounds")
         spec_unique_cpd_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([rlt.id_out for rlt in padmetSpec.getAllRelation() if rlt.type in ["consumes","produces"]]).difference(set([node.id for node in all_cpd_nodes]))]
         if spec_unique_cpd_nodes: extract_nodes(spec_unique_cpd_nodes, "compound", padmetSpec_folder+"cpd.tsv")
         if verbose: print("\t%s compounds" %len(spec_unique_cpd_nodes))
 
-        """
-        if verbose: print("Extracting specific pathways")
+        if verbose: print("\tExtracting specific pathways")
         spec_unique_pwy_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([node.id for node in padmetSpec.dicOfNode.values() if node.type == "pathway"]).difference(set([node.id for node in all_pwy_nodes]))]
         if spec_unique_pwy_nodes: extract_nodes(spec_unique_pwy_nodes, "pathway", padmetSpec_folder+"pwy.tsv")
-        if verbose: print("%s pathways" %len(spec_unique_pwy_nodes))
-        """
+        if verbose: print("\t%s pathways" %len(spec_unique_pwy_nodes))
         
         if verbose: print("\tExtracting all genes")
         spec_genes_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
@@ -161,20 +161,19 @@ def main():
             rxn_cpd_data += extract_rxn_cpd(cp_rlt)
             #all is_in_pathway relations
             pwy_rlt = [rlt for rlt in padmetRef.dicOfRelationIn[rxn_id] if rlt.type == "is_in_pathway"]
-            rxn_pwy_data += extract_rxn_pwy(pwy_rlt)
+            if pwy_rlt: rxn_pwy_data += extract_rxn_pwy(pwy_rlt)
             #all has_xref relations
             rxn_xref_rlt = [rlt for rlt in padmetRef.dicOfRelationIn[rxn_id] if rlt.type == "has_xref"]
-            entity_xref_data += extract_entity_xref(rxn_xref_rlt, padmetRef)
+            if rxn_xref_rlt: entity_xref_data += extract_entity_xref(rxn_xref_rlt, padmetRef)
 
         if verbose: print("\tExtracting relations compound-has_xref-xref")
         for cpd_node in all_cpd_nodes:
             cpd_id = cpd_node.id
-            #if verbose: print("Compound %s" %cpd_id)
             try:
                 cpd_xref_rlt = [rlt for rlt in padmetRef.dicOfRelationIn[cpd_id] if rlt.type == "has_xref"]
+                if cpd_xref_rlt: entity_xref_data += extract_entity_xref(cpd_xref_rlt, padmetRef)
             except KeyError:
                 pass
-            entity_xref_data += extract_entity_xref(cpd_xref_rlt, padmetRef)
         
         if rxn_cpd_data:
             if verbose: print("\t\tCreating rxn_cpd.tsv")
@@ -193,7 +192,7 @@ def main():
         rxn_gene_data = []
         entity_xref_data = []
         if padmetRef:
-            if verbose: print("PadmetRef given, extracting relations for unique reactions only")
+            if verbose: print("\tPadmetRef given, extracting relations for unique reactions only")
             if verbose: print("\tExtracting relations reaction-[consumes/produces]-compound")
             if verbose: print("\tExtracting relations reaction-is_in_pathway-pathway")
             if verbose: print("\tExtracting relations reactions-has_xref-xref")
@@ -325,20 +324,21 @@ def extract_rxn_pwy(rxn_pwy_rlt):
 def pwy_rate(padmetRef, padmetSpec, tag, output):
     all_pathways_dict = extract_pwy(padmetRef)    
     network_pathways_dict = extract_pwy(padmetSpec)
-    fieldnames = ["pathway","concerns@tag","RATE"]
-    with open(output, 'w') as f:
-        writer = csv.writer(f, delimiter="\t")
-        writer.writerow(fieldnames)
-        for pwy_id, rxns_set in network_pathways_dict.items():
-            #pwy_id = "PWY-5497"
-            #rxns_set = network_pathways_dict["PWY-5497"]
-            all_rxns_set = all_pathways_dict[pwy_id]
-            nb_all_rxns = len(all_rxns_set)
-            nb_in_network = len(rxns_set.intersection(all_rxns_set))
-            #rate nb rxn in network / nb total rxn in pwy
-            rate = round(float(nb_in_network)/float(nb_all_rxns),2)
-            rate = str(rate).replace(".",",")
-            writer.writerow([pwy_id, tag, rate])
+    if network_pathways_dict:
+        fieldnames = ["pathway","concerns@tag","RATE"]
+        with open(output, 'w') as f:
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(fieldnames)
+            for pwy_id, rxns_set in network_pathways_dict.items():
+                #pwy_id = "PWY-5497"
+                #rxns_set = network_pathways_dict["PWY-5497"]
+                all_rxns_set = all_pathways_dict[pwy_id]
+                nb_all_rxns = len(all_rxns_set)
+                nb_in_network = len(rxns_set.intersection(all_rxns_set))
+                #rate nb rxn in network / nb total rxn in pwy
+                rate = round(float(nb_in_network)/float(nb_all_rxns),2)
+                rate = str(rate).replace(".",",")
+                writer.writerow([pwy_id, tag, rate])
 
 def extract_pwy(padmet):
     #get all pathways in ref in dict: k=pwy_id, v = set(rxn_id in pwy)
