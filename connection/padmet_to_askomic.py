@@ -82,6 +82,11 @@ def main():
     #Converting nodes data to tsv format
     if padmetRef_file:
         if verbose: print("Extracting nodes from %s" %padmetRef_name)
+        with open(padmetRef_folder+"tag.tsv", 'w') as f:
+            fieldnames = ["tag"]
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(fieldnames)
+            writer.writerow([padmetRef_name])
 
         if verbose: print("\tExtracting reactions")
         all_rxn_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "reaction"]
@@ -108,12 +113,18 @@ def main():
         all_rxn_nodes, all_cpd_nodes, all_pwy_nodes, all_xref_nodes=[[]]*4
 
     if padmetSpec_file:
+        with open(padmetRef_folder+"tag.tsv", 'w') as f:
+            fieldnames = ["tag"]
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(fieldnames)
+            writer.writerow([padmetRef_name])
+
         if verbose: print("Extracting nodes from %s" %padmetSpec_name)
 
         if verbose: print("\tExtracting all reactions")
         spec_all_rxn_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"] 
         if spec_all_rxn_nodes:
-            fieldnames = ["reaction","tag"]
+            fieldnames = ["reaction","concerns@tag"]
             with open(padmetSpec_folder+"rxn.tsv", 'w') as f:
                 writer = csv.writer(f, delimiter="\t")
                 writer.writerow(fieldnames)
@@ -337,7 +348,7 @@ def pwy_rate(padmetRef, padmetSpec, tag, output):
                 nb_in_network = len(rxns_set.intersection(all_rxns_set))
                 #rate nb rxn in network / nb total rxn in pwy
                 rate = round(float(nb_in_network)/float(nb_all_rxns),2)
-                rate = str(rate).replace(".",",")
+                rate = str(rate).replace(",",".")
                 writer.writerow([pwy_id, tag, rate])
 
 def extract_pwy(padmet):

@@ -76,19 +76,19 @@ def main():
                 else:
                     direction = " =>/<=> "
 
-                id_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out
+                id_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out+"["+rlt.misc["COMPARTMENT"][0]+"]"
                 for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
                 if rlt.type == "consumes"]
-                id_products = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out
+                id_products = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out+"["+rlt.misc["COMPARTMENT"][0]+"]"
                 for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
                 if rlt.type == "produces"]
                 idRef_formula = " + ".join(id_reactants)+direction+" + ".join(id_products)
                 
                 try:
-                    cname_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0] 
+                    cname_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]" 
                     for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
                     if rlt.type == "consumes"]
-                    cname_products = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0]
+                    cname_products = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]"
                     for rlt in padmetRef.dicOfRelationIn.get(reac_id,None)
                     if rlt.type == "produces"]
                     cname_formula = " + ".join(cname_reactants)+direction+" + ".join(cname_products)
