@@ -89,49 +89,58 @@ def main():
     and "and" in parseNotes(rxn).get("GENE_ASSOCIATION","")]
     if verbose: print("nb TU reactions: %s" %len(TU_reactions))
     
-    count = 0
-    rxn_to_add = {}
-    for rxn in TU_reactions:
-        match_subsets = []
-        count += 1
-        if verbose: print("reaction %s/%s %s" %(count, len(TU_reactions), rxn.id))
-        #rxn = TU_reactions[0]
-        ga = parseNotes(rxn)["GENE_ASSOCIATION"]
-        all_genes = parseGeneAssoc(ga)
-        ga_for_gbr = re.sub(r" or " , "|", ga)
-        ga_for_gbr = re.sub(r" and " , "&", ga_for_gbr)
-        ga_for_gbr = re.sub(r"\s" , "", ga_for_gbr)
-        ga_for_gbr = "\"" + ga_for_gbr + "\""
-        #for edi test only
-        #ga_subsets = eval(subprocess.check_output("python3 grammar-boolean-rapsody.py "+ga_for_gbr, shell=True))
-        ga_subsets = eval(subprocess.check_output("python3 "+dir_path_gbr+" "+ga_for_gbr, shell=True))
-        
-        [match_subsets.append(subset) for subset in ga_subsets if set(subset).issubset(ortho_in_omcl_and_inp)]
-        if match_subsets:
-            print("\tTo add, OMCL & INPA valide")
-            new_ga = " or ".join(["("+" and ".join(subset)+")" for subset in match_subsets])
-            print("\t"+new_ga)
-            rxn_to_add[rxn] = new_ga
-    print("%s/%s reactions to add" %(len(rxn_to_add),len(TU_reactions)))
-
-    reader_study = SBMLReader()
-    document_study = reader_study.readSBML(study_metabolic)
-    for i in range(document_study.getNumErrors()):
-        print (document_study.getError(i).getMessage())
-    model_study = document_study.getModel()
+    if TU_reactions:
+        count = 0
+        rxn_to_add = {}
+        for rxn in TU_reactions:
+            match_subsets = []
+            count += 1
+            if verbose: print("reaction %s/%s %s" %(count, len(TU_reactions), rxn.id))
+            #rxn = TU_reactions[0]
+            ga = parseNotes(rxn)["GENE_ASSOCIATION"]
+            all_genes = parseGeneAssoc(ga)
+            ga_for_gbr = re.sub(r" or " , "|", ga)
+            ga_for_gbr = re.sub(r" and " , "&", ga_for_gbr)
+            ga_for_gbr = re.sub(r"\s" , "", ga_for_gbr)
+            ga_for_gbr = "\"" + ga_for_gbr + "\""
+            #for edi test only
+            #ga_subsets = eval(subprocess.check_output("python3 grammar-boolean-rapsody.py "+ga_for_gbr, shell=True))
+            ga_subsets = eval(subprocess.check_output("python3 "+dir_path_gbr+" "+ga_for_gbr, shell=True))
+            
+            [match_subsets.append(subset) for subset in ga_subsets if set(subset).issubset(ortho_in_omcl_and_inp)]
+            if match_subsets:
+                print("\tTo add, OMCL & INPA valide")
+                new_ga = " or ".join(["("+" and ".join(subset)+")" for subset in match_subsets])
+                print("\t"+new_ga)
+                rxn_to_add[rxn] = new_ga
+        print("%s/%s reactions to add" %(len(rxn_to_add),len(TU_reactions)))
     
-    for rxn, new_ga in rxn_to_add.items():
-        notes = "<body xmlns=\"http://www.w3.org/1999/xhtml\">"
-        notes += "<p>"+"GENE_ASSOCIATION:" + new_ga + "</p>"
-        notes += "</body>"
-        check(rxn.setNotes(notes), 'set notes %s' %notes)
-        allSpecies = set([p.getSpecies() for p in rxn.getListOfProducts()]).union(set([r.getSpecies() for r in rxn.getListOfReactants()]))
-        for species_id in allSpecies:
-            if model_study.getSpecies(species_id) is None:
-                print("%s not in study model" %species_id)
-                species_sbml = model.getSpecies(species_id)
-                model_study.addSpecies(species_sbml)
-        model_study.addReaction(rxn)
+        reader_study = SBMLReader()
+        document_study = reader_study.readSBML(study_metabolic)
+        for i in range(document_study.getNumErrors()):
+            print (document_study.getError(i).getMessage())
+        model_study = document_study.getModel()
+        
+        for rxn, new_ga in rxn_to_add.items():
+            notes = "<body xmlns=\"http://www.w3.org/1999/xhtml\">"
+            notes += "<p>"+"GENE_ASSOCIATION:" + new_ga + "</p>"
+            notes += "</body>"
+            check(rxn.setNotes(notes), 'set notes %s' %notes)
+            allSpecies = set([p.getSpecies() for p in rxn.getListOfProducts()]).union(set([r.getSpecies() for r in rxn.getListOfReactants()]))
+            for species_id in allSpecies:
+                if model_study.getSpecies(species_id) is None:
+                    print("%s not in study model" %species_id)
+                    species_sbml = model.getSpecies(species_id)
+                    model_study.addSpecies(species_sbml)
+            model_study.addReaction(rxn)
+
+    reactions_to_remove = []
+    for reaction in listOfReactions:
+        if "GENE_ASSOCIATION" not in parseNotes(reaction).keys():
+            reactions_to_remove.append(reaction.getId())
+    for rId in reactions_to_remove:
+        listOfReactions.remove(rId)
+
     writeSBMLToFile(document, output)
 
 
