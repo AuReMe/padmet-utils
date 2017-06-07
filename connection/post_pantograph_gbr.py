@@ -97,7 +97,7 @@ def main():
             count += 1
             if verbose: print("reaction %s/%s %s" %(count, len(TU_reactions), rxn.id))
             #rxn = TU_reactions[0]
-            ga = parseNotes(rxn)["GENE_ASSOCIATION"]
+            ga = parseNotes(rxn)["GENE_ASSOCIATION"][0]
             all_genes = parseGeneAssoc(ga)
             ga_for_gbr = re.sub(r" or " , "|", ga)
             ga_for_gbr = re.sub(r" and " , "&", ga_for_gbr)
@@ -135,13 +135,15 @@ def main():
             model_study.addReaction(rxn)
 
     reactions_to_remove = []
+    listOfReactions = model_study.getListOfReactions()
     for reaction in listOfReactions:
         if "GENE_ASSOCIATION" not in parseNotes(reaction).keys():
             reactions_to_remove.append(reaction.getId())
     for rId in reactions_to_remove:
+        print("Removing %s without gene association" %rId)
         listOfReactions.remove(rId)
 
-    writeSBMLToFile(document, output)
+    writeSBMLToFile(document_study, output)
 
 
 if __name__ == "__main__":
