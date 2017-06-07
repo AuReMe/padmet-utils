@@ -65,7 +65,7 @@ def main():
         exchange_rxn_id = "ExchangeSeed_"+seed_id+"_b"
         if exchange_rxn_id not in padmetSpec.dicOfNode.keys():
             if verbose: print("creating exchange reaction: id = ExchangeSeed_%s_b" %seed_id)
-            exchange_rxn_node = Node("reaction", exchange_rxn_id, {"DIRECTION":["LEFT-TO-RIGHT"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from boundary to extracellular compartment"]})
+            exchange_rxn_node = Node("reaction", exchange_rxn_id, {"DIRECTION":["REVERSIBLE"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from boundary to extracellular compartment"]})
             padmetSpec.dicOfNode[exchange_rxn_id] = exchange_rxn_node
             consumption_rlt = Relation(exchange_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["C-BOUNDARY"]})
             padmetSpec._addRelation(consumption_rlt)        
@@ -75,7 +75,7 @@ def main():
         transport_rxn_id = "TransportSeed_"+seed_id+"_e"
         if transport_rxn_id not in padmetSpec.dicOfNode.keys():
             if verbose: print("creating trasnport reaction: id = TransportSeed_%s_e" %seed_id)
-            transport_rxn_node = Node("reaction", transport_rxn_id, {"DIRECTION":["LEFT-TO-RIGHT"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from extracellular to cytosol compartment"]})
+            transport_rxn_node = Node("reaction", transport_rxn_id, {"DIRECTION":["REVERSIBLE"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from extracellular to cytosol compartment"]})
             padmetSpec.dicOfNode[transport_rxn_id] = transport_rxn_node
             consumption_rlt = Relation(transport_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["e"]})
             padmetSpec._addRelation(consumption_rlt)        
