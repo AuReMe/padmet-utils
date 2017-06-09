@@ -142,6 +142,7 @@ def main():
 
     reactions_to_remove = []
     listOfReactions = model_study.getListOfReactions()
+    listOfSpecies = model_study.getListOfSpecies()
     for reaction in listOfReactions:
         if "GENE_ASSOCIATION" not in parseNotes(reaction).keys():
             reactions_to_remove.append(reaction.getId())
@@ -149,6 +150,11 @@ def main():
         print("Removing %s without gene association" %rId)
         listOfReactions.remove(rId)
 
+    species_in_rxn_temp = [[r.getSpecies() for r in rxn.getListOfReactants()]+[p.getSpecies() for p in rxn.getListOfProducts()] for rxn in listOfReactions]
+    species_in_rxn = set()
+    [species_in_rxn.update(set(x)) for x in species_in_rxn_temp]
+    [listOfSpecies.remove(sId) for sId in set([x.id for x in listOfSpecies]).difference(species_in_rxn)]    
+    
     writeSBMLToFile(document_study, output)
 
 
