@@ -78,7 +78,7 @@ def main():
     ortho_in_inp = set(inp_dict.keys())
     ortho_in_omcl_and_inp = ortho_in_omcl.intersection(ortho_in_inp)
 
-
+    #read in model metabolic reactions with or & and in gene assoc'
     reader = SBMLReader()
     document = reader.readSBML(model_metabolic)
     for i in range(document.getNumErrors()):
@@ -88,6 +88,12 @@ def main():
     TU_reactions = [rxn for rxn in listOfReactions if "or" in parseNotes(rxn).get("GENE_ASSOCIATION","") 
     and "and" in parseNotes(rxn).get("GENE_ASSOCIATION","")]
     if verbose: print("nb TU reactions: %s" %len(TU_reactions))
+
+    reader_study = SBMLReader()
+    document_study = reader_study.readSBML(study_metabolic)
+    for i in range(document_study.getNumErrors()):
+        print (document_study.getError(i).getMessage())
+    model_study = document_study.getModel()
     
     if TU_reactions:
         count = 0
