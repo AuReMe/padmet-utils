@@ -6,7 +6,7 @@ Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
 and return result in standard output
 
 usage:
-    fba_test.py --sbml=FILE
+    fba_on_reaction.py --sbml=FILE
 
 option:
     -h --help    Show help.
@@ -22,6 +22,13 @@ def main():
     sbml_file = args["--sbml"]
     model=create_cobra_model_from_sbml_file(sbml_file)
     model.optimize()
+    try:
+        biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
+        biomassname = biomassrxn.id
+    except IndexError:
+        print("Need to set OBJECTIVE COEFFICIENT to '1.0' for the reaction to test")
+        exit()
+    print("Testing reaction %s" %biomassname)
     print( 'growth rate: '+str(model.solution.f)+ '\n'+ 'status: '+ model.solution.status)
     if (model.solution.f > 1e-5):
         #FVA_result = flux_analysis.variability.flux_variability_analysis(model, fraction_of_optimum=1.0)
@@ -58,8 +65,6 @@ def main():
             print('\t'+r_id_decoded+' ('+r_id+')')
     
     else:
-        biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
-        biomassname = biomassrxn.id
         metabolites = biomassrxn._metabolites
         # print(metabolites)
         # only append to the list compounds that are reactants
