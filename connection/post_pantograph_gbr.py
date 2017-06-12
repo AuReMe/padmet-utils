@@ -85,8 +85,8 @@ def main():
         print (document.getError(i).getMessage())
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
-    TU_reactions = [rxn for rxn in listOfReactions if "or" in parseNotes(rxn).get("GENE_ASSOCIATION","") 
-    and "and" in parseNotes(rxn).get("GENE_ASSOCIATION","")]
+    TU_reactions = [rxn for rxn in listOfReactions if "or" in parseNotes(rxn).get("GENE_ASSOCIATION",[""])[0] 
+    and "and" in parseNotes(rxn).get("GENE_ASSOCIATION",[""])[0]]
     if verbose: print("nb TU reactions: %s" %len(TU_reactions))
 
     reader_study = SBMLReader()
@@ -115,8 +115,12 @@ def main():
             
             [match_subsets.append(subset) for subset in ga_subsets if set(subset).issubset(ortho_in_omcl_and_inp)]
             if match_subsets:
+                new_ga = []
                 print("\tTo add, OMCL & INPA valide")
-                new_ga = " or ".join(["("+" and ".join(subset)+")" for subset in match_subsets])
+                for subset in match_subsets:
+                    correspondance = "("+" and ".join([" or ".join(inp_dict.get(gene,set()).union(inp_dict.get(gene,set()))) for gene in subset])+")"
+                    new_ga.append(correspondance)
+                new_ga = " or ".join(new_ga)
                 print("\t"+new_ga)
                 rxn_to_add[rxn] = new_ga
         print("%s/%s reactions to add" %(len(rxn_to_add),len(TU_reactions)))
