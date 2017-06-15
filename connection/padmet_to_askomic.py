@@ -83,10 +83,10 @@ def main():
     if padmetRef_file:
         if verbose: print("Extracting nodes from %s" %padmetRef_name)
         with open(padmetRef_folder+"tag.tsv", 'w') as f:
-            fieldnames = ["tag"]
+            fieldnames = ["tag","value"]
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(fieldnames)
-            writer.writerow([padmetRef_name])
+            writer.writerow([padmetRef_name, padmetRef_name])
 
         if verbose: print("\tExtracting reactions")
         all_rxn_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "reaction"]
@@ -113,18 +113,18 @@ def main():
         all_rxn_nodes, all_cpd_nodes, all_pwy_nodes, all_xref_nodes=[[]]*4
 
     if padmetSpec_file:
-        with open(padmetRef_folder+"tag.tsv", 'w') as f:
-            fieldnames = ["tag"]
+        with open(padmetSpec_folder+"tag.tsv", 'w') as f:
+            fieldnames = ["tag","value"]
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(fieldnames)
-            writer.writerow([padmetRef_name])
+            writer.writerow([padmetSpec_name,padmetSpec_name])
 
         if verbose: print("Extracting nodes from %s" %padmetSpec_name)
 
         if verbose: print("\tExtracting all reactions")
         spec_all_rxn_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"] 
         if spec_all_rxn_nodes:
-            fieldnames = ["reaction","concerns@tag"]
+            fieldnames = ["reaction","tag"]
             with open(padmetSpec_folder+"rxn.tsv", 'w') as f:
                 writer = csv.writer(f, delimiter="\t")
                 writer.writerow(fieldnames)

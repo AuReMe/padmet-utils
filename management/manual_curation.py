@@ -10,15 +10,15 @@ If the file new_reaction_data exist: calls rxn_creator.py
 Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
 
 usage:
-    manual_curation.py --padmetSpec=FILE --reaction_to_add_delete=FILE  [--new_reaction_data=FILE] [--padmetRef=FILE] [--new_padmet=FILE] [-v]
-    manual_curation.py --padmetSpec=FILE [--reaction_to_add_delete=FILE]  --new_reaction_data=FILE [--padmetRef=FILE] [--new_padmet=FILE] [-v]
+    manual_curation.py --padmetSpec=FILE --reaction_to_add_delete=FILE  [--new_rxn_data=FILE] [--padmetRef=FILE] [--new_padmet=FILE] [-v]
+    manual_curation.py --padmetSpec=FILE [--reaction_to_add_delete=FILE]  --new_rxn_data=FILE [--padmetRef=FILE] [--new_padmet=FILE] [-v]
 
 option:
     -h --help    Show help.
     --padmetSpec=FILE    pathname to the padmet to update
     --padmetRef=FILE    pathname of the padmet representing the reference database
     --reaction_to_add_delete=FILE    pathname to the file used for update_padmetSpec.py
-    --reaction_creator=FILE    pathname to the file used for rxn_creator.py
+    --new_rxn_data=FILE    pathname to the file used for rxn_creator.py
     --new_padmet=FILE    pathname to the ouput. if None. Overwritting padmetSpec
     -v    print info
 """
@@ -34,13 +34,15 @@ def main():
     args = docopt.docopt(__doc__)
     chronoDepart = time()
     reaction_to_add_delete = args["--reaction_to_add_delete"]
-    new_reaction_data = args["--new_reaction_data"]
+    new_rxn_data = args["--new_rxn_data"]
     padmetSpec = args["--padmetSpec"]
     padmetRef = args["--padmetRef"]
     new_padmet = args["--new_padmet"]
+    if not new_padmet:
+        new_padmet = padmetSpec
     verbose = args["-v"]
-    if os.path.isfile(new_reaction_data):
-        rxn_creator_cmd = "python "+dir_path_reaction_creator+" --padmetSpec="+padmetSpec+" --padmetRef="+padmetRef+" --new_reaction_data="+new_reaction_data+\
+    if new_rxn_data and os.path.isfile(new_rxn_data):
+        rxn_creator_cmd = "python "+dir_path_reaction_creator+" --padmetSpec="+padmetSpec+" --padmetRef="+padmetRef+" --new_rxn_data="+new_rxn_data+\
         " --new_padmet="+new_padmet
         if verbose:
             rxn_creator_cmd += " -v"
