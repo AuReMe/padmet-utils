@@ -26,6 +26,9 @@ option:
 """
 from padmet.padmetSpec import PadmetSpec
 from padmet.padmetRef import PadmetRef
+from padmet.sbmlPlugin import parseGeneAssoc
+from padmet.node import Node
+from padmet.relation import Relation
 from time import time
 import csv
 import docopt
@@ -49,42 +52,55 @@ def main():
     new_padmet = args["--new_padmet"]
     if new_padmet is None:
         new_padmet = args["--padmetSpec"]
-    with open(updateFile,'r') as f:
-        file_in_array = f.read().splitlines()
-        data = dict([(line.split("\t")[0],line.split("\t")[-1]) for line in file_in_array
-        if line.split("\t")[0] != "idRef"])
-    
-    nb_elements = len(data.keys())
-    count = 0
 
-    chronoDepart = time()    
-
+    chronoDepart = time()
     with open(updateFile, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter="\t")
         for row in reader:
-            element_id, comment, action = row["idRef"], row["Comment"], row["Action"]
-            count += 1
+            element_id, comment, action, genes_assoc = row["idRef"], row["Comment"], row["Action"], row.get("Genes",None)
             if action == "add":
                 if padmetRef is None:
                     if verbose: print("No given padmetRef, unable to copy %s" %element_id)
                 else:
-                    if verbose: print("copy: %s %s/%s" %(element_id, count, nb_elements))
+                    if verbose: print("Adding: %s" %(element_id))
                     padmetSpec.copyNode(padmetRef, element_id)
                     try:
                         padmetSpec.dicOfNode[element_id].misc["SOURCE"].append(source)
                     except KeyError:
                         padmetSpec.dicOfNode[element_id].misc["SOURCE"] = [source]
-                    if len(comment) != 0:
+                    if comment:
                         try:
                             padmetSpec.dicOfNode[element_id].misc["COMMENT"].append(comment)
                         except KeyError:
                             padmetSpec.dicOfNode[element_id].misc["COMMENT"] = [comment]
+                    if genes_assoc:
+                        all_genes = parseGeneAssoc(genes_assoc)
+                        padmetSpec.createNode("suppData",{"GENE_ASSOCIATION":[genes_assoc]},[[element_id,"has_suppData","_self"]])
+                        nbGenes = len(all_genes)
+                        if verbose: print("%s is linked to %s genes" %(element_id, nbGenes))
+                        for gene_id in all_genes:
+                            try:
+                                #check if gene already in the padmet
+                                gene_node = padmetSpec.dicOfNode[gene_id]
+                            except KeyError:
+                                gene_node = Node("gene",gene_id)
+                                padmetSpec.dicOfNode[gene_id] = gene_node
+                            try:
+                                linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[element_id] if rlt.type == "is_linked_to"
+                                and rlt.id_out == gene_id][0]
+                                try:
+                                    linked_rlt.misc["ASSIGNMENT"].append(source)
+                                except KeyError:
+                                    linked_rlt.misc["ASSIGNMENT"] = [source]
+                            except IndexError:
+                                linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"ASSIGNMENT":[source]})
+                                padmetSpec._addRelation(linked_rlt)
             elif action == "delete":
                 if verbose:
-                    print("delete: %s %s/%s" %(element_id, count, nb_elements))
+                    print("deleting: %s" %(element_id))
                 padmetSpec.delNode(element_id)
             elif action == "":
-                print("Nothing to do for: %s %s/%s" %(element_id, count, nb_elements))
+                print("Nothing to do for: %s" %(element_id))
                 pass
             else:
                 print("Action: %s unknown for %s" %(action, element_id))
@@ -103,8 +119,9 @@ def getTemplate(output):
         fieldnames = ["idRef","Comment", "Action"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="\t")
         writer.writeheader()
-        writer.writerow({"idRef": 'rxn_id_1', 'Comment': 'Reaction deleted for x reason', "Action":"delete"})
-        writer.writerow({"idRef": 'rxn_id_2', 'Comment': 'Reaction added for x reason', "Action":"add"})
+        writer.writerow({"idRef": 'rxn_id_1', 'Comment': 'Reaction deleted for x reason', "Genes":"", "Action":"delete"})
+        writer.writerow({"idRef": 'rxn_id_2', 'Comment': 'Reaction added for x reason', "Genes":"(gene1 and gene2)", "Action":"add"})
+        writer.writerow({"idRef": 'rxn_id_3', 'Comment': 'Reaction added for x reason', "Genes":"", "Action":"add"})
 
 
 if __name__ == "__main__":

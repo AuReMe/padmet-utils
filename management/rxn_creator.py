@@ -26,6 +26,7 @@ from padmet.padmetSpec import PadmetSpec
 from padmet.padmetRef import PadmetRef
 from padmet.node import Node
 from padmet.relation import Relation
+from padmet.sbmlPlugin import parseGeneAssoc
 import re
 try:
     import docopt
@@ -42,7 +43,7 @@ def main():
         output = args["--output"]
         getTemplate(output)
         return
-
+    source = "manual"
     padmetSpec = PadmetSpec(args["--padmetSpec"])
     if args["--padmetRef"] is not None:
         padmetRef  = PadmetRef(args["--padmetRef"])
@@ -94,25 +95,34 @@ def main():
             print("Please choose a value in ['true','false'] for the reversibility of the reaction: %s" %reaction_id)
             continue
         comment = reaction_data["comment"][0]
-        node_misc = {"DIRECTION":[reaction_rev], "SOURCE":["manual"], "COMMENT":[comment]}
+        node_misc = {"DIRECTION":[reaction_rev], "SOURCE":[source], "COMMENT":[comment]}
         reaction_node = Node("reaction", reaction_id)
         reaction_node.misc = node_misc
         padmetSpec.dicOfNode[reaction_id] = reaction_node
 
-        gene_assoc = reaction_data["linked_gene"][0]
-        if len(gene_assoc) != 0:
-            if verbose: print("adding gene assocations")
-            gene_assoc = re.sub("\(|\)|\s","",gene_assoc).replace("and","or")
-            gene_assoc = gene_assoc.split("or")
-            if verbose: print("nb gene_assoc: %s" %len(gene_assoc))
-            for gene in gene_assoc:
+        genes_assoc = reaction_data["linked_gene"][0]
+        if genes_assoc:
+            all_genes = parseGeneAssoc(genes_assoc)
+            padmetSpec.createNode("suppData",{"GENE_ASSOCIATION":[genes_assoc]},[[reaction_id,"has_suppData","_self"]])
+            nbGenes = len(all_genes)
+            if verbose: print("%s is linked to %s genes" %(reaction_id, nbGenes))
+            for gene_id in all_genes:
                 try:
-                    padmetSpec.dicOfNode[gene]
+                    #check if gene already in the padmet
+                    gene_node = padmetSpec.dicOfNode[gene_id]
                 except KeyError:
-                    gene_node = Node("gene", gene)
-                    padmetSpec.dicOfNode[gene] = gene_node
-                assoc_rlt = Relation(reaction_id, "is_linked_to", gene)
-                padmetSpec._addRelation(assoc_rlt)
+                    gene_node = Node("gene",gene_id)
+                    padmetSpec.dicOfNode[gene_id] = gene_node
+                try:
+                    linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[reaction_id] if rlt.type == "is_linked_to"
+                    and rlt.id_out == gene_id][0]
+                    try:
+                        linked_rlt.misc["ASSIGNMENT"].append(source)
+                    except KeyError:
+                        linked_rlt.misc["ASSIGNMENT"] = [source]
+                except IndexError:
+                    linked_rlt = Relation(reaction_id, "is_linked_to", gene_id,{"ASSIGNMENT":[source]})
+                    padmetSpec._addRelation(linked_rlt)
 
         if verbose: print("check if all metabolites are already in the network")
         try:
