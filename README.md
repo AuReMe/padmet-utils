@@ -1,9 +1,8 @@
 ---
 title:  padmet-utils - Documentation
 author: Meziane AITE
-date: 2017-04-20
-version: 2.4
-geometry: margin=2cm
+date: 2017-06-19
+version: 2.5
 ---
 
 ################################################################################
@@ -15,7 +14,6 @@ heterogeneous knowledge and data sources, including the information reported by 
 ## Installation
 
 From git repository:
-
 	cd ~/programs
 	git clone https://gitlab.inria.fr/maite/padmet-utils.git
 
@@ -23,33 +21,37 @@ From git repository:
 
         .
         ├── README.md
+        ├── LICENSE
         ├── connection
         │    ├── biggAPI_to_padmet.py
         │    ├── biggTSV_to_padmet.py
         │    ├── compounds_to_sbml.py
         │    ├── enhanced_meneco_output.py
         │    ├── enhanced_sgs_output.py
+        │    ├── extract_rxn_sbml.py
         │    ├── extract_rxn_with_gene_assoc.py
         │    ├── gbk_to_faa.py
         │    ├── gene_to_targets.py
+        │    ├── gramma-boolean-rapsody.py
         │    ├── padmet_to_askomic.py
         │    ├── padmet_to_asp.py
         │    ├── padmet_to_sbml.py
         │    ├── pgdb_to_padmet.py
+        │    ├── post_pantograph_gbr.py
         │    ├── pre_pantograph.py
         │    ├── reactions_to_sbml.py
-        │    ├── sbml_to_gene.py
+        │    ├── sbml_to_gene_assoc.py
         │    ├── sbml_to_padmet.py
         │    └── wikipage_creation.py
         ├── exploration
-        │    ├── change_biomass_cobra.py
-        │    ├── change_biomass_cobra_allspecies.py
-        │    ├── change_biomass_cobra_givencpd.py
         │    ├── check_db.py
         │    ├── compare_sbml_padmet.py
+        │    ├── convert_sbml_db.py
         │    ├── extract_pwy_sources.py
         │    ├── extract_pwy_sources_with_filter.py
-        │    ├── fba_test.py
+        │    ├── fba_all_species.py
+        │    ├── fba_given_species.py
+        │    ├── fba_on_reaction.py
         │    ├── get_pwy_from_rxn.py
         │    ├── report_network.py
         │    └── visu_path.py

@@ -1,5 +1,20 @@
 # -*- coding: utf-8 -*-
 """
+This file is part of padmet-utils.
+
+padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
+
 @author: Meziane AITE, meziane.aite@inria.fr
 Description:
 Allows to add or delete reactions/metabolites/pathways based on the given id.
@@ -20,7 +35,7 @@ option:
     --padmetSpec=FILE    pathanme of the padmet file to update
     --padmetRef=FILE  pathname of the padmet used as database of reactions
     --updateFile=FILE    pathname of the file containing elements ids to add or delete
-    --new_padmet=FILE    pathanme of the new padmetSpec after update [default: --padmetSpec]
+    --new_padmet=FILE    pathanme of the new padmetSpec after update
     --source=STR   source of the reactions to add [default: manual]
     -v   print info
 """
