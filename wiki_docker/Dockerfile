@@ -20,14 +20,14 @@
 # as the PATH as it causes the build to transfer the entire contents of your hard drive to the Docker daemon.
 
 
-FROM debian
+FROM debian:jessie
 MAINTAINER "Pierre V. - Meziane A."
 LABEL Version="0.3"
 LABEL Vendor="INRIA-Dyliss team"
 LABEL Description="MediaWiki installation in Docker container that runs on Nginx, MySQL, php5-fpm"
 
 # Settings
-ENV MYSQL_DB_ROOT_PWD="camion"
+ENV MYSQL_DB_ROOT_PWD="db_wiki_pwd"
 ENV MEDIA_WIKI_ARCHIVE="mediawiki-1.26.2.tar.gz"
 ENV NGINX_DIR="/var/www/html/wiki"
 

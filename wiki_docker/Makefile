@@ -30,10 +30,10 @@ l: list
 i: init
 
 build:
-	docker build -t inria/media_wiki_docker .
+	docker build -t dyliss/media_wiki_docker .
 
 run:
-	@docker run -d -p 8888:80 --name $(name) inria/media_wiki_docker
+	@docker run -d -p 8888:80 --name $(name) dyliss/media_wiki_docker
 	@echo "Follow the README to configure the wiki"
 	@echo "http://localhost:8888/wiki/mw-config/index.php"
 	@echo "upgrade key: 0880a534700be3f7"
