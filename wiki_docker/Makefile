@@ -17,23 +17,8 @@
 name=default_wiki
 sendPage="wikiManager/sendPage_dir.php"
 
-all: build run
-
-b: build
-
-r: run
-
-h: help
-
-l: list
-
-i: init
-
-build:
-	docker build -t dyliss/wiki_docker .
-
 run:
-	@docker run -d -p 8888:80 --name $(name) dyliss/wiki_docker
+	@docker run -d -p 8888:80 --name $(name) docker-registry.genouest.org/dyliss/wiki_docker
 	@echo "Follow the README to configure the wiki"
 	@echo "http://localhost:8888/wiki/mw-config/index.php"
 	@echo "upgrade key: 0880a534700be3f7"
@@ -64,22 +49,11 @@ send_reactions:
 
 help:
 	@echo "Command:	Result:"
-	@echo "<make build>	Build the image."
 	@echo "<make run>	Run the image in new container, specify the name with the argument name=XXX. The default name is: "$(name)"."
 	@echo "<make init>	Initialization of mediawiki after finishing the setup, specify the name with the argument name=XXX. The default name is: "$(name)". Also specify the directory with all the wiki pages to send with the argument pages_dir=XXX. No default directory."
 	@echo "<make help>	Display this help."
 	@echo "<make version>	Display informations about the image."
-	@echo "Once the image is built and the container is up, you can access the web server through your browser at http://127.0.0.1:8888"
+	@echo "Once the container is up, you can access the web server through your browser athttp://localhost:8888/wiki/index.php?title=Main_Page"
 
-version:
-	@docker inspect --format='Description: 	{{.Config.Labels.Description}}' dyliss/wiki_docker
-	@docker inspect --format='Vendor: 	{{.Config.Labels.Vendor}}' dyliss/wiki_docker
-	@docker inspect --format='Authors: 	{{.Author}}' dyliss/wiki_docker
-	@docker inspect --format='Version: 	{{.Config.Labels.Version}}' dyliss/wiki_docker
-
-	@docker inspect --format='DockerVersion:	{{.DockerVersion}}' dyliss/wiki_docker
-	@docker inspect --format='Architecture:	{{.Architecture}}' inria/media_wiki_docker
-	@docker inspect --format='OS: 		{{.Os}}' inria/media_wiki_docker
-	@docker inspect --format='Size: 		{{.Size}} bytes' inria/media_wiki_docker
 
 

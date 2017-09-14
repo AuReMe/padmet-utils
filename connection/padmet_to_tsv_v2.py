@@ -43,13 +43,14 @@ for each cpd in cpd nodes:
         fieldnames = "entity_xref","concerns@reaction","concerns@compound","has_xref@xref"
 
 usage:
-    padmet_to_askomic.py --padmetSpec=FILE [--padmetRef=FILE] --output_dir=DIR [-v]
-    padmet_to_askomic.py --padmetRef=FILE [--padmetSpec=FILE] --output_dir=DIR [-v]
+    padmet_to_tsv.py --padmetSpec=FILE [--padmetRef=FILE] --output_dir=DIR [--url=FILE] [-v]
+    padmet_to_tsv.py --padmetRef=FILE [--padmetSpec=FILE] --output_dir=DIR [--url=FILE] [-v]
 
 options:
     -h --help     Show help.
     --padmetSpec=FILE    pathname of the padmet representing the network to convert
     --padmetRef=FILE    pathname of the padmet representing the database
+    --url=FILE    file with associated url to each element. line = url,entity id. Sep = "\t"
     --output_dir=DIR
     -v
 """
@@ -61,10 +62,12 @@ import csv
 import docopt
 
 def main():
+    global url_dict
     args = docopt.docopt(__doc__)
     padmetSpec_file = args["--padmetSpec"]
     padmetRef_file = args["--padmetRef"]
     output_dir = args["--output_dir"]
+    url_file = args["--url"]
     verbose = args["-v"]
     
     #check if output_dir exist, else create it
@@ -73,7 +76,7 @@ def main():
     if not os.path.isdir(output_dir):
         if verbose: print("Creating folder %s" %output_dir)
         os.makedirs(output_dir)
-    #loading padmetSpec and or padmetRef
+    #loading padmetSpec
     if padmetSpec_file:
         if verbose: print("Loading %s" %padmetSpec_file)
         padmetSpec = PadmetSpec(padmetSpec_file)
@@ -83,28 +86,39 @@ def main():
             if verbose: print("Creating folder %s" %padmetSpec_folder)
             os.makedirs(padmetSpec_folder)
 
+    #if padmetRef given, create folder for padmetRef
     if padmetRef_file:
         if verbose: print("Loading %s" %padmetRef_file)
         padmetRef = PadmetRef(padmetRef_file)
         padmetRef_name = os.path.splitext(os.path.basename(padmetRef_file))[0]
         padmetRef_folder = output_dir+padmetRef_name+"/"
         if not os.path.isdir(padmetRef_folder):
-            if verbose: print("Creating folder %s" %padmetSpec_folder)
+            if verbose: print("Creating folder %s" %padmetRef_folder)
             os.makedirs(padmetRef_folder)
 
+    #if url file. Create dict: k = entity id, v = url. Default = ???
+    url_dict = {"default" : "http://www.semanticweb.org/irisa/ontologies/2016/1/igepp-ontology#"}
+    if url_file:
+        with open(url_file, 'r') as f:
+            url_dict.update(dict([line.split("\t") for line in f.read().splitlines()]))
+    url_default = url_dict["default"]
     #NODES
     #Converting nodes data to tsv format
     if padmetRef_file:
         if verbose: print("Extracting nodes from %s" %padmetRef_name)
-        with open(padmetRef_folder+"tag.tsv", 'w') as f:
-            fieldnames = ["tag","value"]
+        with open(padmetRef_folder+"metabolic_network.tsv", 'w') as f:
+            fieldnames = ["metabolic_network","name"]
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(fieldnames)
-            writer.writerow([padmetRef_name, padmetRef_name])
+            try:
+                url_padmetRef_name = url_dict[padmetRef_name]
+            except KeyError:
+                url_padmetRef_name = url_dict["default"]
+            writer.writerow([url_padmetRef_name+padmetRef_name, padmetRef_name])
 
         if verbose: print("\tExtracting reactions")
         all_rxn_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "reaction"]
-        if all_rxn_nodes: extract_nodes(all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"tag":padmetRef_name})
+        if all_rxn_nodes: extract_nodes(all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"in@metabolic_network":padmetRef_name})
         if verbose: print("\t%s reactions" %len(all_rxn_nodes))
 
         if verbose: print("\tExtracting compounds")
@@ -127,44 +141,70 @@ def main():
         all_rxn_nodes, all_cpd_nodes, all_pwy_nodes, all_xref_nodes=[[]]*4
 
     if padmetSpec_file:
-        with open(padmetSpec_folder+"tag.tsv", 'w') as f:
-            fieldnames = ["tag","value"]
+        with open(padmetSpec_folder+"metabolic_network.tsv", 'w') as f:
+            fieldnames = ["metabolic_network","name"]
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(fieldnames)
-            writer.writerow([padmetSpec_name,padmetSpec_name])
+            try:
+                url_padmetSpec_name = url_dict[padmetSpec_name]
+            except KeyError:
+                url_padmetSpec_name = url_dict["default"]
+            writer.writerow([url_padmetSpec_name+padmetSpec_name,padmetSpec_name])
 
         if verbose: print("Extracting nodes from %s" %padmetSpec_name)
 
-        if verbose: print("\tExtracting all reactions")
+        if verbose: print("\tExtracting all reactions and sources")
+        all_sources = set()
         spec_all_rxn_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"] 
+        [all_sources.update(set(node.misc.get("SOURCE",[]))) for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
+        [all_sources.update(set(rlt.misc.get("ASSIGNMENT",[]))) for rlt in padmetSpec.getAllRelation() if rlt.type == "is_linked_to"]
         if spec_all_rxn_nodes:
-            fieldnames = ["reaction","tag"]
+            fieldnames = ["reaction","in@metabolic_network"]
             with open(padmetSpec_folder+"rxn.tsv", 'w') as f:
                 writer = csv.writer(f, delimiter="\t")
                 writer.writerow(fieldnames)
+                try:
+                    url_rxn = url_dict["reaction"]
+                except KeyError:
+                    url_rxn = url_dict["default"]                
                 for rxn_node in spec_all_rxn_nodes:
-                    writer.writerow([rxn_node.id, padmetSpec_name])
+                    writer.writerow([url_rxn+rxn_node.id, url_padmetSpec_name+padmetSpec_name])
+        if all_sources:
+            fieldnames = ["reconstruction_information","name"]
+            with open(padmetSpec_folder+"sources.tsv", 'w') as f:
+                writer = csv.writer(f, delimiter="\t")
+                writer.writerow(fieldnames)
+                try:
+                    url_src = url_dict["reconstruction_information"]
+                except KeyError:
+                    url_src = url_dict["default"]                
+                for src in all_sources:
+                    writer.writerow([url_src+src, src])
+            
         if verbose: print("\t%s reactions" %len(spec_all_rxn_nodes))
 
-        if verbose: print("\tExtracting specific reactions")
+        if verbose: print("\tExtracting reactions not in padmetRef")
         spec_unique_rxn_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([node.id for node in spec_all_rxn_nodes]).difference(set([node.id for node in all_rxn_nodes]))] 
-        if spec_unique_rxn_nodes: extract_nodes(spec_unique_rxn_nodes, "reaction", padmetSpec_folder+"unique_rxn.tsv", {"tag":padmetSpec_name})
+        if spec_unique_rxn_nodes: extract_nodes(spec_unique_rxn_nodes, "reaction", padmetSpec_folder+"unique_rxn.tsv", {"in@metabolic_network":padmetSpec_name})
         if verbose: print("\t%s reactions" %len(spec_unique_rxn_nodes))
 
-        if verbose: print("\tExtracting specific compounds")
+        if verbose: print("\tExtractingcompounds not in padmetRef")
         spec_unique_cpd_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([rlt.id_out for rlt in padmetSpec.getAllRelation() if rlt.type in ["consumes","produces"]]).difference(set([node.id for node in all_cpd_nodes]))]
         if spec_unique_cpd_nodes: extract_nodes(spec_unique_cpd_nodes, "compound", padmetSpec_folder+"cpd.tsv")
         if verbose: print("\t%s compounds" %len(spec_unique_cpd_nodes))
 
-        if verbose: print("\tExtracting specific pathways")
+        if verbose: print("\tExtracting pathways not in padmetRef")
         spec_unique_pwy_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([node.id for node in padmetSpec.dicOfNode.values() if node.type == "pathway"]).difference(set([node.id for node in all_pwy_nodes]))]
         if spec_unique_pwy_nodes: extract_nodes(spec_unique_pwy_nodes, "pathway", padmetSpec_folder+"pwy.tsv")
         if verbose: print("\t%s pathways" %len(spec_unique_pwy_nodes))
         
         if verbose: print("\tExtracting all genes")
         spec_genes_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
-        if spec_genes_nodes: extract_nodes(spec_genes_nodes, "gene", padmetSpec_folder+"gene.tsv", {"tag":padmetSpec_name})
+        if spec_genes_nodes: extract_nodes(spec_genes_nodes, "gene", padmetSpec_folder+"gene.tsv", opt_col = {"in@metabolic_network":padmetSpec_name})
         if verbose: print("\t%s genes" %len(spec_genes_nodes))
+
+
+
 
     #RELATIONS
     #Converting relations data to tsv format
@@ -174,7 +214,7 @@ def main():
         rxn_pwy_data = []
         entity_xref_data = []
         if verbose: print("\tExtracting relations reaction-[consumes/produces]-compound")
-        if verbose: print("\tExtracting relations reaction-is_in_pathway-pathway")
+        if verbose: print("\tExtracting relations reaction-is_inclued_in-pathway")
         if verbose: print("\tExtracting relations reactions-has_xref-xref")
 
         for rxn_node in all_rxn_nodes:
@@ -199,6 +239,15 @@ def main():
                 if cpd_xref_rlt: entity_xref_data += extract_entity_xref(cpd_xref_rlt, padmetRef)
             except KeyError:
                 pass
+
+        if verbose: print("\tExtracting relations pwy-has_xref-xref")
+        for pwy_node in all_pwy_nodes:
+            pwy_id = pwy_node.id
+            try:
+                pwy_xref_rlt = [rlt for rlt in padmetRef.dicOfRelationIn[pwy_id] if rlt.type == "has_xref"]
+                if pwy_xref_rlt: entity_xref_data += extract_entity_xref(pwy_xref_rlt, padmetRef)
+            except KeyError:
+                pass
         
         if rxn_cpd_data:
             if verbose: print("\t\tCreating rxn_cpd.tsv")
@@ -216,6 +265,17 @@ def main():
         rxn_pwy_data = []
         rxn_gene_data = []
         entity_xref_data = []
+
+        fieldnames = ["rxn_reconstruction_info","concers@reaction","has_metadata@reconstruction_information","concerns@metabolic_network"]
+        with open(padmetSpec_folder+"rxn_sources.tsv", 'w') as f:
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(fieldnames)
+            for rxn_node in spec_all_rxn_nodes:
+                for src in rxn_node.misc.get("SOURCE",[]):
+                    line = [url_rxn+rxn_node.id, url_src+src, url_padmetSpec_name+padmetSpec_name]
+                    line.insert(0,"_".join(line))
+                    writer.writerow(line)            
+
         if padmetRef:
             if verbose: print("\tPadmetRef given, extracting relations for unique reactions only")
             if verbose: print("\tExtracting relations reaction-[consumes/produces]-compound")
@@ -235,7 +295,7 @@ def main():
                 #all has_xref relations
                 rxn_xref_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "has_xref"]
                 entity_xref_data += extract_entity_xref(rxn_xref_rlt, padmetSpec)
-
+                #all sources in relations
             if verbose: print("\tExtracting relations compound-has_xref-xref")
             for cpd_node in spec_unique_cpd_nodes:
                 cpd_id = cpd_node.id
@@ -262,7 +322,7 @@ def main():
         else:
             if verbose: print("No padmetRef given, extracting relations for all reactions")
                 
-            for rxn_node in [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]:
+            for rxn_node in spec_all_rxn_nodes:
                 rxn_id = rxn_node.id
                 #all is_linked_to relations
                 rxn_gene_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
@@ -291,11 +351,18 @@ def extract_nodes(nodes, entity_id, output, opt_col = {}):
     """
     all_keys = set()
     [all_keys.update(node.misc.keys()) for node in nodes]
+    try:
+        url_entity = url_dict[entity_id]
+    except KeyError:
+        url_entity = url_dict["default"]
     if opt_col:
-        fieldnames = [entity_id] + opt_col.keys() + list(all_keys)
+        fieldnames = [url_entity+entity_id] + opt_col.keys() + list(all_keys)
     else:
         fieldnames = [entity_id] + list(all_keys)
-        
+    try:
+        fieldnames.remove("SOURCE")
+    except ValueError:
+        pass
     
     with open(output, 'w') as f:
         writer = csv.writer(f, delimiter="\t")
@@ -312,12 +379,37 @@ def extract_nodes(nodes, entity_id, output, opt_col = {}):
                         d[k_index] = v
                 writer.writerow(d)
             
-    
+def extract_pwy(padmet):
+    """
+    from padmet return a dict, k = pwy_id, v = set of rxn_id in pwy
+    """
+    #get all pathways in ref in dict: k=pwy_id, v = set(rxn_id in pwy)
+    #get all pathways in in spec dict: k=pwy_id, v = set(rxn_id in pwy)
+    pathways_rxn_dict = dict([(node.id, set([rlt.id_in for rlt in padmet.dicOfRelationOut[node.id] 
+    if rlt.type == "is_in_pathway" and padmet.dicOfNode[rlt.id_in].type == "reaction"])) for node in padmet.dicOfNode.values() if node.type == "pathway"])
+    #pop k,v if len(v) == 0 (if not v)
+    [pathways_rxn_dict.pop(k) for k,v in pathways_rxn_dict.items() if not v]
+    return pathways_rxn_dict
+
 def extract_rxn_cpd(rxn_cpd_rlt):
+    """
+    for rlt in rxn_cpd_rlt, append in data: [rxn_id,cpd_id(consumed),'',stoich,compartment]
+    and/or [rxn_id,'',cpd_id(produced),stoich,compartment]. The value in index 0
+    is a merge of all data to create a unique relation id
+    """
     data = []
+    try:
+        url_rxn = url_dict["reaction"]
+    except KeyError:
+        url_rxn = url_dict["default"]
+    try:
+        url_cpd = url_dict["compound"]
+    except KeyError:
+        url_cpd = url_dict["default"]
+    
     for rlt in rxn_cpd_rlt:
-        rxn_id = rlt.id_in
-        cpd_id = rlt.id_out
+        rxn_id = url_rxn + rlt.id_in
+        cpd_id = url_cpd + rlt.id_out
         stoich = rlt.misc["STOICHIOMETRY"][0]
         if "n" in stoich: stoich = "1"
         if rlt.type == "consumes":
@@ -330,6 +422,9 @@ def extract_rxn_cpd(rxn_cpd_rlt):
     return data
 
 def rxn_cpd_file(data, output):
+    """
+    from data obtained with extract_rxn_cpd(), create file rxn_cpd
+    """
     fieldnames = ["rxn_cpd","concerns@reaction","consumes@compound","produces@compound","stoichiometry","compartment"]
     with open(output, 'w') as f:
         writer = csv.writer(f, delimiter="\t")
@@ -337,20 +432,52 @@ def rxn_cpd_file(data, output):
         [writer.writerow(d) for d in data]
 
 def extract_rxn_pwy(rxn_pwy_rlt):
+    """
+    for rlt in rxn_pwy_rlt, append in data: [rxn_id,pwy_id]. The value in index 0
+    is a merge of all data to create a unique relation id
+    """
     data = []
+    try:
+        url_rxn = url_dict["reaction"]
+    except KeyError:
+        url_rxn = url_dict["default"]
+    try:
+        url_pwy = url_dict["pathway"]
+    except KeyError:
+        url_pwy = url_dict["default"]
     for rlt in rxn_pwy_rlt:
-        rxn_id = rlt.id_in
-        pwy_id = rlt.id_out
+        rxn_id = url_rxn + rlt.id_in
+        pwy_id = url_pwy + rlt.id_out
         line = [rxn_id, pwy_id]
         line.insert(0,"_".join(line))
         data.append(line)
     return data
 
-def pwy_rate(padmetRef, padmetSpec, tag, output):
+def rxn_pwy_file(data, output):
+    fieldnames = ["rxn_pwy","concerns@reaction","in_included_in@pathway"]
+    with open(output, 'w') as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(fieldnames)
+        [writer.writerow(d) for d in data]
+
+
+def pwy_rate(padmetRef, padmetSpec, metabolic_network, output):
+    """
+    pwy rate in padmetSpec is calculated based on padmetRef
+    """
     all_pathways_dict = extract_pwy(padmetRef)    
     network_pathways_dict = extract_pwy(padmetSpec)
+    try:
+        url_pwy = url_dict["pathway"]
+    except KeyError:
+        url_pwy = url_dict["default"]
+    try:
+        url_padmetSpec = url_dict[padmetSpec_name]
+    except KeyError:
+        url_padmetSpec = url_dict["default"]
+
     if network_pathways_dict:
-        fieldnames = ["pathway","concerns@tag","RATE"]
+        fieldnames = ["pathway","is_part_of@metabolic_network","RATE"]
         with open(output, 'w') as f:
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(fieldnames)
@@ -363,24 +490,7 @@ def pwy_rate(padmetRef, padmetSpec, tag, output):
                 #rate nb rxn in network / nb total rxn in pwy
                 rate = round(float(nb_in_network)/float(nb_all_rxns),2)
                 rate = str(rate).replace(",",".")
-                writer.writerow([pwy_id, tag, rate])
-
-def extract_pwy(padmet):
-    #get all pathways in ref in dict: k=pwy_id, v = set(rxn_id in pwy)
-    #get all pathways in in spec dict: k=pwy_id, v = set(rxn_id in pwy)
-    pathways_rxn_dict = dict([(node.id, set([rlt.id_in for rlt in padmet.dicOfRelationOut[node.id] 
-    if rlt.type == "is_in_pathway" and padmet.dicOfNode[rlt.id_in].type == "reaction"])) for node in padmet.dicOfNode.values() if node.type == "pathway"])
-    #pop k,v if len(v) == 0 (if not v)
-    [pathways_rxn_dict.pop(k) for k,v in pathways_rxn_dict.items() if not v]
-    return pathways_rxn_dict
-
-
-def rxn_pwy_file(data, output):
-    fieldnames = ["rxn_pwy","concerns@reaction","in_pwy@pathway"]
-    with open(output, 'w') as f:
-        writer = csv.writer(f, delimiter="\t")
-        writer.writerow(fieldnames)
-        [writer.writerow(d) for d in data]
+                writer.writerow([url_pwy + pwy_id, url_padmetSpec + metabolic_network, rate])
 
 def extract_entity_xref(entity_xref_rlt, padmet):
     data = []
@@ -388,16 +498,23 @@ def extract_entity_xref(entity_xref_rlt, padmet):
         entity_id = rlt.id_in
         xref_id = rlt.id_out
         if padmet.dicOfNode[entity_id].type == "reaction":
-            line = [entity_id, "",xref_id]
+            try:
+                url_rxn = url_dict["reaction"]
+            except KeyError:
+                url_rxn = url_dict["default"] ~#TODO IICCCCCCCCIIIII !!!!!!!!
+            line = [xref_id,entity_id, "", ""]
+            line.insert(0, "_".join(line))
+        elif padmet.dicOfNode[entity_id].type == "pathway":
+            line = [xref_id, "", entity_id, ""]
             line.insert(0, "_".join(line))
         else:
-            line = ["", entity_id, xref_id]
+            line = [xref_id, "", "", entity_id]
             line.insert(0, "_".join(line))
         data.append(line)
     return data
 
 def entity_xref_file(data, output):
-    fieldnames = ["entity_xref","concerns@reaction","concerns@compound","has_xref@xref"]
+    fieldnames = ["entity_xref", "has_metadata@xref", "concerns@reaction","concerns@pathway","concerns@compound"]
     with open(output, 'w') as f:
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(fieldnames)
@@ -415,7 +532,7 @@ def extract_rxn_gene(rxn_gene_rlt):
     return data
 
 def rxn_gene_file(data, output):
-    fieldnames = ["rxn_gene","concerns@reaction","linked_to@gene","source"]
+    fieldnames = ["rxn_gene","concerns@reaction","is_linked_to@gene","has_metadata@reconstruction_information"]
     with open(output, 'w') as f:
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(fieldnames)

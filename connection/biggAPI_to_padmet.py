@@ -58,7 +58,7 @@ def main():
                     ['gene','has_xref','xref'], ['gene','has_suppData','suppData'],
                     ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','is_linked_to','gene'],
                     ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y']] 
-    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.4"}, "DB_info":{"DB":"BIGG", "version":"2.0"}}
+    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.5"}, "DB_info":{"DB":"BIGG", "version":"2.0"}}
     padmetRef = PadmetRef()
     if verbose: print("setting policy")
     padmetRef.setPolicy(policyInArray)
@@ -106,7 +106,7 @@ def main():
     """
     if verbose: print("updating padmet")
     count = 0
-    for rxn_id in all_reactions_ids:
+    for rxn_id in [i for i in all_reactions_ids if not i.startswith("BIOMASS")]:
         count += 1
         if verbose: print("reaction: %s, %s/%s" %(rxn_id, count, len(all_reactions_ids)))
         rxn_response = requests.get(url_bigg + "universal/reactions/" +rxn_id)
