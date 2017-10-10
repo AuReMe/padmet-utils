@@ -81,52 +81,55 @@ def main():
         assoc_pathways_reactions[pwy_id] = set(rxns_assoc)
     
     #3:extract db ref from mnxref
-    if verbose: print("extract association %s to metacyc from mnxref" %db_origin)
-    with open(mnx_file,'r') as f:
-        data = [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#")]
-    #k = mnxref, v: dict k' in [bigg,metacyc], v = [list]
-    dict_mnxref = dict([(v[1],dict()) for v in data])
-    for value in data:
-        xref, mnx = value
-        if (xref.startswith(db_origin) or xref.startswith("metacyc")):
-            db, _id = xref.split(":")
-            try:
-                dict_mnxref[mnx][db].add(_id)
-            except KeyError:
-                dict_mnxref[mnx].update({db: set([_id])})
-    for k,v in dict_mnxref.items():
-        if len(v.keys()) < 2:
-            dict_mnxref.pop(k)
-                
-    
-    #map reactions id
-    assoc_sgs_id_reactions_mapped = {}
-    for sgs_id, set_rxn in assoc_sgs_id_reactions.iteritems():
-        for assoc_dict in dict_mnxref.values():
-            for _id in assoc_dict[db_origin]:
-                if _id in set_rxn:
-                    try:
-                        assoc_sgs_id_reactions_mapped[sgs_id].update(assoc_dict["metacyc"])
-                    except KeyError:
-                        assoc_sgs_id_reactions_mapped[sgs_id] = assoc_dict["metacyc"]
-     
-    """
-    for each set of reactions associated to a sgs, get the intersection of reactions associated to each pathways.
-    if an intersection length is > 0 ==> the sgs covere a part of this pwy.
-    Extract which reactions and the ratio on all the reactions in the pathways.
-    """
-    for sgs_id, rxns_in_sgs in assoc_sgs_id_reactions_mapped.iteritems():
-        for pwy_id, rxns_in_pwy in assoc_pathways_reactions.iteritems():
-            rxns_inter = rxns_in_sgs.intersection(rxns_in_pwy)
-            len_rxns_inter = len(rxns_inter)
-            if len_rxns_inter > 0 and float(len_rxns_inter)/float(len(rxns_in_pwy)) > float(1)/float(3):
-                data = str(len_rxns_inter)+"/"+str(len(rxns_in_pwy))+": "
-                data += ";".join([rxn_id for rxn_id in rxns_inter])
+    if mnx_file:
+        if verbose: print("extract association %s to metacyc from mnxref" %db_origin)
+        with open(mnx_file,'r') as f:
+            data = [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#")]
+        #k = mnxref, v: dict k' in [bigg,metacyc], v = [list]
+        dict_mnxref = dict([(v[1],dict()) for v in data])
+        for value in data:
+            xref, mnx = value
+            if (xref.startswith(db_origin) or xref.startswith("metacyc")):
+                db, _id = xref.split(":")
                 try:
-                    assoc_pathways_sgs[pwy_id][sgs_id] = data
+                    dict_mnxref[mnx][db].add(_id)
                 except KeyError:
-                    assoc_pathways_sgs[pwy_id] = {sgs_id:data}
+                    dict_mnxref[mnx].update({db: set([_id])})
+        for k,v in dict_mnxref.items():
+            if len(v.keys()) < 2:
+                dict_mnxref.pop(k)
+                
+        
+        #map reactions id
+        assoc_sgs_id_reactions_mapped = {}
+        for sgs_id, set_rxn in assoc_sgs_id_reactions.iteritems():
+            for assoc_dict in dict_mnxref.values():
+                for _id in assoc_dict[db_origin]:
+                    if _id in set_rxn:
+                        try:
+                            assoc_sgs_id_reactions_mapped[sgs_id].update(assoc_dict["metacyc"])
+                        except KeyError:
+                            assoc_sgs_id_reactions_mapped[sgs_id] = assoc_dict["metacyc"]
+     
+        """
+        for each set of reactions associated to a sgs, get the intersection of reactions associated to each pathways.
+        if an intersection length is > 0 ==> the sgs covere a part of this pwy.
+        Extract which reactions and the ratio on all the reactions in the pathways.
+        """
+        for sgs_id, rxns_in_sgs in assoc_sgs_id_reactions_mapped.iteritems():
+            for pwy_id, rxns_in_pwy in assoc_pathways_reactions.iteritems():
+                rxns_inter = rxns_in_sgs.intersection(rxns_in_pwy)
+                len_rxns_inter = len(rxns_inter)
+                if len_rxns_inter > 0 and float(len_rxns_inter)/float(len(rxns_in_pwy)) > float(1)/float(3):
+                    data = str(len_rxns_inter)+"/"+str(len(rxns_in_pwy))+": "
+                    data += ";".join([rxn_id for rxn_id in rxns_inter])
+                    try:
+                        assoc_pathways_sgs[pwy_id][sgs_id] = data
+                    except KeyError:
+                        assoc_pathways_sgs[pwy_id] = {sgs_id:data}
     
+   
+
     if verbose: print("creating output %s" %output)
     with open(output, 'w') as f:
         header = "\t".join(["SGS ID","GENES ID","RXN ID_"+db_origin ,"RXN ID_metacyc"])+"\n"
@@ -136,10 +139,13 @@ def main():
             line = [sgs_id,";".join(genes_id)]
             rxns_id_bigg = ";".join(assoc_sgs_id_reactions[sgs_id])
             line.append(rxns_id_bigg)
-            try:
-                rxns_id_metacyc = ";".join(assoc_sgs_id_reactions_mapped[sgs_id])
-            except KeyError:
-                rxns_id_metacyc = "NA"
+            if mnx_file:
+                try:
+                    rxns_id_metacyc = ";".join(assoc_sgs_id_reactions_mapped[sgs_id])
+                except KeyError:
+                    rxns_id_metacyc = "NA"
+            else:
+                rxns_id_metacyc = ";".join(assoc_sgs_id_reactions[sgs_id])
             line.append(rxns_id_metacyc)
             line = "\t".join(line)+"\n"
             f.write(line)
