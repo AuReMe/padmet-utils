@@ -94,7 +94,7 @@ def main():
     sbmlFileName = []
     if os.path.isdir(args["--sbml"]):
         for abspath,y,filenames in os.walk(args["--sbml"]):
-            sbmlFileName += [abspath+"/"+filename for filename in filenames]
+            sbmlFileName += [abspath+"/"+filename for filename in filenames if not filename.startswith(".") and filename.endswith((".sbml",".xml"))]
     else:
         sbmlFileName = [args["--sbml"]]
 

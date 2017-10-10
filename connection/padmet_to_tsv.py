@@ -356,7 +356,7 @@ def extract_pwy(padmet):
     """
     #get all pathways in ref in dict: k=pwy_id, v = set(rxn_id in pwy)
     #get all pathways in in spec dict: k=pwy_id, v = set(rxn_id in pwy)
-    pathways_rxn_dict = dict([(node.id, set([rlt.id_in for rlt in padmet.dicOfRelationOut[node.id] 
+    pathways_rxn_dict = dict([(node.id, set([rlt.id_in for rlt in padmet.dicOfRelationOut.get(node.id,[]) 
     if rlt.type == "is_in_pathway" and padmet.dicOfNode[rlt.id_in].type == "reaction"])) for node in padmet.dicOfNode.values() if node.type == "pathway"])
     #pop k,v if len(v) == 0 (if not v)
     [pathways_rxn_dict.pop(k) for k,v in pathways_rxn_dict.items() if not v]
