@@ -36,7 +36,7 @@ option:
     --padmetRef=FILE  pathname of the padmet used as database of reactions
     --updateFile=FILE    pathname of the file containing elements ids to add or delete
     --new_padmet=FILE    pathanme of the new padmetSpec after update
-    --source=STR   source of the reactions to add [default: manual]
+    --source=STR   source of the reactions to add [default: MANUAL]
     -v   print info
 """
 from padmet.padmetSpec import PadmetSpec
@@ -79,37 +79,50 @@ def main():
                 else:
                     if verbose: print("Adding: %s" %(element_id))
                     padmetSpec.copyNode(padmetRef, element_id)
-                    try:
-                        padmetSpec.dicOfNode[element_id].misc["SOURCE"].append(source)
-                    except KeyError:
-                        padmetSpec.dicOfNode[element_id].misc["SOURCE"] = [source]
-                    if comment:
-                        try:
-                            padmetSpec.dicOfNode[element_id].misc["COMMENT"].append(comment)
-                        except KeyError:
-                            padmetSpec.dicOfNode[element_id].misc["COMMENT"] = [comment]
+                    
+                    #reconstructionData:
+                    reconstructionData_id = element_id+"_reconstructionData_"+source
+                    if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                        print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id, source))
+                    reconstructionData =  {"SOURCE":[source], "COMMENT":[comment]}
+                    reconstructionData_rlt = Relation(element_id,"has_reconstructionData",reconstructionData_id)
+                    padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
+                    if verbose: print("Creating reconstructionData %s" %reconstructionData_id)                
+                    
                     if genes_assoc:
+                        #suppData:
+                        suppData_id = element_id+"_SuppData_"+source
+                        if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                            print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id, source))
+                        suppData = {"GENE_ASSOCIATION":[genes_assoc]}
+                        #create the node suppData and the relation has_suppData
+                        suppData_rlt = Relation(element_id,"has_suppData",suppData_id)
+                        padmetSpec.createNode("suppData", suppData_id, suppData,[suppData_rlt])
+                        if verbose: print("Creating suppData %s" %suppData_id)                
+
                         all_genes = parseGeneAssoc(genes_assoc)
-                        padmetSpec.createNode("suppData",{"GENE_ASSOCIATION":[genes_assoc]},[[element_id,"has_suppData","_self"]])
                         nbGenes = len(all_genes)
                         if verbose: print("%s is linked to %s genes" %(element_id, nbGenes))
                         for gene_id in all_genes:
-                            try:
-                                #check if gene already in the padmet
-                                gene_node = padmetSpec.dicOfNode[gene_id]
-                            except KeyError:
-                                gene_node = Node("gene",gene_id)
-                                padmetSpec.dicOfNode[gene_id] = gene_node
-                            try:
-                                linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[element_id] if rlt.type == "is_linked_to"
-                                and rlt.id_out == gene_id][0]
-                                try:
-                                    linked_rlt.misc["ASSIGNMENT"].append(source)
-                                except KeyError:
-                                    linked_rlt.misc["ASSIGNMENT"] = [source]
-                            except IndexError:
-                                linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"ASSIGNMENT":[source]})
-                                padmetSpec._addRelation(linked_rlt)
+                           try:
+                               #check if gene already in the padmet
+                               padmetSpec.dicOfNode[gene_id]
+                           except KeyError:
+                               padmetSpec.createNode("gene",gene_id)
+                           #check if rxn already linked to gene x
+                           try:
+                               linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[element_id] if rlt.type == "is_linked_to"
+                               and rlt.id_out == gene_id][0]
+                               #rxn already linked to gene x, update misc
+                               try:
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"].append(source)
+                               except KeyError:
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"] = [source]
+                           #rxn not linked to gene x
+                           except IndexError:
+                               linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[source]})
+                           padmetSpec._addRelation(linked_rlt)
+
             elif action == "delete":
                 if verbose:
                     print("deleting: %s" %(element_id))
