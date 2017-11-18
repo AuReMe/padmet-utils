@@ -56,6 +56,10 @@ def main():
     padmetRef  = PadmetRef(args["--padmetRef"])
     output = args["--output"]
     verbose = args["-v"]
+    boundary_compart = "C-BOUNDARY"
+    e_compart = "e"
+    c_compart = "c"
+    source = "MANUAL"
     if output is None:
         output = args["--padmetSpec"]
     
@@ -80,22 +84,41 @@ def main():
         exchange_rxn_id = "ExchangeSeed_"+seed_id+"_b"
         if exchange_rxn_id not in padmetSpec.dicOfNode.keys():
             if verbose: print("creating exchange reaction: id = ExchangeSeed_%s_b" %seed_id)
-            exchange_rxn_node = Node("reaction", exchange_rxn_id, {"DIRECTION":["REVERSIBLE"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from boundary to extracellular compartment"]})
+            exchange_rxn_node = Node("reaction", exchange_rxn_id, {"DIRECTION":["REVERSIBLE"]})
             padmetSpec.dicOfNode[exchange_rxn_id] = exchange_rxn_node
-            consumption_rlt = Relation(exchange_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["C-BOUNDARY"]})
+            consumption_rlt = Relation(exchange_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":[boundary_compart]})
             padmetSpec._addRelation(consumption_rlt)        
-            production_rlt = Relation(exchange_rxn_id, "produces", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["e"]})
+            production_rlt = Relation(exchange_rxn_id, "produces", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":[e_compart]})
             padmetSpec._addRelation(production_rlt)
+
+            #reconstructionData:
+            reconstructionData_id = exchange_rxn_id+"_reconstructionData_"+source
+            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                print("Warning: The reaction %s seems to be already added from the same source %s" %(exchange_rxn_id, source))
+            reconstructionData = {"SOURCE":[source],"COMMENT":["Added to manage seeds from boundary to extracellular compartment"]}
+            reconstructionData_rlt = Relation(exchange_rxn_id,"has_reconstructionData",reconstructionData_id)
+            padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
+            if verbose: print("Creating reconstructionData %s" %reconstructionData_id)                
 
         transport_rxn_id = "TransportSeed_"+seed_id+"_e"
         if transport_rxn_id not in padmetSpec.dicOfNode.keys():
             if verbose: print("creating trasnport reaction: id = TransportSeed_%s_e" %seed_id)
-            transport_rxn_node = Node("reaction", transport_rxn_id, {"DIRECTION":["LEFT-TO-RIGHT"],"SOURCE":["manual"],"COMMENT":["Added to manage seeds from extracellular to cytosol compartment"]})
+            transport_rxn_node = Node("reaction", transport_rxn_id, {"DIRECTION":["LEFT-TO-RIGHT"]})
             padmetSpec.dicOfNode[transport_rxn_id] = transport_rxn_node
-            consumption_rlt = Relation(transport_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["e"]})
+            consumption_rlt = Relation(transport_rxn_id, "consumes", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":[e_compart]})
             padmetSpec._addRelation(consumption_rlt)        
-            production_rlt = Relation(transport_rxn_id, "produces", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":["c"]})
+            production_rlt = Relation(transport_rxn_id, "produces", seed_id, {"STOICHIOMETRY":[1.0],"COMPARTMENT":[c_compart]})
             padmetSpec._addRelation(production_rlt)
+
+            #reconstructionData:
+            reconstructionData_id = transport_rxn_id+"_reconstructionData_"+source
+            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                print("Warning: The reaction %s seems to be already added from the same source %s" %(transport_rxn_id, source))
+            reconstructionData = {"SOURCE":[source],"COMMENT":["Added to manage seeds from extracellular to cytosol compartment"]}
+            reconstructionData_rlt = Relation(transport_rxn_id,"has_reconstructionData",reconstructionData_id)
+            padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
+            if verbose: print("Creating reconstructionData %s" %reconstructionData_id)                
+
     padmetSpec.generateFile(output)
         
 if __name__ == "__main__":

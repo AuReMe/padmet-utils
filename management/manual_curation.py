@@ -25,7 +25,7 @@ If the file new_reaction_data exist: calls rxn_creator.py
 Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
 
 usage:
-    manual_curation.py --padmetSpec=FILE --reaction_to_add_delete=FILE  [--new_rxn_data=FILE] [--padmetRef=FILE] [--new_padmet=FILE] [-v]
+    manual_curation.py --padmetSpec=FILE --reaction_to_add_delete=FILE  [--new_rxn_data=FILE] [--padmetRef=FILE] [--new_padmet=FILE] ["--CATEGORY_TOOL"] [-v]
     manual_curation.py --padmetSpec=FILE [--reaction_to_add_delete=FILE]  --new_rxn_data=FILE [--padmetRef=FILE] [--new_padmet=FILE] [-v]
 
 option:
@@ -35,6 +35,7 @@ option:
     --reaction_to_add_delete=FILE    pathname to the file used for update_padmetSpec.py
     --new_rxn_data=FILE    pathname to the file used for rxn_creator.py
     --new_padmet=FILE    pathname to the ouput. if None. Overwritting padmetSpec
+    --CATEGORY_TOOL=STR:STR   When adding reactions based on a tool result, ex: GAPFILLING:MENECO
     -v    print info
 """
 import docopt

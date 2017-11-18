@@ -27,7 +27,7 @@ When delete: the element is deleted from padmetSpec.
 Whene '': Nothing to do, but allow to manage the output of enhancedMenecoOutput.py
 
 usage:
-    update_padmetSpec.py --padmetSpec=FILE --updateFile=FILE [--padmetRef=FILE] [--source=STR] [--new_padmet=FILE] [-v]
+    update_padmetSpec.py --padmetSpec=FILE --updateFile=FILE [--padmetRef=FILE] [--source=STR] [--new_padmet=FILE] [-v] [--category_tool=STR:STR]
     update_padmetSpec.py --getTemplate --output=FILE
 
 option:
@@ -37,6 +37,7 @@ option:
     --updateFile=FILE    pathname of the file containing elements ids to add or delete
     --new_padmet=FILE    pathanme of the new padmetSpec after update
     --source=STR   source of the reactions to add [default: MANUAL]
+    --category_tool=STR:STR   When adding reactions based on a tool result, ex: GAPFILLING:MENECO
     -v   print info
 """
 from padmet.padmetSpec import PadmetSpec
@@ -46,11 +47,11 @@ from padmet.node import Node
 from padmet.relation import Relation
 from time import time
 import csv
+import os
 import docopt
 
 def main():
     args = docopt.docopt(__doc__)
-    
     get_template = args["--getTemplate"]
     if get_template:
         output = args["--output"]
@@ -65,11 +66,17 @@ def main():
     source = args["--source"]
     verbose = args["-v"]
     new_padmet = args["--new_padmet"]
+    if args["--category_tool"] is not None:
+        category, tool = args["--category_tool"].split(":")
+    else:
+        category, tool = None, None
     if new_padmet is None:
         new_padmet = args["--padmetSpec"]
-
     chronoDepart = time()
     with open(updateFile, 'r') as csvfile:
+        file_name = os.path.basename(updateFile)
+        file_name = os.path.splitext(file_name)[0]
+
         reader = csv.DictReader(csvfile, delimiter="\t")
         for row in reader:
             element_id, comment, action, genes_assoc = row["idRef"], row["Comment"], row["Action"], row.get("Genes",None)
@@ -84,7 +91,10 @@ def main():
                     reconstructionData_id = element_id+"_reconstructionData_"+source
                     if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
                         print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id, source))
-                    reconstructionData =  {"SOURCE":[source], "COMMENT":[comment]}
+                    if category:
+                        reconstructionData =  {"SOURCE":[file_name], "COMMENT":[comment], "TOOL":[tool], "CATEGORY":[category]}
+                    else:                        
+                        reconstructionData =  {"SOURCE":[source], "COMMENT":[comment]}
                     reconstructionData_rlt = Relation(element_id,"has_reconstructionData",reconstructionData_id)
                     padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
                     if verbose: print("Creating reconstructionData %s" %reconstructionData_id)                
