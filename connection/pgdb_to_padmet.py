@@ -91,12 +91,13 @@ metabolic-reaction.xml: optional
 for each reaction:
 
 usage:
-    pgdb_to_padmet.py --version=V --db=ID --output=FILE --directory=DIR [-v] [-g] [-m]
-    pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [-v]
+    pgdb_to_padmet.py --version=V --db=ID --output=FILE --directory=DIR [--source=STR] [-v] [-g] [-m]
+    pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
 
 options:
     -h --help     Show help.
-    --version=V    metacyc version
+    --version=V    Xcyc version
+    --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...)
     --output=FILE    padmet file corresponding to the DB
     --directory=DIR    directory containg all the .dat files of metacyc (data)
     --classes_file=FILE   
@@ -107,6 +108,7 @@ options:
     --pathways_file=FILE
     --genes_file=FILE
     --metabolic_reactions=FILE
+    --source=STR    Tag associated to the source of the reactions, used to ensure traceability [default: 'pathwaytool_original_genome']
     -m    use the metabolic-reactions.xml file to enhance the database
     -g    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
     -v   print info
@@ -120,17 +122,13 @@ import padmet.sbmlPlugin as sbmlPlugin
 from libsbml import *
 import docopt
 
-#debug
-#args = {"--version":"pwt","--db":"BIOCYC","--output":"x.padmet","--directory":"/home/maite/Forge/docker/aureme/aureme_sample_output/annotation_based_reconstruction/original_genome/","-g":True,"-m":False}
 
 #1 Parsing .dat
 #2 creating nodes and relations
 def main():
     chronoDepart = time()
 
-    global meta_max_id, new_id_prefix, regex_purge, regex_xref, list_of_relation, verbose, def_compart_in, def_compart_out
-    new_id_prefix = "META"
-    meta_max_id = 0
+    global regex_purge, regex_xref, list_of_relation, verbose, def_compart_in, def_compart_out, with_genes, source
     regex_purge = re.compile("<.*?>|\|")
     regex_xref = re.compile('^\((?P<DB>\S*)\s*"(?P<ID>\S*)"')
     list_of_relation = []
@@ -144,6 +142,7 @@ def main():
     path = args["--directory"]
     enhanced_db = args["-m"]
     with_genes = args["-g"]
+    source = args["--source"]
     
     if path is not None:
         classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
@@ -169,14 +168,14 @@ def main():
                     ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
                     ['gene','is_a_class','class'], ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
                     ['pathway','is_a_class','class'], ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'], 
-                    ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction','ASSIGNMENT','X','SCORE','Y'],
+                    ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
                     ['protein','is_in_species','class'], 
-                    ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','is_in_pathway','pathway'],  
+                    ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],  
                     ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                     ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                     ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                    ['reaction','is_linked_to','gene','ASSIGNMENT','X']]
-    dbNotes = {"PADMET":{"creation":today_date,"version":"2.3"},"DB_info":{"DB":db,"version":version}}
+                    ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
+    dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
     padmet = PadmetRef()
     if verbose: print("setting policy")
     padmet.setPolicy(POLICY_IN_ARRAY)
@@ -223,6 +222,13 @@ def main():
         except KeyError:
             padmet.dicOfRelationOut[rlt.id_out] = [rlt]
 
+    #temp, removing or not reactions without gene assoc:
+    """
+    all_reactions = [node for node in padmet.dicOfNode.values() if node.type == "reaction"]
+    rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
+    [padmet.delNode(node.id) for node in rxn_to_del]
+    """
+
     padmet.generateFile(output)
 
     chrono = (time() - chronoDepart)
@@ -241,17 +247,16 @@ def classes_parser(filePath, padmet):
     Create a relation current node is_a_class type
     - For each Synonyms:
     this information is stocked in padmet as: has_name relation btw a node and a name_node
-    create a new name_node with name_node.id = new_prefix_id + "_" + meta_max_id (incremented) and name_node.misc = {LABEL:[synonym]}
+    create a new name_node with name_node.id = class_id+"_names" and name_node.misc = {LABEL:[synonyms]}
     Create a relation current node has_name name_node.id
     - For each DBLINKS:
     DBLINKS is parsed with regex_xref to get the db and the id
     this information is stocked in padmet as: has_xref relation btw a node and a xref_node
-    create a new xref_node with xref_node.id = new_prefix_id + "_" + meta_max_id (incremented) and xref_node.misc = {DB:[db], ID:[id]}
+    create a new xref_node with xref_node.id = class_id+"_xrefs" and xref_node.misc = {db:[id]}
     Create a relation current node has_xref xref_node.id
     """
-    global meta_max_id
     dict_data = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -274,7 +279,7 @@ def classes_parser(filePath, padmet):
     nb_classes = str(len(dict_data.keys()))
     for class_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print(str(count)+"/"+nb_classes+"\t"+class_id)
+        if verbose: print("%s/%s\t%s" %(count, nb_classes, class_id))
         class_node = Node("class", class_id)
         padmet.dicOfNode[class_id] = class_node
         try:
@@ -309,18 +314,16 @@ def reactions_parser(filePath, padmet):
     Create a relation current node is_a_class type
     - For each Synonyms:
     this information is stocked in padmet as: has_name relation btw a node and a name_node
-    create a new name_node with name_node.id = new_prefix_id + "_" + meta_max_id (incremented) and name_node.misc = {LABEL:[synonym]}
+    create a new name_node with name_node.id = reaction_id+"_names" name_node.misc = {LABEL:[synonyms]}
     Create a relation current node has_name name_node.id
     - For each DBLINKS:
     DBLINKS is parsed with regex_xref to get the db and the id
     this information is stocked in padmet as: has_xref relation btw a node and a xref_node
-    create a new xref_node with xref_node.id = new_prefix_id + "_" + meta_max_id (incremented) and xref_node.misc = {DB:[db], ID:[id]}
+    create a new xref_node with xref_node.id = reaction_id+"_xrefs" and xref_node.misc = {db:[id]}
     Create a relation current node has_xref xref_node.id
-    
     """
-    global meta_max_id
     dict_data = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = [line for line in f.read().splitlines() if not line.startswith("#") and not line == "//"]
         index = -1        
         for line in data:
@@ -380,7 +383,7 @@ def reactions_parser(filePath, padmet):
     for rxn_id, dict_values in dict_data.iteritems():
         if "LEFT" in dict_values.keys() or "RIGHT" in dict_values.keys():
             count += 1
-            if verbose: print(str(count)+"/"+nb_rxn+"\t"+rxn_id)
+            if verbose: print("%s/%s\t%s" %(count, nb_rxn, rxn_id))
             rxn_node = Node("reaction", rxn_id)
             padmet.dicOfNode[rxn_id] = rxn_node
             try:
@@ -426,6 +429,14 @@ def reactions_parser(filePath, padmet):
                 _setXrefs(xrefs, rxn_id, padmet)
             except KeyError:
                 pass
+            if with_genes:
+                reconstructionData_id = rxn_id+"_reconstructionData_"+source
+                if reconstructionData_id in padmet.dicOfNode.keys() and verbose:
+                    print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
+                reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
+                reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
+                padmet.dicOfNode[reconstructionData_id] = Node("reconstructionData", reconstructionData_id, reconstructionData)
+                list_of_relation.append(reconstructionData_rlt)
             try:
                 reactants_data = dict_values["LEFT"]
                 for reactant_id, stoichiometry, compartment in reactants_data:
@@ -474,9 +485,8 @@ def reactions_parser(filePath, padmet):
                 rxn_node.misc["DIRECTION"] = ["LEFT-TO-RIGHT"]
 
 def pathways_parser(filePath, padmet):
-    global meta_max_id
     dict_data = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -500,7 +510,7 @@ def pathways_parser(filePath, padmet):
     nb_pathways = str(len(dict_data.keys()))
     for pathway_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print(str(count)+"/"+nb_pathways+"\t"+pathway_id)        
+        if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
         pathway_node = Node("pathway", pathway_id)
         padmet.dicOfNode[pathway_id] = pathway_node
         try:
@@ -544,9 +554,8 @@ def pathways_parser(filePath, padmet):
             pass
 
 def compounds_parser(filePath, padmet):
-    global meta_max_id
     dict_data = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -570,7 +579,7 @@ def compounds_parser(filePath, padmet):
     nb_cpds = str(len(dict_data.keys()))
     for compound_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print(str(count)+"/"+nb_cpds+"\t"+compound_id)
+        if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
         compound_node = Node("compound", compound_id)
         padmet.dicOfNode[compound_id] = compound_node
         try:
@@ -606,10 +615,9 @@ def compounds_parser(filePath, padmet):
             pass
 
 def genes_parser(filePath, padmet):
-    global meta_max_id
     dict_data = {}
     dict_gene_unique_id_real_id = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -638,19 +646,19 @@ def genes_parser(filePath, padmet):
             gene_node = Node("gene", gene_id)
             padmet.dicOfNode[gene_id] = gene_node
             try:
-                gene_node.misc["COMMON_NAME"] = dict_values["COMMON-NAME"]
+                if dict_values["COMMON-NAME"] != gene_id:
+                    gene_node.misc["COMMON_NAME"] = dict_values["COMMON-NAME"]
             except KeyError:
                 pass
         except KeyError:
             pass
-        if verbose: print(str(count)+"/"+nb_genes+"\t"+current_id+"/"+gene_id)
+        if verbose: print("%s/%s\t%s/%s" %(count, nb_genes, current_id, gene_id))
     return dict_gene_unique_id_real_id
 
 def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
-    global meta_max_id
     dict_data = {}
     dict_id_protein_gene_real = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -674,7 +682,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     nb_proteins = str(len(dict_data.keys()))
     for protein_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print(str(count)+"/"+nb_proteins+"\t"+protein_id)
+        if verbose: print("%s/%s\t%s" %(count, nb_proteins, protein_id))
         protein_node = Node("protein", protein_id)
         padmet.dicOfNode[protein_id] = protein_node
         try:
@@ -739,10 +747,9 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
                 pass
     return dict_id_protein_gene_real
 
-def enzrxns_parser(filePath, padmet, dict_id_protein_gene_real = None):
-    global meta_max_id
+def enzrxns_parser(filePath, padmet, dict_id_protein_gene_real = None, source = "pathwaytools_original_genome"):
     dict_data = {}
-    with open(filePath, 'r') as f:
+    with open(filePath, 'rU') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -765,7 +772,7 @@ def enzrxns_parser(filePath, padmet, dict_id_protein_gene_real = None):
     nb_enzrxns = str(len(dict_data.keys()))
     for current_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print(str(count)+"/"+nb_enzrxns+"\t"+current_id)
+        if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
         try:
             protein = dict_values["ENZYME"][0]
             try:
@@ -785,9 +792,10 @@ def enzrxns_parser(filePath, padmet, dict_id_protein_gene_real = None):
                             for gene_id in genes:
                                 try:
                                     assignment = dict_values["BASIS-FOR-ASSIGNMENT"][0]
+                                    if assignment.startswith(":"): assignment = assignment[1:]
                                 except KeyError:
                                     assignment = "UNKNOWN"
-                                is_linked_rlt = Relation(rxn_id, "is_linked_to", gene_id, {"ASSIGNMENT":[assignment]})
+                                is_linked_rlt = Relation(rxn_id, "is_linked_to", gene_id, {"SOURCE:ASSIGNMENT":[source+":"+assignment]})
                                 list_of_relation.append(is_linked_rlt)
                         except KeyError:
                             pass
@@ -812,26 +820,34 @@ def _setType(types, current_id, padmet):
         list_of_relation.append(is_a_class_rlt)
     
 def _setSyns(syns, current_id, padmet):
-    global meta_max_id
-    for syn in syns:
-        #create a node name, with in misc LABEL:syn
-        #node id is created by incrementing meta_max_id
-        #create a relation xx has_name name_id
-        meta_max_id += 1
-        name_id = new_id_prefix+"_"+str(meta_max_id)
-        name_node = Node("name", name_id, {"LABEL": [syn]})
+    name_id = current_id+"_names"
+    try:
+        name_node = padmet.dicOfNode[name_id]
+    except KeyError:
+        #create node name
+        name_node = Node("name", name_id, {"LABEL":[]})
         padmet.dicOfNode[name_id] = name_node
         has_name_rlt = Relation(current_id, "has_name", name_id)
         list_of_relation.append(has_name_rlt)
+    [name_node.misc["LABEL"].append(syn) for syn in syns 
+    if syn not in name_node.misc["LABEL"]]
 
 def _setXrefs(xrefs, current_id, padmet):
-    global meta_max_id
+    xref_id = current_id+"_xrefs"
+    try:
+        xref_node = padmet.dicOfNode[xref_id]
+    except KeyError:
+        #create node xref
+        xref_node = Node("xref", xref_id)
+        padmet.dicOfNode[xref_id] = xref_node
+        has_xref_rlt = Relation(current_id, "has_xref", xref_id)
+        list_of_relation.append(has_xref_rlt)
+
     for xref in xrefs:
         #an xref is like: (REFSEQ "NP_417401" NIL NIL NIL NIL NIL)
         #in this example DB = REFSEQ and ID = NP_417401
-        #create a node xref, with in misc DB:DB ID:ID
+        #update node xref, with in misc k = DB and v = [ID]
         #node id is created by incrementing meta_max_id
-        #create a relation xx has_xref xref_id
         xref_search = regex_xref.search(xref)
         if xref_search is not None:
             xref_dict = xref_search.groupdict()
@@ -840,12 +856,10 @@ def _setXrefs(xrefs, current_id, padmet):
         else:
             db = "GO-TERMS"
             _id = xref
-        meta_max_id += 1
-        xref_id = new_id_prefix+"_"+str(meta_max_id)
-        xref_node = Node("xref", xref_id, {"DB": [db], "ID": [_id]})
-        padmet.dicOfNode[xref_id] = xref_node
-        has_xref_rlt = Relation(current_id, "has_xref", xref_id)
-        list_of_relation.append(has_xref_rlt)
+        if db in xref_node.misc.keys() and _id not in xref_node.misc[db]:
+            xref_node.misc[db].append(_id)
+        else:
+            xref_node.misc[db] = [_id]
 
 def enhance_db(metabolic_reactions, padmet, with_genes=False):
     print ("loading sbml file: %s" %metabolic_reactions)

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 This file is part of padmet-utils.
 
@@ -36,7 +36,7 @@ def main():
     args = docopt.docopt(__doc__) 
     sbml_file = args["--sbml"]
     model=create_cobra_model_from_sbml_file(sbml_file)
-    model.optimize()
+    solution = model.optimize()
     try:
         biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
         biomassname = biomassrxn.id
@@ -44,14 +44,14 @@ def main():
         print("Need to set OBJECTIVE COEFFICIENT to '1.0' for the reaction to test")
         exit()
     print("Testing reaction %s" %biomassname)
-    print( 'growth rate: '+str(model.solution.f)+ '\n'+ 'status: '+ model.solution.status)
-    if (model.solution.f > 1e-5):
+    print( 'growth rate: %s\nStatus: %s.' %(solution.objective_value, solution.status))
+    if (solution.objective_value > 1e-5):
         #FVA_result = flux_analysis.variability.flux_variability_analysis(model, fraction_of_optimum=1.0)
         FVA_result = flux_analysis.variability.flux_variability_analysis(model, fraction_of_optimum=1.0, tolerance_feasibility=1e-6, tolerance_integer=1e-6)
         #print(str(FVA_result)+"\n")    
 
         essential, alternative, blocked = [[] for i in range(3)]
-        for k,v in FVA_result.iteritems():
+        for k,v in FVA_result.iterrows():
             _min = float(v['minimum'])
             _max = float(v['maximum'])
             if (_min > 0.0001 and _max > 0.0001) or (_min < -0.0001 and _max < -0.0001):
@@ -80,42 +80,38 @@ def main():
             print('\t'+r_id_decoded+' ('+r_id+')')
     
     else:
-        metabolites = biomassrxn._metabolites
         # print(metabolites)
         # only append to the list compounds that are reactants
-        bms_metabolites_list = [x.id for x in metabolites]
-        bms_reactants = [x.id for x in metabolites if metabolites[x] < 0]
+        bms_reactants = biomassrxn.reactants
+        biomassrxn.objective_coefficient = 0
         # for metabo in metabolites:
         #     metabolites_list.append(metabo.id)
     
         #print(metabolites_list)
         dict_output = {"positive":{},"negative":{}}
-        has_been_tested = []
-        for metabolite1 in bms_reactants:
-            if not metabolite1 in has_been_tested:
-                #lets create a copy of the initial model
-                model2 = model.copy()
-                #get the biomass reaction
-                biomassrxn2 = model2.reactions.get_by_id(biomassname) #R_Ec_biomass_iAF1260_core_59p81M
-                # empty the biomass metabolites
-                for m in bms_metabolites_list:
-                    biomassrxn2.pop(m)
-                #create a clean dict with only compound of interest and stoichio to -1 (reactant)
-                metabolitedict = {}
-                metabolitedict[metabolite1]=-1.0
-                # replace the biomass metabolites with only metabolite1 inside
-                biomassrxn2.add_metabolites(metabolitedict)
-                # print(biomassrxn2._metabolites)
-                #test flux balance analysis
-                #print(biomassrxn2._metabolites)
-                model2.optimize()
-                if (model2.solution.f > 1e-5):
-                    dict_output["positive"][metabolite1] = model2.solution.f
-                else:
-                    dict_output["negative"][metabolite1] = model2.solution.f
-                has_been_tested.append(metabolite1)
+        for metabolite in bms_reactants:
+            #lets create a copy of the initial model
+            model2 = model.copy()
+            #get the biomass reaction
+            biomassrxn2 = model2.reactions.get_by_id(biomassname) #R_Ec_biomass_iAF1260_core_59p81M
+            # empty the biomass metabolites
+            for m in bms_metabolites_list:
+                biomassrxn2.pop(m)
+            #create a clean dict with only compound of interest and stoichio to -1 (reactant)
+            metabolitedict = {}
+            metabolitedict[metabolite1]=-1.0
+            # replace the biomass metabolites with only metabolite1 inside
+            biomassrxn2.add_metabolites(metabolitedict)
+            # print(biomassrxn2._metabolites)
+            #test flux balance analysis
+            #print(biomassrxn2._metabolites)
+            model2.optimize()
+            if (model2.solution.f > 1e-5):
+                dict_output["positive"][metabolite1] = model2.solution.f
             else:
-                pass
+                dict_output["negative"][metabolite1] = model2.solution.f
+            has_been_tested.append(metabolite1)
+
         for k,v in dict_output["positive"].items():
             print("%s %s positive" %(k,v))
         for k,v in dict_output["negative"].items():

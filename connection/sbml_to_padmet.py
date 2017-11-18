@@ -97,6 +97,9 @@ def main():
             sbmlFileName += [abspath+"/"+filename for filename in filenames if not filename.startswith(".") and filename.endswith((".sbml",".xml"))]
     else:
         sbmlFileName = [args["--sbml"]]
+    if not sbmlFileName:
+        if verbose: print("No sbml found in %s" %(args["--sbml"]))
+        exit()
 
     if args["--padmetRef"] is not None and args["--padmetSpec"] is None:
         if args["--output"] is not None:

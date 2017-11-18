@@ -26,7 +26,7 @@ compartment 'C-BOUNDARY' and produces the compound in the compartment 'e' extrac
 'e' extracellular' and produces the compound in the compartment 'c' cytosol
 ex: for seed 'cpd-a'
 1/ check if cpd-a in padmetSpec, if not, copy from padmetRef.
-2/ create exchange reaction: ExchangeSeed_cpd-a_b: 1 cpd-a (C-BOUNDARAY) => 1 cpd-a (e)
+2/ create exchange reaction: ExchangeSeed_cpd-a_b: 1 cpd-a (C-BOUNDARAY) <=> 1 cpd-a (e)
 3/ create transport reaction: TransportSeed_cpd-a_e: 1 cpd-a (e) => 1 cpd-a (c)
 4/ create a new file if output not None, or overwritte padmetSpec
 
