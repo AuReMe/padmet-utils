@@ -28,11 +28,12 @@ in more than 75%
 5./ Also extract xrefs
 
 usage:
-    biggAPI_to_padmet.py --output=FILE [-v]
+    biggAPI_to_padmet.py --output=FILE [--pwy_file] [-v]
 
 options:
     -h --help     Show help.
     --output=FILE    pathname of the padmet file to create
+    --pwy_file   add kegg pathways from this pathways file 'pwy_id, pwy_name, x, rxn_id'.
     -v   print info.
 """
 from padmet.node import Node
@@ -46,31 +47,36 @@ import requests
 import grequests
 
 def main():
+    global list_of_relation
     chronoDepart = time()
     #parsing args
     args = docopt.docopt(__doc__)
     output = args["--output"]
     verbose = args["-v"]
+    pwy_file = args["--pwy_file"]
     now = datetime.now()
     today_date = now.strftime("%Y-%m-%d")
     #print(verbose,today_date,version, output, classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file)
-    policyInArray = [['compound','has_xref','xref'], ['compound','has_suppData','suppData'], 
-                    ['gene','has_xref','xref'], ['gene','has_suppData','suppData'],
-                    ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','is_linked_to','gene'],
-                    ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y']] 
-    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.5"}, "DB_info":{"DB":"BIGG", "version":"2.0"}}
+    policyInArray = [['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
+                    ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
+                    ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'], 
+                    ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
+                    ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],  
+                    ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                    ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                    ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                    ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
+    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.6"}, "DB_info":{"DB":"BIGG", "version":"2.0"}}
     padmetRef = PadmetRef()
     if verbose: print("setting policy")
     padmetRef.setPolicy(policyInArray)
     if verbose: print("setting dbInfo")
     padmetRef.setInfo(dbNotes)
-    new_id_prefix = "META"
-    meta_max_id = 0
     list_of_relation = []
     if verbose: print("Getting all reactions ids")
     url_bigg = 'http://bigg.ucsd.edu/api/v2/'
     raw_data = requests.get(url_bigg + "universal/reactions").json()['results']
-    all_reactions_ids = [rxn_dict['bigg_id'] for rxn_dict in raw_data]
+    all_reactions_ids = [rxn_dict['bigg_id'] for rxn_dict in raw_data if not rxn_dict['bigg_id'].startswith("BIOMASS")]
     if verbose: print("%s reactions to extract" %(len(all_reactions_ids)))
 
     """
@@ -109,62 +115,66 @@ def main():
     for rxn_id in [i for i in all_reactions_ids if not i.startswith("BIOMASS")]:
         count += 1
         if verbose: print("reaction: %s, %s/%s" %(rxn_id, count, len(all_reactions_ids)))
-        rxn_response = requests.get(url_bigg + "universal/reactions/" +rxn_id)
-        rxn_dict = rxn_response.json()
-
-
-        rxn_metabolites = rxn_dict["metabolites"]
-        if len(rxn_metabolites) > 1:
-            rxn_id = rxn_dict['bigg_id']
-            rxn_name = rxn_dict["name"]
-        
-            all_models_id = [i["bigg_id"] for i in rxn_dict["models_containing_reaction"]]
-            async_list = []
-            for model_id in all_models_id:
-                action_item = grequests.get(url_bigg + "models/"+ model_id +"/reactions/"+ rxn_id)
-                async_list.append(action_item)  
-            models_responses = [r.json() for r in grequests.map(async_list)]
-            all_lower_bound = [i["results"][0]["lower_bound"] for i in models_responses]
-            ratio_not_rev = float(all_lower_bound.count(0))/float(len(all_lower_bound))
-            if verbose: print("Reaction not reversible in %s/%s model(s)" %(all_lower_bound.count(0), len(all_lower_bound)))
-            if ratio_not_rev >= 0.75:
-                rxn_direction = "LEFT-TO-RIGHT"
-                if verbose: print("Reaction not reversible")
-            else:
-                rxn_direction = "REVERSIBLE"
-                if verbose: print("Reaction reversible")
+        if rxn_id not in padmetRef.dicOfNode.keys():
+            rxn_response = requests.get(url_bigg + "universal/reactions/" +rxn_id)
+            rxn_dict = rxn_response.json()
     
-            rxn_node = Node("reaction",rxn_id,{"COMMON_NAME":[rxn_name],"DIRECTION":[rxn_direction]})
-            padmetRef.dicOfNode[rxn_id] = rxn_node
-        
-            rxn_xrefs = rxn_dict["database_links"]
-            for db, k in rxn_xrefs.items():
-                _id = k[0]["id"]
-                meta_max_id += 1
-                xref_id = new_id_prefix+"_"+str(meta_max_id)
-                xref_node = Node("xref", xref_id, {"DB": [db], "ID": [_id]})
-                padmetRef.dicOfNode[xref_id] = xref_node
+    
+            rxn_metabolites = rxn_dict["metabolites"]
+            if len(rxn_metabolites) > 1:
+                rxn_id = rxn_dict['bigg_id']
+                rxn_name = rxn_dict["name"]
+            
+                all_models_id = [i["bigg_id"] for i in rxn_dict["models_containing_reaction"]]
+                async_list = []
+                for model_id in all_models_id:
+                    action_item = grequests.get(url_bigg + "models/"+ model_id +"/reactions/"+ rxn_id)
+                    async_list.append(action_item)  
+                models_responses = [r.json() for r in grequests.map(async_list)]
+                all_lower_bound = [i["results"][0]["lower_bound"] for i in models_responses]
+                ratio_not_rev = float(all_lower_bound.count(0))/float(len(all_lower_bound))
+                if verbose: print("Reaction not reversible in %s/%s model(s)" %(all_lower_bound.count(0), len(all_lower_bound)))
+                if ratio_not_rev >= 0.75:
+                    rxn_direction = "LEFT-TO-RIGHT"
+                    if verbose: print("Reaction not reversible")
+                else:
+                    rxn_direction = "REVERSIBLE"
+                    if verbose: print("Reaction reversible")
+                padmetRef.createNode("reaction",rxn_id,{"COMMON_NAME":[rxn_name],"DIRECTION":[rxn_direction]})
+            
+                rxn_xrefs = rxn_dict["database_links"]
+    
+                xref_id = rxn_id+"_xrefs"
+                xref_node = padmetRef.createNode("xref", xref_id)
                 has_xref_rlt = Relation(rxn_id, "has_xref", xref_id)
                 list_of_relation.append(has_xref_rlt)
-        
-            
-            for metabo_dict in rxn_metabolites:
-                metabo_id = metabo_dict["bigg_id"]
-                metabo_name = metabo_dict["name"]
-                metabo_compart = metabo_dict["compartment_bigg_id"]
-                metabo_stoich = metabo_dict["stoichiometry"]
-                try:
-                    metabo_node = padmetRef.dicOfNode[metabo_id]
-                except KeyError:
-                    metabo_node = Node("compound",metabo_id,{"COMMON_NAME":[metabo_name]})
-                    padmetRef.dicOfNode[metabo_id] = metabo_node
-                if metabo_stoich < 0:
-                    consumes_rlt = Relation(rxn_id,"consumes",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
-                    list_of_relation.append(consumes_rlt)
-                else:
-                    produces_rlt = Relation(rxn_id,"produces",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
-                    list_of_relation.append(produces_rlt)
-
+    
+                for db, k in rxn_xrefs.items():
+                    _id = k[0]["id"]
+                    if db in xref_node.misc.keys() and _id not in xref_node.misc[db]:
+                        xref_node.misc[db].append(_id)
+                    else:
+                        xref_node.misc[db] = [_id]
+    
+                for metabo_dict in rxn_metabolites:
+                    metabo_id = metabo_dict["bigg_id"]
+                    if metabo_id not in padmetRef.dicOfNode.keys():
+                        metabo_name = metabo_dict["name"]
+                        metabo_compart = metabo_dict["compartment_bigg_id"]
+                        metabo_stoich = metabo_dict["stoichiometry"]
+                        try:
+                            metabo_node = padmetRef.dicOfNode[metabo_id]
+                        except KeyError:
+                            metabo_node = padmetRef.createNode("compound",metabo_id,{"COMMON_NAME":[metabo_name]})
+                        if metabo_stoich < 0:
+                            consumes_rlt = Relation(rxn_id,"consumes",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
+                            list_of_relation.append(consumes_rlt)
+                        else:
+                            produces_rlt = Relation(rxn_id,"produces",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
+                            list_of_relation.append(produces_rlt)
+        else: 
+            if verbose: print("%s already in padmet" %rxn_id)
+            continue                                        
     if verbose: print("Adding all relations")
     count = 0
     for rlt in list_of_relation:
@@ -179,13 +189,39 @@ def main():
         except KeyError:
             padmetRef.dicOfRelationOut[rlt.id_out] = [rlt]
     
+    if pwy_file:
+        add_kegg_pwy(pwy_file, padmetRef, verbose)
     if verbose: print("Generating file: %s" %output)
     padmetRef.generateFile(output)
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
     if verbose: print "done in: ", chrono, "s !"
+
+def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
+    global list_of_relation
+    with open(pwy_file, 'r') as f:
+        for data in [line.split("\t") for line in f.read().splitlines()][1:]:
+            pwy_id, name, ec, rxn_id = data
+            try:
+                pwy_node = padmetRef.dicOfNode[pwy_id]
+            except KeyError:
+                pwy_node = padmetRef.createNode("pathway", pwy_id)
+            if name:
+                try:
+                    pwy_node.misc["COMMON_NAME"].append(name)
+                except KeyError:
+                    pwy_node.misc["COMMON_NAME"] = [name]
+            if rxn_id:
+                if rxn_id in padmetRef.dicOfNode.keys():
+                    pwy_rlt = Relation(rxn_id,"is_in_pathway",pwy_id)
+                    padmetRef._addRelation(pwy_rlt)
+                else:
+                    if verbose: print("%s is not in padmet" %rxn_id)
+    padmetRef.generateFile("/home/maite/Documents/data/bigg/bigg_v2.padmet")
+            
     
 if __name__ == "__main__":
-    main()
+    add_kegg_pwy('/home/maite/Documents/data/bigg/bigg_kegg_pwy.txt'
+, PadmetRef("/home/maite/Documents/data/bigg/bigg.padmet"), True)
 
