@@ -76,7 +76,7 @@ def main():
                     ['reaction','is_linked_to','gene','ASSIGNMENT','X']]
     now = datetime.now()
     today_date = now.strftime("%Y-%m-%d")
-    default_info = {"PADMET":{"creation":today_date,"version":"2.3"},"DB_info":{"DB":"NA","version":"NA"},"Model_info":{"Description":"NA"}}
+    default_info = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":"NA","version":"NA"},"Model_info":{"Description":"NA"}}
     #recovering args
     args = docopt.docopt(__doc__)
     verbose = args["-v"]

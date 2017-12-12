@@ -91,7 +91,7 @@ metabolic-reaction.xml: optional
 for each reaction:
 
 usage:
-    pgdb_to_padmet.py --version=V --db=ID --output=FILE --directory=DIR [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m]
+    pgdb_to_padmet.py --output=FILE --directory=DIR [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m] [--version=V] [--db=ID]
     pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
 
 options:
@@ -118,7 +118,7 @@ options:
 import re
 from datetime import datetime
 from time import time
-from padmet.padmetRef import *
+from padmet.padmetSpec import *
 import padmet.sbmlPlugin as sbmlPlugin
 from libsbml import *
 import docopt
@@ -144,6 +144,7 @@ def main():
     enhanced_db = args["-m"]
     with_genes = args["-g"]
     source = args["--source"]
+    padmetRef_file = args["--padmetRef"]
     if source : source = source.upper()
     
     if path is not None:
@@ -166,49 +167,84 @@ def main():
     verbose = args["-v"]
     now = datetime.now()
     today_date = now.strftime("%Y-%m-%d")
-    #print(verbose,today_date,version, output, classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file)
-    #return    
-    POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
-                    ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
-                    ['gene','is_a_class','class'], ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
-                    ['pathway','is_a_class','class'], ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'], 
-                    ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
-                    ['protein','is_in_species','class'], 
-                    ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],  
-                    ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                    ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                    ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                    ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
-    dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
-    padmet = PadmetRef()
-    if verbose: print("setting policy")
-    padmet.setPolicy(POLICY_IN_ARRAY)
-    if verbose: print("setting dbInfo")
-    padmet.setInfo(dbNotes)
+    if padmetRef_file:
+        padmet = PadmetSpec()
+        padmetRef = PadmetRef(padmetRef_file)
+        version = padmetRef.info["DB_info"["version"]]
+        db = padmetRef.info["DB_info"["DB"]]
+        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
+        padmet.setInfo(dbNotes)
+        padmet.setPolicy(padmetRef)
+        with open(reactions_file, 'rU') as f:
+            rxns_id = [line.split(" - ")[1] for line in f.read().splitlines() if line.startswith("UNIQUE-ID")]
+        count = 0
+        for rxn_id in rxns_id:
+            count += 1
+            if verbose: print("%s/%s Copy %s" %(count, len(rxns_id), rxn_id))
+            try:
+                padmet.copyNode(padmetRef, rxn_id)
+                reconstructionData_id = rxn_id+"_reconstructionData_"+source
+                if reconstructionData_id in padmet.dicOfNode.keys() and verbose:
+                    print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
+                reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
+                reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
+                padmet.dicOfNode[reconstructionData_id] = Node("reconstructionData", reconstructionData_id, reconstructionData)
+                padmet._addRelation(reconstructionData_rlt)
+
+            except TypeError:
+                #if verbose: print("%s not in padmetRef" %(rxn_id))
+                print("%s not in padmetRef" %(rxn_id))
 
 
-    if verbose: print("parsing classes")
-    classes_parser(classes_file, padmet)
-
-    if verbose: print("parsing compounds")
-    compounds_parser(compounds_file, padmet)
-
-    if verbose: print("parsing reactions")
-    reactions_parser(reactions_file, padmet)
-
-    if verbose: print("parsing pathways")
-    pathways_parser(pathways_file, padmet)
-
-    if with_genes:
         if verbose: print("parsing genes")
         dict_protein_gene_id = genes_parser(genes_file, padmet)
         if verbose: print("parsing association enzrxns")
         enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
 
-    if metabolic_reactions is not None:
-        if verbose: print("enhancing db from metabolic-reactions.xml")
-        enhance_db(metabolic_reactions, padmet, with_genes)
-
+    else:
+        #print(verbose,today_date,version, output, classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file)
+        #return    
+        POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
+                        ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
+                        ['gene','is_a_class','class'], ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
+                        ['pathway','is_a_class','class'], ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'], 
+                        ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
+                        ['protein','is_in_species','class'], 
+                        ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],  
+                        ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                        ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                        ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
+                        ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
+        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
+        padmet = PadmetRef()
+        if verbose: print("setting policy")
+        padmet.setPolicy(POLICY_IN_ARRAY)
+        if verbose: print("setting dbInfo")
+        padmet.setInfo(dbNotes)
+    
+    
+        if verbose: print("parsing classes")
+        classes_parser(classes_file, padmet)
+    
+        if verbose: print("parsing compounds")
+        compounds_parser(compounds_file, padmet)
+    
+        if verbose: print("parsing reactions")
+        reactions_parser(reactions_file, padmet)
+    
+        if verbose: print("parsing pathways")
+        pathways_parser(pathways_file, padmet)
+    
+        if with_genes:
+            if verbose: print("parsing genes")
+            dict_protein_gene_id = genes_parser(genes_file, padmet)
+            if verbose: print("parsing association enzrxns")
+            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
+    
+        if metabolic_reactions is not None:
+            if verbose: print("enhancing db from metabolic-reactions.xml")
+            enhance_db(metabolic_reactions, padmet, with_genes)
+    
     for rlt in list_of_relation:
         try:
             padmet.dicOfRelationIn[rlt.id_in].append(rlt)
