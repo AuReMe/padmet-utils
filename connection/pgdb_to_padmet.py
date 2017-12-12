@@ -327,7 +327,7 @@ def classes_parser(filePath, padmet):
     nb_classes = str(len(dict_data.keys()))
     for class_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_classes, class_id))
+        #if verbose: print("%s/%s\t%s" %(count, nb_classes, class_id))
         class_node = Node("class", class_id)
         padmet.dicOfNode[class_id] = class_node
         try:
@@ -558,7 +558,7 @@ def pathways_parser(filePath, padmet):
     nb_pathways = str(len(dict_data.keys()))
     for pathway_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
+        #if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
         pathway_node = Node("pathway", pathway_id)
         padmet.dicOfNode[pathway_id] = pathway_node
         try:
@@ -627,7 +627,7 @@ def compounds_parser(filePath, padmet):
     nb_cpds = str(len(dict_data.keys()))
     for compound_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
+        #if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
         compound_node = Node("compound", compound_id)
         padmet.dicOfNode[compound_id] = compound_node
         try:
@@ -853,7 +853,7 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
     nb_enzrxns = str(len(dict_data.keys()))
     for current_id, dict_values in dict_data.iteritems():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
+        #if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
         rxn_id = dict_values["REACTION"][0]
         names = dict_values["COMMON-NAME"]
         for name in names: 

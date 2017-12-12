@@ -120,9 +120,6 @@ def main():
     for sbml_rxn in [i for i in listOfReactions if i.id not in mapped_rxn.keys()]:
         all_cpds = set([r.getSpecies() for r in sbml_rxn.getListOfReactants()] + [r.getSpecies() for r in sbml_rxn.getListOfProducts()])
         match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in mapped_cpd.keys()])
-        if match_cpd_in_rxn:
-            if verbose:
-                print("%s: mapped:%s, unmapped:%s" %(sbml_rxn.id,len(match_cpd_in_rxn),list(all_cpds.difference(match_cpd_in_rxn))))
 
         if len(match_cpd_in_rxn) == len(all_cpds):
             rxn_mapped_with_cpds.append(sbml_rxn.id)
