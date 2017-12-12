@@ -170,8 +170,8 @@ def main():
     if padmetRef_file:
         padmet = PadmetSpec()
         padmetRef = PadmetRef(padmetRef_file)
-        version = padmetRef.info["DB_info"["version"]]
-        db = padmetRef.info["DB_info"["DB"]]
+        version = padmetRef.info["DB_info"]["version"]
+        db = padmetRef.info["DB_info"]["DB"]
         dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
         padmet.setInfo(dbNotes)
         padmet.setPolicy(padmetRef)
