@@ -16,12 +16,11 @@ You should have received a copy of the GNU General Public License
 along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 
 @author: Meziane AITE, meziane.aite@inria.fr
-@author: Nicolas Guillaudeux nicolas.guillaudeux@inria.fr
 
 Description:
 
 usage:
-    convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output_dict=FILE --output_sbml=FILE --db_in=ID [-v]
+    convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
 
 options:
     -h --help     Show help.
@@ -35,15 +34,13 @@ def main():
     args = docopt.docopt(__doc__)
     mnx_rxn_file = args["--mnx_rxn"]
     mnx_cpd_file = args["--mnx_cpd"]
-    db_in = args["--db_in"]
-    db_out = "metacyc"
+    db_out = args["--db_out"].upper()
+    if db_out not in ["BIGG","METACYC","KEGG"]:
+        raise ValueError('Please choose a database id in ["BIGG","METACYC","KEGG"]')
+        exit()
     sbml_file = args["--sbml"]
-    output_sbml = args["--output_sbml"]
-    output_dict = args["--output_dict"]
-    metacyc_file = args["--output_dict"]
+    output_dict = args["--output"]
     verbose = args["-v"]
-
-    #metacyc = PadmetRef(metacyc_file)
 
     reader = SBMLReader()
     document = reader.readSBML(sbml_file)
@@ -56,151 +53,97 @@ def main():
     if verbose:
         print("nb reactions: %s" %len(listOfReactions)) 
 
-    mnx_rxn_dict = mnx_reader(mnx_rxn_file)
-    mnx_rxn_dict_filtred = dict([(k,v) for k,v in mnx_rxn_dict.items() if db_in in v.keys() and db_out in v.keys()])
+    #For reactions: k = MNXid, v = {k=db_id,v=[list of ids]}
+    mnx_rxn_dict = mnx_reader(mnx_rxn_file, db_out)
 
-    if mnx_cpd_file:
-        mnx_cpd_dict = mnx_reader(mnx_cpd_file)
-        mnx_cpd_dict_filtred = dict([(k,v) for k,v in mnx_cpd_dict.items() if db_in in v.keys() and db_out in v.keys()])
-    
-    #k: reaction orignial id, v = list of reactions from db target
+    #For species: k = MNXid, v = {k=db_id,v=[list of ids]} 
+    mnx_cpd_dict = mnx_reader(mnx_cpd_file, db_out)
+
+    #k: orignial id, v = ref id
     mapped_rxn = {}
-    mapped_species = {}
-    #total_mapped_rxn = 0
+    mapped_cpd = {}
+    rxn_with_more_one_mapping = 0
+    cpd_with_more_one_mapping = 0
+    rxn_mapped_with_cpds = []
     for sbml_rxn in listOfReactions:
         rxn_id = sbml_rxn.id
-        uncoded = convert_from_coded_id(rxn_id)[0]
-        if uncoded in ["APor","R00904"]:
-            mapped_rxn[rxn_id] = "RXN-6382"
-        elif uncoded == "HAL":
-            mapped_rxn[rxn_id] = "CARNOSINE-SYNTHASE-RXN"
-        else:
-            match_dicts = [v for v in mnx_rxn_dict_filtred.values() if uncoded in v[db_in]]
-            
-            if match_dicts:
-                if len(match_dicts) > 1:
-                    print("more than one mnx for:%s" %uncoded)
-                else:
-                    match_dict = match_dicts[0]
-                    if len(match_dict[db_out]) > 1:
-                        #print("more than one match for:%s" %uncoded)
-                        #print(";".join(match_dict[db_out]))
-                        pass
-                    else:
-                        mapped_rxn[rxn_id] = match_dict[db_out][0]
-                        #print("%s matched with %s" %(rxn_id, match_dict[db_out][0]))
-        """
-        if uncoded in dict_data.keys():
-            if rxn_id in mapped_rxn.keys():
-                if dict_data[uncoded] == mapped_rxn[rxn_id]:
-                    print("%s same match with dict_data" %uncoded)
-                else:
-                    print("/!\ %s matched with %s in dict vs %s in mnx" %(uncoded, dict_data[uncoded], mapped_rxn[rxn_id]))
-            else:
-                print("%s matched with %s only with dict" %(uncoded, dict_data[uncoded]))
-        elif rxn_id in mapped_rxn.keys():
-            print("%s matched with %s only with mnx data" %(uncoded, mapped_rxn[rxn_id]))
-        """ 
-    all_mapped_rxn = set(mapped_rxn.keys())
-    print ("%s/%s reactions mapped" %(len(mapped_rxn),len(listOfReactions)))
-
-    nb_new_mapped_rxn = 0
-    for sbml_rxn in [sbml_rxn for sbml_rxn in listOfReactions if sbml_rxn.id not in mapped_rxn]:
-        all_species_id = set([s.getSpecies() for s in sbml_rxn.getListOfReactants()] + [s.getSpecies() for s in sbml_rxn.getListOfProducts()])
-        for species_id in all_species_id:
-            uncoded = convert_from_coded_id(species_id)[0]
+        uncoded_rxn_id = convert_from_coded_id(rxn_id)[0]
         
-        if uncoded in ["h2o","C00001"]:
-            mapped_species[species_id] = "WATER"
-        elif uncoded == "h2s":
-            mapped_species[species_id] = "HS"
-        elif uncoded == "no3":
-            mapped_species[species_id] = "NITRATE"
-        elif uncoded == "heme0":
-            mapped_species[species_id] = "HEME_O"
-        elif uncoded in ["akg","C00026"]:
-            mapped_species[species_id] = "2-KETOGLUTARATE"
-        elif uncoded in ["pi","C00009"]:
-            mapped_species[species_id] = "Pi"
-        elif uncoded == "for":
-            mapped_species[species_id] = "FORMATE"
-        elif uncoded == "trnagln":
-            mapped_species[species_id] = "GLN-tRNAs"
-        elif uncoded == "coa":
-            mapped_species[species_id] = "CO-A"
-        elif uncoded == "adn":
-            mapped_species[species_id] = "ADENOSINE"
-        elif uncoded == "ade":
-            mapped_species[species_id] = "ADENINE"
-        elif uncoded == "cytd":
-            mapped_species[species_id] = "CYTIDINE"
-        elif uncoded == "dtdp":
-            mapped_species[species_id] = "TDP"
-        elif uncoded == "C00008":
-            mapped_species[species_id] = "ADP"
-        elif uncoded in ["oaa","C00036"]:
-            mapped_species[species_id] = "OXALACETIC_ACID"
-        elif uncoded == "dhnpt":
-            mapped_species[species_id] = "DIHYDRO-NEO-PTERIN"
-        elif uncoded == "suc6p":
-            mapped_species[species_id] = "SUCROSE-6P"
-        elif uncoded == "g3pe":
-            mapped_species[species_id] = "ALKYL-SN-GLYCERO-PHOSPHOETHANOLAMINE"
-        elif uncoded == "retinol":
-            mapped_species[species_id] = "Retinols"
-        elif uncoded == "phpyr":
-            mapped_species[species_id] = "PHENYL-PYRUVATE"
-        elif uncoded == "C03912":
-            mapped_species[species_id] = "L-DELTA1-PYRROLINE_5-CARBOXYLATE"
-        elif uncoded == "C00014":
-            mapped_species[species_id] = "AMMONIA"
-        elif uncoded == "C00013":
-            mapped_species[species_id] = "PPI"
-        elif uncoded == "bamppald":
-            mapped_species[species_id] = "CPD-6082"
-        elif uncoded == "C00006":
-            mapped_species[species_id] = "NADP"
-        elif uncoded == "C00005":
-            mapped_species[species_id] = "NADPH"
-        elif uncoded in ["nadph","nadp","nadh","nad","hco3","ACP","hso3",
-        "gly","ppi","amp","cdp","cmp","udp","ump","gdp","adp"]:
-            mapped_species[species_id] = uncoded.upper()
+        #first check in intern dict mapping
+        match_id = intern_mapping(uncoded_rxn_id, db_out, "reaction")
+        
+        #check if in mnx_rxn_dict
+        if match_id:
+            mapped_rxn[rxn_id] = match_id
         else:
-            match_dicts = [v for v in mnx_cpd_dict_filtred.values() if uncoded in v[db_in] and db_out in v.keys()]
-
-            if match_dicts:
-                if len(match_dicts) > 1:
-                    print("More than one mnx for:%s" %uncoded)
-                else:
-                    match_dict = match_dicts[0]
-                    if len(match_dict[db_out]) > 1:
-                        print("more than one match for:%s" %uncoded)
+            for map_dict in mnx_rxn_dict.values():
+                #print(mapp_dict)
+                all_rxn_id = []
+                [all_rxn_id.extend(i) for i in map_dict.values()]
+                if uncoded_rxn_id in all_rxn_id:
+                    matchs_rxns = map_dict[db_out]
+                    if len(matchs_rxns) > 1: 
+                        rxn_with_more_one_mapping += 1
+                        if verbose:
+                            print("More than one mapping for reaction %s:\t%s" %(rxn_id,matchs_rxns))
                     else:
-                        mapped_species[species_id] = match_dict[db_out][0]
-        if not all_species_id.difference(set(mapped_species.keys())):
-            nb_new_mapped_rxn += 1
-            all_mapped_rxn.add(sbml_rxn.id)
-    print ("reactions recovered from compounds: %s" %nb_new_mapped_rxn)
-    print ("total reactions mapped %s/%s" %(len(mapped_rxn)+nb_new_mapped_rxn,len(listOfReactions)))
+                        mapped_rxn[rxn_id] = matchs_rxns[0]
+                    break
+    #for all non mapped rxn, check if able to map all speices
+    for sbml_cpd in listOfSpecies:
+        cpd_id = sbml_cpd.id
+        uncoded_cpd_id = convert_from_coded_id(cpd_id)[0]
 
-    for rxn_id in set([rxn.id for rxn in listOfReactions]).difference(all_mapped_rxn):
-        listOfReactions.remove(rxn_id)
-    
-    species_in_rxn_temp = [[r.getSpecies() for r in rxn.getListOfReactants()]+[p.getSpecies() for p in rxn.getListOfProducts()] for rxn in listOfReactions]
-    species_in_rxn = set()
-    [species_in_rxn.update(set(x)) for x in species_in_rxn_temp]
-    [mapped_species.pop(sId) for sId in set([x.id for x in listOfSpecies]).difference(species_in_rxn) if sId in mapped_species.keys()]    
-    [listOfSpecies.remove(sId) for sId in set([x.id for x in listOfSpecies]).difference(species_in_rxn)]    
-       
-    
+        match_id = intern_mapping(uncoded_cpd_id, db_out, "compound")
+
+        #check if in mnx_rxn_dict
+        if match_id:
+            mapped_cpd[cpd_id] = match_id
+        else:
+            for map_dict in mnx_cpd_dict.values():
+                #print(mapp_dict)
+                all_cpd_id = []
+                [all_cpd_id.extend(i) for i in map_dict.values()]
+                if uncoded_cpd_id in all_cpd_id:
+                    matchs_cpds = map_dict[db_out]
+                    if len(matchs_cpds) > 1:
+                        if db_out == "METACYC" and uncoded_cpd_id.upper() in matchs_cpds:
+                            mapped_cpd[cpd_id] = uncoded_cpd_id.upper()
+                        else: 
+                            cpd_with_more_one_mapping += 1
+                            if verbose:
+                                print("More than one mapping for compound %s:\t%s" %(cpd_id,matchs_cpds))
+                    else:
+                        mapped_cpd[cpd_id] = matchs_cpds[0]
+                    break
+
+    for sbml_rxn in [i for i in listOfReactions if i.id not in mapped_rxn.keys()]:
+        all_cpds = set([r.getSpecies() for r in sbml_rxn.getListOfReactants()] + [r.getSpecies() for r in sbml_rxn.getListOfProducts()])
+        match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in mapped_cpd.keys()])
+        if match_cpd_in_rxn:
+            if verbose:
+                print("%s: mapped:%s, unmapped:%s" %(sbml_rxn.id,len(match_cpd_in_rxn),list(all_cpds.difference(match_cpd_in_rxn))))
+
+        if len(match_cpd_in_rxn) == len(all_cpds):
+            rxn_mapped_with_cpds.append(sbml_rxn.id)
+    if verbose:
+        print("#######")
+        print("Mapped reactions: %s/%s" %(len(mapped_rxn.keys()),len(listOfReactions)))
+        print("Reactions with more than one mapping: %s" %rxn_with_more_one_mapping)
+        print("Mapped species: %s/%s" %(len(mapped_cpd.keys()),len(listOfSpecies)))            
+        print("Species with more than one mapping: %s" %cpd_with_more_one_mapping)
+        print("Mapped reactions from species: %s" %(len(rxn_mapped_with_cpds)))
+        for i in rxn_mapped_with_cpds:
+            print("\t%s" %i)
+        print("Total reactions mapped:%s/%s" %(len(mapped_rxn.keys())+len(rxn_mapped_with_cpds),len(listOfReactions)))
+        print("#######")
+
     with open(output_dict, 'w') as f:
         for k,v in mapped_rxn.items():
             f.write(k+"\t"+v+"\n")
-        for k,v in mapped_species.items():
+        for k,v in mapped_cpd.items():
             f.write(k+"\t"+v+"\n")
     
-    
-    writeSBMLToFile(document, output_sbml) 
 
 def convert_from_coded_id(coded):
     """
@@ -221,14 +164,14 @@ def convert_from_coded_id(coded):
     #replac ascii by the not allowed char of sbml
     coded = codepat.sub(ascii_replace, coded)
     
-    reg_expr = re.compile('(?P<_type>^[MR]_)(?P<_id>.*)(?P<compart>_.*)')
+    reg_expr = re.compile('(?P<_type>^[MRS]_)(?P<_id>.*)(?P<compart>_.*)')
     search_result = reg_expr.search(coded)
     if search_result is not None:
         compart = search_result.group('compart').replace("_","")    
         _type = search_result.group('_type').replace("_","")
         uncoded = search_result.group('_id')
     else:
-        reg_expr = re.compile('(?P<_type>^[MR]_)(?P<_id>.*)')
+        reg_expr = re.compile('(?P<_type>^[MRS]_)(?P<_id>.*)')
         search_result = reg_expr.search(coded)
         if search_result is not None:
             compart = None
@@ -254,28 +197,117 @@ def ascii_replace(match):
     """
     return chr(int(match.group(1)))
 
-def mnx_reader(input_file):
-    with open(input_file, "r") as source:
-        lecture = source.read().splitlines()
-        list_data = [line.split("\t")[:2] for line in lecture if not line.startswith("#")]
+def mnx_reader(input_file, db_out):
+    with open(input_file, "r") as f:
+        dataInArray = [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#")]
+
     #print list_data[:10]
     mnx_dict = dict()
-    all_mnxs = set([k for v,k in list_data])
+    all_mnxs = set([k for v,k in dataInArray])
     mnx_dict = dict([(k, dict()) for k in all_mnxs])
     #print a[:10]
     #print mnx_dict.items()[:10]
-    for v,k in list_data:
+    for v,k in dataInArray:
         try:
             db, _id = v.split(":")
         except ValueError:
             db = v.split(":")[0]
             _id = ":".join(v.split(":")[1:])
+        db = db.upper()
         try:
             mnx_dict[k][db].append(_id)
         except KeyError:
             mnx_dict[k][db] = [_id]
+    #clean ids not in db_out
+    for k,v in mnx_dict.items():
+        if db_out not in v.keys() or len(v.keys()) == 1:
+            mnx_dict.pop(k)
+    """
+    for v in mnx_dict.values():
+        try:
+            rxn_db_out = v[db_out]
+            all_mapp_rxn = []
+            [all_mapp_rxn.extend(i) for i in v.values()]
+    """
     return mnx_dict
 
+
+def intern_mapping(id_to_map, db_out, _type):
+    
+    intern_rxn_dict = {
+    "UNIQ_ID_1":{"METACYC":["RXN-6382"],"KEGG":["R00904"],"UNKNOWN":["APor"]},
+    "UNIQ_ID_2":{"METACYC":["CARNOSINE-SYNTHASE-RXN"],"UNKNOWN":["HAL"]},
+    "UNIQ_ID_3":{"METACYC":["ALANINE-AMINOTRANSFERASE-RXN"],"KEGG":["R00258"]},
+    "UNIQ_ID_4":{"METACYC":["ASPAMINOTRANS-RXN"],"KEGG":["R00355"],"BIGG":["ASPATh"]},
+    "UNIQ_ID_5":{"METACYC":["PHEAMINOTRANS-RXN"],"KEGG":["R00694"],"BIGG":["POAT"]},
+    "UNIQ_ID_6":{"METACYC":["ORNCARBAMTRANSFER-RXN"],"KEGG":["R01398"],"BIGG":["OCT"]},
+    "UNIQ_ID_7":{"METACYC":["3PGAREARR-RXN"],"KEGG":["R01518"],"BIGG":["PGM"]},
+    "UNIQ_ID_8":{"METACYC":["6PGLUCONDEHYDROG-RXN"],"KEGG":["R01528"],"BIGG":["PGDHh"]},
+    "UNIQ_ID_9":{"METACYC":["4-HYDROXY-2-KETOPIMELATE-LYSIS-RXN"],"KEGG":["R01645"]},
+    "UNIQ_ID_10":{"METACYC":["AMINEPHEN-RXN"],"KEGG":["R02613"]},
+    "UNIQ_ID_11":{"METACYC":["SHIKIMATE-5-DEHYDROGENASE-RXN"],"KEGG":["R02413"]},
+    "UNIQ_ID_12":{"METACYC":["CARBODEHYDRAT-RXN"],"BIGG":["HCO3E"]}
+    }
+    
+    intern_cpd_dict = {
+    "UNIQ_ID_1":{"METACYC":["WATER"],"KEGG":["C00001"],"BIGG":["h2o"],"UNKNOWN":["H2O"]},
+    "UNIQ_ID_2":{"METACYC":["2-KETOGLUTARATE"],"BIGG":["akg"],"KEGG":["C00026"]},
+    "UNIQ_ID_3":{"METACYC":["Pi"],"BIGG":["pi"],"KEGG":["C00009"]},
+    "UNIQ_ID_4":{"METACYC":["OXALACETIC_ACID"],"BIGG":["oaa"],"KEGG":["C00036"]},
+
+    "UNIQ_ID_5":{"METACYC":["HS"],"BIGG":["h2s"]},
+    "UNIQ_ID_6":{"METACYC":["NITRATE"],"BIGG":["no3"]},
+    "UNIQ_ID_7":{"METACYC":["HEME_O"],"BIGG":["heme0"]},
+    "UNIQ_ID_8":{"METACYC":["FORMATE"],"BIGG":["for"]},
+    "UNIQ_ID_9":{"METACYC":["GLN-tRNAs"],"BIGG":["trnagln"]},
+    "UNIQ_ID_10":{"METACYC":["CO-A"],"BIGG":["coa"]},
+    "UNIQ_ID_11":{"METACYC":["ADENOSINE"],"BIGG":["adn"]},
+    "UNIQ_ID_12":{"METACYC":["ADENINE"],"BIGG":["ade"]},
+    "UNIQ_ID_13":{"METACYC":["CYTIDINE"],"BIGG":["cytd"]},
+    "UNIQ_ID_14":{"METACYC":["CYTIDINE"],"BIGG":["dtdp"]},
+    "UNIQ_ID_15":{"METACYC":["DIHYDRO-NEO-PTERIN"],"BIGG":["dhnpt"]},
+    "UNIQ_ID_16":{"METACYC":["SUCROSE-6P"],"BIGG":["suc6p"]},
+    "UNIQ_ID_17":{"METACYC":["ALKYL-SN-GLYCERO-PHOSPHOETHANOLAMINE"],"BIGG":["g3pe"]},
+    "UNIQ_ID_18":{"METACYC":["Retinols"],"BIGG":["retinol"]},
+    "UNIQ_ID_19":{"METACYC":["PHENYL-PYRUVATE"],"BIGG":["phpyr"]},
+    "UNIQ_ID_20":{"METACYC":["CPD-6082"],"BIGG":["bamppald"]},
+
+    "UNIQ_ID_21":{"METACYC":["ADP"],"KEGG":["C00008"]},
+    "UNIQ_ID_22":{"METACYC":["L-DELTA1-PYRROLINE_5-CARBOXYLATE"],"KEGG":["C03912"]},
+    "UNIQ_ID_23":{"METACYC":["AMMONIA"],"KEGG":["C00014"]},
+    "UNIQ_ID_24":{"METACYC":["PPI"],"KEGG":["C00013"]},
+    "UNIQ_ID_25":{"METACYC":["NADP"],"KEGG":["C00006"]},
+    "UNIQ_ID_26":{"METACYC":["NADPH"],"KEGG":["C00005"]},
+
+    "UNIQ_ID_27":{"METACYC":["GLY"],"UNKNOWN":["Glycine"]},
+    "UNIQ_ID_28":{"METACYC":["METOH"],"UNKNOWN":["Methanol"]},
+    "UNIQ_ID_29":{"METACYC":["PPI"],"UNKNOWN":["Pyrophosphate"]},
+    }
+
+
+    if _type == "reaction":
+        for mapp_dict in intern_rxn_dict.values():
+            all_rxn_id = []
+            [all_rxn_id.extend(i) for i in mapp_dict.values()]
+            if id_to_map in all_rxn_id:
+                return mapp_dict[db_out][0]
+
+    elif _type == "compound":
+        for mapp_dict in intern_cpd_dict.values():
+            all_cpd_id = []
+            [all_cpd_id.extend(i) for i in mapp_dict.values()]
+            if id_to_map in all_cpd_id:
+                return mapp_dict[db_out][0]
+
+        if db_out == "METACYC":
+            for mapp_dict in intern_cpd_dict.values():
+                all_cpd_id = []
+                [all_cpd_id.extend(i) for i in mapp_dict.values()]
+                if id_to_map.upper() in all_cpd_id:
+                    return mapp_dict[db_out][0]
+
+
+    return None
 
 
 if __name__ == "__main__":
