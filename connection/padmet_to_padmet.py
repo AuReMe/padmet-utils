@@ -17,34 +17,9 @@ along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 
 @author: Meziane AITE, meziane.aite@inria.fr
 Description:
-There are 3 cases of convertion sbml to padmet:
-
-1./ Creation of a reference database in padmet format from sbml(s) (or updating one with new(s) sbml(s))
-First usage, padmetRef is the padmetRef to create or to update. If it's an update case, the output
-can be used to create a new padmet, if output None, will overwritte the input padmetRef.
-
-2./ Creation of a padmet representing an organism in padmet format from sbml(s) (or updating one with new(s) sbml(s))
-2.A/ Without a database of reference:
-Second usage, padmetSpec is the padmetSpec to create or update. If it's an update case, the output
-can be used to create a new padmet, if output None, will overwritte the input padmetSpec.
-
-2.B/ With a database of refence:
-Third usage, padmetSpec is the padmetSpec to create or update. If it's an update case, the output
-can be used to create a new padmet, if output None, will overwritte the input padmetSpec.
-padmetRef is the padmet representing the database of reference.
-
-It is possible to define a specific policy and info for the padmet. To learn more about
-policy and info check doc of lib.padmetRef/Spec.
-if the ids of reactions/compounds are not the same between padmetRef and the sbml, it is possible to use
-a dictionnary of association (sbml_id padmetRef_id)
-with one line = 'id_sbml \t id_padmetRef'
-Finally if a reaction from sbml is not in padmetRef, it is possible to force the copy and creating
-a new reaction in padmetSpec with the arg -f
 
 usage:
-    sbml_to_padmet.py --sbml=FILE --padmetRef=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
-    sbml_to_padmet.py --sbml=FILE --padmetSpec=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
-    sbml_to_padmet.py --sbml=FILE --padmetRef=FILE --padmetSpec=FILE [--output=FILE] [--mapping=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v] [-f]
+    padmet_to_padmet.py --init_padmet=FILE --padmetRef=FILE --to_add=FILE [--output=FILE] [-v]
 
 options:
     -h --help     Show help.
@@ -52,9 +27,6 @@ options:
     --padmetRef=FILE    pathanme to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
     --sbml=FILE    1 sbml file to convert into padmetSpec (ex: my_network.xml/sbml) OR a directory with n SBML
     --output=FILE   pathanme to the new padmet file
-    --mapping=FILE    dictionnary of association id_origin id_ref
-    --db=STR    database name
-    --version=STR    database version
     -v   print info
 """
 from padmet.padmetSpec import PadmetSpec
@@ -69,20 +41,14 @@ def main():
     padmetRef_file = args["--padmetRef"]
     output = args["--output"]
     verbose = args["-v"]
-    db = args["--db"]
-    version = args["--version"]
-    padmetSpec_file = args["--padmetSpec"]
-    src_tool = args["--source_tool"]
-    src_category = args["--source_category"]
-    src_id = args["--source_id"]
+    padmetSpec_file = args["--init_padmet"]
 
-    if os.path.isdir(args["--sbml"]):
-        sbml_type = "dir"
-    elif os.path.isfile(args["--sbml"]):
-        sbml_type = "file"
+    if os.path.isdir(args["--to_add"]):
+        padmet_type = "path"
+    elif os.path.isfile(args["--to_add"]):
+        padmet_type = "file"
     else:
-        raise TypeError("%s is not a dir or a file" %(args["--sbml"]))
-
+        raise TypeError("%s is not a dir or a file" %(args["--to_add"]))
 
     if padmetRef_file and os.path.isfile(padmetRef_file):
         padmetRef = PadmetRef(padmetRef_file)
@@ -117,42 +83,25 @@ def main():
             padmetSpec.setPolicy(POLICY_IN_ARRAY)
 
     #if sbml is a directory, recover all file path in a list. if no => only one file: create a list with only this file
-    sbml_mapping_dict = {}
-    if sbml_type == "dir":
-        path = args["--sbml"]
+    if padmet_type == "path":
+        path = args["--to_add"]
         if not path.endswith("/"):
             path += "/"
         all_files = [i for i in os.walk(path).next()[2] if not i.startswith(".~lock")]
-        for sbml_file in [i for i in all_files if i.endswith(".sbml") or i.endswith(".xml")]:
-            mapping_file = os.path.splitext(sbml_file)[0] + "_dict.csv"
-            if mapping_file not in all_files:
-                force = True
-                mapping_file = None
-            else:
-                force = False
-                mapping_file = path+mapping_file
-            sbml_file = path+sbml_file
-            sbml_mapping_dict[sbml_file] = mapping_file
+        padmetFiles = [path+i for i in all_files if i.endswith(".padmet")]
     else:
-        sbml_mapping_dict[args["--sbml"]] = args["--mapping"]
+        padmetFiles = [args["--to_add"]]
 
     chronoDepart = time()
     #CORE
-    for sbml_file, mapping_file in sbml_mapping_dict.items():
-        if mapping_file:
-            force = True
-        else:
-            force = args["-f"]
-
+    for padmet_file in padmetFiles:
         if verbose:
-            if mapping_file:
-                print("Updating %s from %s using mapping dictionnary %s" %(os.path.basename(padmetSpec_file),os.path.basename(sbml_file),os.path.basename(mapping_file)))
-            else:
-                print("Updating %s from %s" %(os.path.basename(padmetSpec_file),os.path.basename(sbml_file)))
-        padmetSpec.updateFromSbml(sbml_file, padmetRef = padmetRef, verbose = verbose, source_category = src_category, source_id = src_id, source_tool = src_tool, mapping_file = mapping_file, force = force )
+            print("Updating %s from %s" %(os.path.basename(padmetSpec_file),os.path.basename(padmet_file)))
+        padmet = PadmetSpec(padmet_file)
+        padmetSpec.updateFromPadmet(padmet)
 
-    if len(sbml_mapping_dict.keys()) == 0:
-        if verbose: print("No sbml found in %s" %args["--sbml"])
+    if len(padmetFiles) == 0:
+        if verbose: print("No padmet found in %s" %args["--to_add"])
     else:
         if not output:
             output = padmetSpec_file
