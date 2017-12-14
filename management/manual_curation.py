@@ -25,7 +25,7 @@ If the file new_reaction_data exist: calls rxn_creator.py
 Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
 
 usage:
-    manual_curation.py --padmetSpec=FILE --data=FILE  [--new_rxn] [--padmetRef=FILE] [--output=FILE] [-v]
+    manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [-v]
     manual_curation.py --template_new_rxn --output=FILE
     manual_curation.py --template_add_delete --output=FILE
 
@@ -63,19 +63,30 @@ def main():
     else:
         padmetRef = None
     if not output:
-        output = padmetSpec_file
+        output = args["--padmetSpec"]
     data_file = args["--data"]
-    new_rxn = args["--new_rxn"]
     output = args["--output"]
     verbose = args["-v"]
 
         
     chronoDepart = time()
-    if new_rxn:
-        rxn_creator(data_file, padmetSpec, padmetRef, output, verbose)
+    with open(data_file, 'r') as csvfile:
+        dialect = csv.Sniffer().sniff(csvfile.read())
+        csvfile.seek(0)
+        reader = csv.reader(csvfile, dialect)
+        header = reader.next()
+        if len(header) == 2:
+            to_do = "rxn_creator"
+        elif len(header) == 4:
+            to_do = "add_delete_rxn"
+        else:
+            raise TypeError("Unable to read the file")
 
-    else:
+    if to_do == "rxn_creator":
+        rxn_creator(data_file, padmetSpec, padmetRef, output, verbose)
+    elif to_do == "add_delete_rxn":
         add_delete_rxn(data_file, padmetSpec, padmetRef, output, verbose)
+
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
