@@ -19,9 +19,9 @@ along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 Description:
 
 usage:
-    update_compart.py --padmet=FILE
-    update_compart.py --padmet=FILE --remove=STR [--output=FILE] [-v]
-    update_compart.py --padmet=FILE --old=STR --new=STR [--output=FILE] [-v]
+    padmet_compart.py --padmet=FILE
+    padmet_compart.py --padmet=FILE --remove=STR [--output=FILE] [-v]
+    padmet_compart.py --padmet=FILE --old=STR --new=STR [--output=FILE] [-v]
 
 options:
     -h --help     Show help.
@@ -62,8 +62,7 @@ def main():
         padmetSpec.change_compart(old_compart, new_compart, verbose)
         padmetSpec.generateFile(new_padmet)            
     else:
-        if verbose:
-            print("List of compartments")
+        print("List of compartments:")
         print(list(padmetSpec.get_all_compart()))
 
 if __name__ == "__main__":
