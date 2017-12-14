@@ -90,15 +90,14 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
     dict_data = {}
     with open(data_file, 'r') as f:
         all_read = f.read()
-    sep = csv.Sniffer().sniff(all_read)
-    data = (line for line in f.read().splitlines() if len(line) != 0 and not line.startswith("#"))
+    sep = csv.Sniffer().sniff(all_read).delimiter
+    data = (line for line in all_read.splitlines() if len(line) != 0 and not line.startswith("#"))
     for line in data:
         #if len of value is 0 then ValueError raised
         try:
             attrib, value = line.split(sep)
         except TypeError:
             continue
-        #delete all tags
         if attrib == "reaction_id":
             current_id = value
             dict_data[current_id] = {}
