@@ -25,7 +25,7 @@ If the file new_reaction_data exist: calls rxn_creator.py
 Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
 
 usage:
-    manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [-v]
+    manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [--tool=STR] [--category=STR] [-v]
     manual_curation.py --template_new_rxn --output=FILE
     manual_curation.py --template_add_delete --output=FILE
 
@@ -49,6 +49,12 @@ import csv
 
 def main():
     args = docopt.docopt(__doc__)
+    global tool, category
+    tool = args["--tool"]
+    if args["--category"]:
+        category = args["--category"]
+    else:
+        category = "MANUAL"
     output = args["--output"]
     if args["--template_new_rxn"]:
         template_new_rxn(output)
@@ -75,9 +81,10 @@ def main():
         csvfile.seek(0)
         reader = csv.reader(csvfile, dialect)
         header = reader.next()
+        print header
         if len(header) == 2:
             to_do = "rxn_creator"
-        elif len(header) == 4:
+        elif len(header) > 2:
             to_do = "add_delete_rxn"
         else:
             raise TypeError("Unable to read the file")
@@ -142,19 +149,31 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
         padmetSpec.createNode("reaction", reaction_id, node_misc)
 
         #reconstructionData:
-        reconstructionData_id = reaction_id+"_reconstructionData_MANUAL"
-        if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
-            print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
-        reconstructionData =  {"CATEGORY":["MANUAL"], "COMMENT":[comment]}
+        if tool:
+            reconstructionData_id = reaction_id+"_reconstructionData_"+tool
+            reconstructionData =  {"CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
+            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
+        else:
+            reconstructionData_id = reaction_id+"_reconstructionData_MANUAL"
+            reconstructionData =  {"CATEGORY":["MANUAL"], "COMMENT":[comment]}
+            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
+
         reconstructionData_rlt = Relation(reaction_id,"has_reconstructionData",reconstructionData_id)
         padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
     
         genes_assoc = reaction_data["linked_gene"][0]
         if genes_assoc:
             #suppData:
-            suppData_id = reaction_id+"_SuppData_MANUAL"
-            if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
-                print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
+            if tool:
+                suppData_id = reaction_id+"_SuppData_"+tool
+                if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                    print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
+            else:
+                suppData_id = reaction_id+"_SuppData_MANUAL"
+                if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                    print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
             suppData = {"GENE_ASSOCIATION":[genes_assoc]}
             #create the node suppData and the relation has_suppData
             suppData_rlt = Relation(reaction_id,"has_suppData",suppData_id)
@@ -175,12 +194,12 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
                    and rlt.id_out == gene_id][0]
                    #rxn already linked to gene x, update misc
                    try:
-                       linked_rlt.misc["SOURCE:ASSIGNMENT"].append('MANUAL')
+                       linked_rlt.misc["SOURCE:ASSIGNMENT"].append(category)
                    except KeyError:
-                       linked_rlt.misc["SOURCE:ASSIGNMENT"] = ['MANUAL']
+                       linked_rlt.misc["SOURCE:ASSIGNMENT"] = [category]
                #rxn not linked to gene x
                except IndexError:
-                   linked_rlt = Relation(reaction_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":['MANUAL']})
+                   linked_rlt = Relation(reaction_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[category]})
                padmetSpec._addRelation(linked_rlt)
 
         if verbose: print("check if all metabolites are already in the network")
@@ -260,24 +279,34 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                     padmetSpec.copyNode(padmetRef, element_id)
                     
                     #reconstructionData:
-                    reconstructionData_id = element_id+"_reconstructionData_MANUAL"
-                    if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
-                        print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
-                    reconstructionData =  {"CATEGORY":['MANUAL'], "COMMENT":[comment]}
+                    if tool:
+                        reconstructionData_id = element_id+"_reconstructionData_"+tool
+                        reconstructionData =  {"CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
+                        if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                            print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
+                    else:
+                        reconstructionData_id = element_id+"_reconstructionData_MANUAL"
+                        reconstructionData =  {"CATEGORY":["MANUAL"], "COMMENT":[comment]}
+                        if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                            print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
+                        
                     reconstructionData_rlt = Relation(element_id,"has_reconstructionData",reconstructionData_id)
                     padmetSpec.createNode("reconstructionData", reconstructionData_id, reconstructionData, [reconstructionData_rlt])
-                    if verbose: print("Creating reconstructionData %s" %reconstructionData_id)                
                     
                     if genes_assoc:
                         #suppData:
-                        suppData_id = element_id+"_SuppData_MANUAL"
-                        if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
-                            print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
+                        if tool:
+                            suppData_id = element_id+"_SuppData_"+tool
+                            if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                                print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
+                        else:
+                            suppData_id = reaction_id+"_SuppData_MANUAL"
+                            if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                                print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
                         suppData = {"GENE_ASSOCIATION":[genes_assoc]}
                         #create the node suppData and the relation has_suppData
                         suppData_rlt = Relation(element_id,"has_suppData",suppData_id)
                         padmetSpec.createNode("suppData", suppData_id, suppData,[suppData_rlt])
-                        if verbose: print("Creating suppData %s" %suppData_id)                
 
                         all_genes = parseGeneAssoc(genes_assoc)
                         nbGenes = len(all_genes)
@@ -294,12 +323,12 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                                and rlt.id_out == gene_id][0]
                                #rxn already linked to gene x, update misc
                                try:
-                                   linked_rlt.misc["SOURCE:ASSIGNMENT"].append('MANUAL')
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"].append(category)
                                except KeyError:
-                                   linked_rlt.misc["SOURCE:ASSIGNMENT"] = ['MANUAL']
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"] = [category]
                            #rxn not linked to gene x
                            except IndexError:
-                               linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":['MANUAL']})
+                               linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[category]})
                            padmetSpec._addRelation(linked_rlt)
 
             elif action.upper() == "DELETE":
@@ -313,7 +342,7 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                 print("Action: %s unknown for %s" %(action, element_id))
                 print("action must be = 'add' or 'delete' or ''")
                 exit()
-        padmetSpec.generateFile(new_padmet)
+        padmetSpec.generateFile(output)
 
 
 

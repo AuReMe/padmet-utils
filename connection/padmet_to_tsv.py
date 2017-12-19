@@ -66,6 +66,7 @@ def main():
     padmetRef_file = args["--padmetRef"]
     output_dir = args["--output_dir"]
     verbose = args["-v"]
+    global all_rxn_nodes, all_cpd_nodes, all_pwy_nodes
     
     #check if output_dir exist, else create it
     if not output_dir.endswith("/"):
@@ -105,23 +106,24 @@ def main():
 
         if verbose: print("\tExtracting reactions")
         all_rxn_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "reaction"]
-        if all_rxn_nodes: extract_nodes(all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"in@metabolic_network":padmetRef_name})
+        if all_rxn_nodes: extract_nodes(padmetRef, all_rxn_nodes, "reaction", padmetRef_folder+"rxn.tsv", {"in@metabolic_network":padmetRef_name})
         if verbose: print("\t%s reactions" %len(all_rxn_nodes))
 
         if verbose: print("\tExtracting compounds")
         all_cpd_nodes = set([padmetRef.dicOfNode[rlt.id_out] for rlt in padmetRef.getAllRelation() if rlt.type in ["consumes","produces"]])
-        if all_cpd_nodes: extract_nodes(all_cpd_nodes, "compound", padmetRef_folder+"cpd.tsv")
+        if all_cpd_nodes: extract_nodes(padmetRef, all_cpd_nodes, "compound", padmetRef_folder+"cpd.tsv")
         if verbose: print("\t%s compounds" %len(all_cpd_nodes))
     
         if verbose: print("\tExtracting pathways")
         all_pwy_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "pathway"]
-        if all_pwy_nodes: extract_nodes(all_pwy_nodes, "pathway", padmetRef_folder+"pwy.tsv")
+        if all_pwy_nodes: extract_nodes(padmetRef, all_pwy_nodes, "pathway", padmetRef_folder+"pwy.tsv")
         if verbose: print("\t%s pathways" %len(all_pwy_nodes))
 
         if verbose: print("\tExtracting xrefs")
-        all_xref_nodes = [node for node in padmetRef.dicOfNode.values() if node.type == "xref"]
-        if all_xref_nodes: extract_nodes(all_xref_nodes, "xref", padmetRef_folder+"xref.tsv")
-        if verbose: print("\t%s xrefs" %len(all_xref_nodes))
+        extract_xref(padmetRef, padmetRef_folder+"xrefs.tsv")
+
+        exit()    
+
 
     else:
         if verbose: print("No given padmetRef")
@@ -136,7 +138,7 @@ def main():
 
         if verbose: print("Extracting nodes from %s" %padmetSpec_name)
 
-        if verbose: print("\tExtracting all reactions and sources")
+        if verbose: print("\tExtracting all reactions and reconstruction data")
         all_sources = set()
         spec_all_rxn_nodes = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"] 
         [all_sources.update(set(node.misc.get("SOURCE",[]))) for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
@@ -163,7 +165,7 @@ def main():
         if spec_unique_rxn_nodes: extract_nodes(spec_unique_rxn_nodes, "reaction", padmetSpec_folder+"unique_rxn.tsv", {"in@metabolic_network":padmetSpec_name})
         if verbose: print("\t%s reactions" %len(spec_unique_rxn_nodes))
 
-        if verbose: print("\tExtractingcompounds not in padmetRef")
+        if verbose: print("\tExtracting compounds not in padmetRef")
         spec_unique_cpd_nodes = [padmetSpec.dicOfNode[node_id] for node_id in set([rlt.id_out for rlt in padmetSpec.getAllRelation() if rlt.type in ["consumes","produces"]]).difference(set([node.id for node in all_cpd_nodes]))]
         if spec_unique_cpd_nodes: extract_nodes(spec_unique_cpd_nodes, "compound", padmetSpec_folder+"cpd.tsv")
         if verbose: print("\t%s compounds" %len(spec_unique_cpd_nodes))
@@ -318,7 +320,7 @@ def main():
             rxn_gene_file(rxn_gene_data, padmetSpec_folder+"rxn_gene.tsv")
 
 
-def extract_nodes(nodes, entity_id, output, opt_col = {}):
+def extract_nodes(padmet, nodes, entity_id, output, opt_col = {}):
     """
     for n nodes in nodes. for each node.misc = {A:['x'],B:['y','z']}
     create a file with line = [node.id,A[0],B[0]],[node.id,"",B[1]]
@@ -329,16 +331,19 @@ def extract_nodes(nodes, entity_id, output, opt_col = {}):
     if opt_col:
         fieldnames = [entity_id] + opt_col.keys() + list(all_keys)
     else:
-        fieldnames = [entity_id] + list(all_keys)
-    try:
-        fieldnames.remove("SOURCE")
-    except ValueError:
-        pass
+        fieldnames = [entity_id] + list(all_keys) + ["SYNONYM"]
     
     with open(output, 'w') as f:
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(fieldnames)
         for node in nodes:
+            try:
+                names = [padmet.dicOfNode[rlt.id_out].misc["LABEL"] for rlt in padmet.dicOfRelationIn[node.id] if rlt.type == "has_name"]
+                if names:
+                    names = names[0]
+            except KeyError:
+                names = [""]
+            node.misc["SYNONYM"] = names
             data = [node.misc.get(col,[""]) for col in fieldnames]
             data = izip_longest(*data,fillvalue="")
             for d in data:
@@ -349,6 +354,21 @@ def extract_nodes(nodes, entity_id, output, opt_col = {}):
                         k_index = fieldnames.index(k)
                         d[k_index] = v
                 writer.writerow(d)
+
+def extract_xref(padmet, output):
+    """
+    
+    """
+    xref_dict = {}
+    for xref_node in [node for node in padmet.dicOfNode.values() if node.type == "xref"]:
+        for db, _id in xref_node.misc.items():
+            xref_dict[_id[0]] = db
+    fieldnames = ["xref_id","xref_db"]
+    with open(output, 'w') as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(fieldnames)
+        for k,v in xref_dict.items():
+            writer.writerow([k,v])
             
 def extract_pwy(padmet):
     """

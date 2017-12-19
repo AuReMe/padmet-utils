@@ -28,12 +28,12 @@ in more than 75%
 5./ Also extract xrefs
 
 usage:
-    biggAPI_to_padmet.py --output=FILE [--pwy_file] [-v]
+    biggAPI_to_padmet.py --output=FILE [--pwy_file=FILE] [-v]
 
 options:
     -h --help     Show help.
     --output=FILE    pathname of the padmet file to create
-    --pwy_file   add kegg pathways from this pathways file 'pwy_id, pwy_name, x, rxn_id'.
+    --pwy_file=FILE   add kegg pathways from this pathways file 'pwy_id, pwy_name, x, rxn_id'.
     -v   print info.
 """
 from padmet.node import Node
@@ -158,20 +158,19 @@ def main():
     
                 for metabo_dict in rxn_metabolites:
                     metabo_id = metabo_dict["bigg_id"]
-                    if metabo_id not in padmetRef.dicOfNode.keys():
-                        metabo_name = metabo_dict["name"]
-                        metabo_compart = metabo_dict["compartment_bigg_id"]
-                        metabo_stoich = metabo_dict["stoichiometry"]
-                        try:
-                            metabo_node = padmetRef.dicOfNode[metabo_id]
-                        except KeyError:
-                            metabo_node = padmetRef.createNode("compound",metabo_id,{"COMMON_NAME":[metabo_name]})
-                        if metabo_stoich < 0:
-                            consumes_rlt = Relation(rxn_id,"consumes",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
-                            list_of_relation.append(consumes_rlt)
-                        else:
-                            produces_rlt = Relation(rxn_id,"produces",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
-                            list_of_relation.append(produces_rlt)
+                    metabo_name = metabo_dict["name"]
+                    metabo_compart = metabo_dict["compartment_bigg_id"]
+                    metabo_stoich = metabo_dict["stoichiometry"]
+                    try:
+                        padmetRef.dicOfNode[metabo_id]
+                    except KeyError:
+                        padmetRef.createNode("compound",metabo_id,{"COMMON_NAME":[metabo_name]})
+                    if metabo_stoich < 0:
+                        consumes_rlt = Relation(rxn_id,"consumes",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
+                        list_of_relation.append(consumes_rlt)
+                    else:
+                        produces_rlt = Relation(rxn_id,"produces",metabo_id,{"STOICHIOMETRY":[abs(metabo_stoich)],"COMPARTMENT":[metabo_compart]})
+                        list_of_relation.append(produces_rlt)
         else: 
             if verbose: print("%s already in padmet" %rxn_id)
             continue                                        
@@ -217,11 +216,10 @@ def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
                     pwy_rlt = Relation(rxn_id,"is_in_pathway",pwy_id)
                     padmetRef._addRelation(pwy_rlt)
                 else:
-                    if verbose: print("%s is not in padmet" %rxn_id)
+                    if verbose: print("%s in pwy %s but not in padmet" %(rxn_id, pwy_id))
     padmetRef.generateFile("/home/maite/Documents/data/bigg/bigg_v2.padmet")
             
     
 if __name__ == "__main__":
-    add_kegg_pwy('/home/maite/Documents/data/bigg/bigg_kegg_pwy.txt'
-, PadmetRef("/home/maite/Documents/data/bigg/bigg.padmet"), True)
+    main()
 
