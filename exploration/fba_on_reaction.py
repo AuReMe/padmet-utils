@@ -94,30 +94,30 @@ def main():
             model2 = model.copy()
             #get the biomass reaction
             biomassrxn2 = model2.reactions.get_by_id(biomassname) #R_Ec_biomass_iAF1260_core_59p81M
+            biomassrxn2.objective_coefficient = 1
             # empty the biomass metabolites
-            for m in bms_metabolites_list:
-                biomassrxn2.pop(m)
+            for i in range(len(bms_reactants)):
+                biomassrxn2.reactants.pop(i)
             #create a clean dict with only compound of interest and stoichio to -1 (reactant)
             metabolitedict = {}
-            metabolitedict[metabolite1]=-1.0
+            metabolitedict[metabolite]=-1.0
             # replace the biomass metabolites with only metabolite1 inside
             biomassrxn2.add_metabolites(metabolitedict)
             # print(biomassrxn2._metabolites)
             #test flux balance analysis
             #print(biomassrxn2._metabolites)
-            model2.optimize()
-            if (model2.solution.f > 1e-5):
-                dict_output["positive"][metabolite1] = model2.solution.f
+            solution2 = model2.optimize()
+            if (solution2.objective_value > 1e-5):
+                dict_output["positive"][metabolite] = solution2.objective_value
             else:
-                dict_output["negative"][metabolite1] = model2.solution.f
-            has_been_tested.append(metabolite1)
+                dict_output["negative"][metabolite] = solution2.objective_value
 
         for k,v in dict_output["positive"].items():
             print("%s %s positive" %(k,v))
         for k,v in dict_output["negative"].items():
             print("%s %s negative" %(k,v))
-        print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(has_been_tested)))
-        print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(has_been_tested)))
+        print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(bms_reactants)))
+        print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(bms_reactants)))
 
 
 

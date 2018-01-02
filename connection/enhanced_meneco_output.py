@@ -67,7 +67,7 @@ def main():
         nb_reactions = str(len(reactions_ids))
     if verbose: print(nb_reactions+" reactions to check")    
     with open(output,'w') as f:
-        header = ["idRef","Common name","EC-number","Formula (with id)","Formula (with cname)","Action","Comment"]
+        header = ["idRef","Common name","EC-number","Formula (with id)","Formula (with cname)","Action","Comment", "Genes"]
         header = "\t".join(header)+"\n"
         f.write(header)
         for reac_id in reactions_ids:
@@ -110,7 +110,7 @@ def main():
                 except KeyError:
                     cname_formula = ""
                     
-                line = [reac_id, common_name, ec, idRef_formula, cname_formula, "add", "Added for gapfilling"]
+                line = [reac_id, common_name, ec, idRef_formula, cname_formula, "add", "Added for gapfilling", ""]
                 line = "\t".join(line)+"\n"
                 f.write(line)
             except KeyError:

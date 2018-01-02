@@ -51,8 +51,10 @@ def main():
     args = docopt.docopt(__doc__)
     global tool, category
     tool = args["--tool"]
+    if tool:
+        tool = tool.upper()
     if args["--category"]:
-        category = args["--category"]
+        category = args["--category"].upper()
     else:
         category = "MANUAL"
     output = args["--output"]
