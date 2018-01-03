@@ -145,3 +145,9 @@ $wgFileExtensions = array(
     'xls', 'xlsx', 'doc','docx', 'odt', 'odc', 'odp', 'csv', 'tbl',
     'odg', 'mpp'
     );
+$wgFooterIcons['poweredby']['aureme'] = array(
+        "src" => "$wgResourceBasePath/resources/assets/aureme_logo.png",
+        "url" => "http://aureme.genouest.org/",
+        "alt" => "Powered by AuReMe"
+);
+

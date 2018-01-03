@@ -43,6 +43,7 @@ RUN apt-get update;\
     apt-get install -y -q vim;\
     apt-get install -y -q php5-curl;\
     apt-get install -y -q python-pip;\
+    apt-get install -y -q imagemagick;\
     pip install docopt
 
 # MediaWiki install
