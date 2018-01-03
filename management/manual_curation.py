@@ -101,11 +101,6 @@ def main():
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
     print "done in: ", chrono, "s !"
 
-
-#data_file = "/home/maite/Forge/docker/aureme_workspace/tiso_reborn/manual_curation/test.csv"
-#padmetSpec = PadmetSpec("/home/maite/Forge/docker/aureme_workspace/tiso_reborn/networks/draft_with_medium.padmet")
-#padmetRef = PadmetRef("/home/maite/Forge/docker/aureme_workspace/tiso_reborn/database/metacyc_20.5_enhanced.padmet")
-
 def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose = False):
     dict_data = {}
     with open(data_file, 'r') as f:
@@ -113,7 +108,7 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
     sep = csv.Sniffer().sniff(all_read).delimiter
     data = (line for line in all_read.splitlines() if len(line) != 0 and not line.startswith("#"))
     for line in data:
-        #if len of value is 0 then ValueError raised
+        #if len of value is 0 then TypeError raised
         try:
             attrib, value = line.split(sep)
         except TypeError:
@@ -345,16 +340,6 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                 print("action must be = 'add' or 'delete' or ''")
                 exit()
         padmetSpec.generateFile(output)
-
-
-
-
-
-
-
-
-
-
 
 
 def template_new_rxn(output):
