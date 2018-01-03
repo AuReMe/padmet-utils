@@ -297,7 +297,7 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                             if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
                                 print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
                         else:
-                            suppData_id = reaction_id+"_SuppData_MANUAL"
+                            suppData_id = element_id+"_SuppData_MANUAL"
                             if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
                                 print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
                         suppData = {"GENE_ASSOCIATION":[genes_assoc]}
