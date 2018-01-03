@@ -54,8 +54,10 @@ def main():
     args = docopt.docopt(__doc__)
     #print(args)
     wiki_folders = "/home/web/apache/sites/gem-aureme.irisa.fr/htdocs/"
-    wiki_manager = "/home/users/web-gem-aureme/padmet-utils/wiki/server_version/wikiManager/"
-    wiki_template = "/home/users/web-gem-aureme/padmet-utils/wiki/server_version/wiki_template"
+    wiki_server_version_folder = "/home/users/web-gem-aureme/padmet-utils/wiki/server_version/"
+    wiki_manager = wiki_server_version_folder+"wikiManager/"
+    wiki_template = wiki_server_version_folder+"wiki_template"
+    wiki_forms = wiki_server_version_folder+"forms"
     db_name = "gem_a1562"
     #check if db db_name exist, if no create it
     try:
@@ -66,14 +68,12 @@ def main():
     if args["--init"]:
         wiki_id = args["--init"]
         url = args["--url"]
-        if url.endswith("/"): url = url[:-1]
+        if not url.endswith("/"): url += "/"
         print("Checking wiki id %s..." %wiki_id)
         if wiki_id in os.walk(wiki_folders).next()[1]:
             raise ValueError("A wiki with the id %s already exist, remove it or change the new wiki id" %wiki_id)
         print("Checking wiki id %s: OK" %wiki_id)
         print("Checking the if the prefix %s_ is already used in the database..." %wiki_id)
-        #sp = subprocess.Popen(["/bin/bash", "-i", "-c", 'DB -D wiki_db -e "show tables" -s | egrep "^'+wiki_id+'"'])
-        #sp.communicate()
         try:
             out = subprocess.check_output(["/bin/bash", "-i", "-c", 'DB -D '+db_name+' -e "show tables" -s | egrep "^'+wiki_id+'"'])
             raise ValueError("%s tables found with prefix %s_, a wiki is already using this prefix." %(out.count("\n"), wiki_id))
@@ -92,7 +92,7 @@ def main():
         print("\n")
         print("##############################################################")
         print("MANUAL SETUP IS NOW REQUIRED. Access to this link from your browser:")
-        print("\t%s/mw-config/index.php" %url)
+        print("\t%s%s/mw-config/index.php" %(url,wiki_id))
         print("Follow this instructions to setup mediawiki:")
         print("Language:")
         print("\tContinue->")
@@ -120,10 +120,10 @@ def main():
         cmd = "php "+wiki_folders+wiki_id+"/maintenance/update.php"
         subprocess.call(cmd, shell=True)
         print("Importings manual curation forms")
-        cmd = "php "+wiki_folders+wiki_id+"/maintenance/importImages.php --extensions=csv /home/forms/"
+        cmd = "php "+wiki_folders+wiki_id+"/maintenance/importImages.php --extensions=csv "+wiki_forms
         subprocess.call(cmd, shell=True)
         print("The wiki is now online and reachable at this link:")
-        print("\t%s/index.php")
+        print("\t%s%s/index.php" %(url,wiki_id))
         print("You have now to select the folder containing the wiki pages you want to upload on this wiki")
         print("Ex: wiki --wiki=my_wiki --update=/shared/my_run/analysis/wiki_pages/draft/")
 
@@ -143,7 +143,6 @@ def main():
                 all_tables = [x for x in all_tables if x != ""]
                 print("%s tables to drop" %len(all_tables))
                 cmd = 'DB -D '+db_name+' -e "DROP TABLE '+",".join(all_tables)+'"'
-                print cmd
                 subprocess.call(["/bin/bash", "-i", "-c",cmd])
             except subprocess.CalledProcessError:
                 print("No tables with prefix %s_ found" %wiki_id)
