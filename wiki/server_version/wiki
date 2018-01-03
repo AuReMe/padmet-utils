@@ -158,6 +158,12 @@ def main():
                 print("No tables with prefix %s_ found" %wiki_id)
         elif args["--update"]:
             wiki_pages_folder = args["--update"]
+            url = args["--url"]
+            if not url.endswith("/"): url += "/"
+            api_url = url+wiki_id+"/api.php"
+            username = args["--username"]
+            password =args["--password"]
+
             if not wiki_pages_folder.endswith("/") : wiki_pages_folder += "/"
             print("Check in wiki %s exist" %wiki_id)
             if wiki_id in os.walk(wiki_folders).next()[1]:
@@ -170,9 +176,6 @@ def main():
             except subprocess.CalledProcessError:
                 raise IOError("No tables with prefix %s_ found" %wiki_id)
             print("Sending wiki pages...")
-            api_url = args["--api_url"]
-            username = args["--username"]
-            password =args["--password"]
 
             cmd = "cd %s; make update pages_dir=%s api_url=%s U=%s P=%s" %(wiki_manager, wiki_pages_folder, api_url, username, password)
             subprocess.call(["/bin/bash","-i","-c", cmd])
