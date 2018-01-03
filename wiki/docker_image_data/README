@@ -1,0 +1,79 @@
+"""
+This file is part of padmet-utils.
+
+padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
+"""
+
+How to create a local wiki for a metabolic network in padmet format.
+
+--- REQUIREMENT ---
+Install php
+Install Docker
+
+--- IMAGE BULDING ---
+In this folder, run the following command:
+shell$ make build
+
+--- WIKI DEPLOYMENT ---
+/!\ 1 container = 1 wiki
+1/ Create a containner
+Now that the image is built, you need to run a container.
+In this folder, run the following command:
+shell$ make run name=TheNameOfYourContainer (ex: yourSpeciesName, default = default_wiki)
+
+2/ Mediawiki setup from browser
+from your browser go to the following link:
+http://localhost:8888/wiki/mw-config/index.php
+- Follow this setup instructions.
+a/ Language: press Continue
+b/ Enter the update key: 0880a534700be3f7
+c/ Accepte conditions (continue)
+d/ Database settings: innoDB, binary
+e/ Name 
+	Name of wiki: what you want, ex: ecoli_network.
+	project namespace: same as the wiki name.
+	Create an account with username = 'admin' , password = 123456789
+	/!\ WARNING: always use this account with this password, those data are used by default for wikiManager.
+	Select: i'm bored already, just install the wiki.
+	At the end do not save the LocalSettings.php file, juste cancel.
+Setup complete
+
+3/ Last setup and loading the metabolic network
+docker init name=TheNameOfYourContainer (ex: yourSpeciesName, default = default_wiki) pages_dir=wikiPageDirectory
+
+--- miscellaneous---
+*Start a container
+shell$ docker start container_name
+
+*Stop a container
+shell$ docker stop container_name
+
+* Enter inside a container
+docker exec -ti container_name bash
+
+* Delete all containers /!\
+docker rm $(docker ps -a -q)
+
+* Delete all images /!\ 
+docker rmi $(docker images -q)
+
+*Export a container
+docker export my_container > my_container.tar
+
+*Import a container
+docker import /path/to/exampleimage.tgz
+docker load < aureme-padmet3-img.tar.gz
+
+
+
