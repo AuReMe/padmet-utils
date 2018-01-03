@@ -36,6 +36,8 @@ import os
 import shutil
 from itertools import chain
 from collections import Iterable
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import colors
@@ -63,7 +65,6 @@ def main():
     all_genes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
     for rxn_node in all_rxns:
         create_biological_page("Reaction", rxn_node, wiki_folder+"reactions/", "http://metacyc.org/META/NEW-IMAGE?object")
-    create_venn()
     for gene_node in all_genes:    
         create_biological_page("Gene", gene_node, wiki_folder+"genes/")
     all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.iteritems() if node_id in total_pwy_id]
@@ -74,6 +75,7 @@ def main():
         create_biological_page("Metabolite", cpd_node, wiki_folder+"metabolites/", "http://metacyc.org/META/NEW-IMAGE?object")
 
     create_navigation_page(wiki_folder+"/navigation/")
+    create_venn()
     create_main(model_id, model_name)
 
 def createDirectory():
@@ -246,7 +248,7 @@ def create_navigation_page(output_folder):
             for line in dataInArray:
                 f.write(line+"\n")
 
-    if verbose: print("Wiki page for SideBar")
+    if verbose: print("SideBar page")
     with open(output_folder+"MediaWiki:Sidebar", 'w') as f:
         for line in sideBarData:
             f.write(line+"\n")
