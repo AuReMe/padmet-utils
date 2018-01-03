@@ -170,18 +170,10 @@ def main():
             except subprocess.CalledProcessError:
                 raise IOError("No tables with prefix %s_ found" %wiki_id)
             print("Sending wiki pages...")
-            if args["--api_url"]:
-                api_url = args["--api_url"]
-            else:
-                api_url = "127.0.0.1:80/"+wiki_id+"/api.php"
-            if args["--username"]:
-                username = args["--username"]
-            else:
-                username = default_username
-            if args["--password"]:
-                password =args["--password"]
-            else:
-                password = default_password
+            api_url = args["--api_url"]
+            username = args["--username"]
+            password =args["--password"]
+
             cmd = "cd %s; make update pages_dir=%s api_url=%s U=%s P=%s" %(wiki_manager, wiki_pages_folder, api_url, username, password)
             subprocess.call(["/bin/bash","-i","-c", cmd])
             cmd = "cd %s%s/maintenance; php importImages.php %s/files" %(wiki_folders, wiki_id, wiki_pages_folder) 
