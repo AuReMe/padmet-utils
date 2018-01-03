@@ -261,7 +261,7 @@ def main():
         rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
         #[padmet.delNode(node.id) for node in rxn_to_del]
         print("%s/%s reactions without gene association" %(len(rxn_to_del), len(all_reactions)))
-        print([i.id for i in rxn_to_del[:5]])
+        print([i.id for i in rxn_to_del[:5]]+["..."])
         all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
         all_genes = set([node.id for node in padmet.dicOfNode.values() if node.type == "gene"])
         count = 0
