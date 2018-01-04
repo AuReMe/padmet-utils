@@ -17,16 +17,16 @@ along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 
 @author: Meziane AITE, meziane.aite@inria.fr
 Description:
-
+Allows to merge two padmet. update the 'init_padmet' with the 'to_add' padmet.
 usage:
     padmet_to_padmet.py --init_padmet=FILE --padmetRef=FILE --to_add=FILE [--output=FILE] [-v]
 
 options:
     -h --help     Show help.
-    --padmetSpec=FILE    pathname to the padmet file to update with the sbml. If there's no padmetSpec, just specify the output
+    --init_padmet=FILE    pathname to the padmet file to update.
     --padmetRef=FILE    pathanme to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
-    --sbml=FILE    1 sbml file to convert into padmetSpec (ex: my_network.xml/sbml) OR a directory with n SBML
-    --output=FILE   pathanme to the new padmet file
+    --to_add=FILE    pathname to the padmet file to add.
+    --output=FILE   pathanme to the new padmet file, if none overwritte init_padmet
     -v   print info
 """
 from padmet.padmetSpec import PadmetSpec

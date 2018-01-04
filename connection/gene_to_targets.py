@@ -54,7 +54,7 @@ def main():
             padmetSpec.dicOfNode[gene_id]
             if verbose: print("%s/%s %s" % (count, nb_genes, gene_id))
         except KeyError:
-            print("Gene %s not found in padmetSpec" %gene_id)
+            if verbose: print("Gene %s not found in padmetSpec" %gene_id)
             continue
 
             #get all reactions linked to the gene
@@ -63,7 +63,7 @@ def main():
             for rlt in padmetSpec.dicOfRelationOut[gene_id]
             if rlt.type == "is_linked_to"]
         except KeyError:
-            print("the gene %s is not linked to any reaction" %gene_id)
+            if verbose: print("the gene %s is not linked to any reaction" %gene_id)
             continue
         if verbose: print("\t%s reactions linked" %len(reactions_linked))
 
