@@ -23,9 +23,9 @@ usage:
 
 options:
     -h --help     Show help.
-    --reaction_file=FILE    pathname of the file containing the reactions id, 1/line 
-    --padmetRef=FILE    pathname of the padmet representing the database.
-    --output=FILE    pathname of the file with line = pathway id, all reactions id, reactions ids from reaction file, ratio. sep = "\t"
+    --sbml=FILE    pathname of the sbml
+    --output=FILE    form containing the reaction extracted, form used for manual curation in aureme
+    --rxn_id=FILE    id of the reaction, if None try to extract the reaction with objective coefficient == 1
 """
 
 from cobra.io.sbml import create_cobra_model_from_sbml_file
@@ -47,9 +47,31 @@ def main():
             print("No reaction id given and no reaction with obj coefficient to 1.0, enable to get the reaction")
             exit()
     else:
-        rxn = model.reactions.get_by_id(rxn_id)
+        try:
+            rxn = model.reactions.get_by_id(rxn_id)
+        except KeyError:
+            rxn_id = rxn_id[2:]
+            rxn = model.reactions.get_by_id(rxn_id)
     
     with open(output, 'w') as f:
+        line = ["reaction_id",rxn_id]
+        line = "\t".join(line)+"\n"
+        f.write(line)
+        if rxn.reversibility:
+            line = ["reversible","true"]
+        else:
+            line = ["reversible","false"]
+        line = "\t".join(line)+"\n"
+        f.write(line)
+        #check if have gene assoc
+        try:
+            k = [i for i in rxn.notes.keys() if i.lower().startswith("gene")][0]
+            gene_assoc = rxn.notes[k][0]
+            line = ["linked_gene", gene_assoc]
+        except IndexError:
+            line = ["linked_gene", ""]
+        line = "\t".join(line)+"\n"
+        f.write(line)
         line = ["#reactant/product","#stoichio:compound_id:compart"]
         line = "\t".join(line)+"\n"
         f.write(line)
@@ -59,7 +81,6 @@ def main():
             stoich = str(abs(rxn.get_coefficient(reactant)))
             reactant_id = reactant.id.replace("DASH","")[:-2]
             compart = reactant.compartment
-            print reactant_id+"\t"+compart
             line = ":".join([stoich, reactant_id, compart])
             line = "reactant"+"\t"+line+"\n"
             f.write(line)
