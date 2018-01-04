@@ -40,15 +40,19 @@ def main():
     reader = SBMLReader()
     document = reader.readSBML(sbml_file)
     model = document.getModel()
-    sbml_listOfReactions = set([sp.convert_from_coded_id(r.getId()) for r in model.getListOfReactions()])
-    
+    sbml_listOfReactions = set([sp.convert_from_coded_id(r.getId())[0] for r in model.getListOfReactions()])
     padmet_reaction = set([node.id for node in padmetSpec.dicOfNode.itervalues() if node.type == "reaction"])
-    
     diff = sbml_listOfReactions.difference(padmet_reaction)
     diff_inv = padmet_reaction.difference(sbml_listOfReactions)
     
-    print(len(diff))
-    print(len(diff_inv))
+    print("%s reaction in sbml" %len(sbml_listOfReactions))
+    print("%s reaction in padmet" %len(padmet_reaction))
+    print("%s reaction in sbml not in padmet" %len(diff))
+    for i in diff:
+        print("\t%s" %i)
+    print("%s reaction in padmet not in sbml" %len(diff_inv))
+    for i in diff_inv:
+        print("\t%s" %i)
 
 if __name__ == "__main__":
     main()

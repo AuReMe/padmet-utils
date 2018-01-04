@@ -29,6 +29,7 @@ options:
 """
 from libsbml import *
 from padmet.sbmlPlugin import convert_from_coded_id
+import docopt
 
 def main():
     args = docopt.docopt(__doc__)
@@ -64,6 +65,8 @@ def main():
             result_dict["None"].append(rxn)
     for k,v in result_dict.iteritems():
         print("%s: %s reactions" %(k,len(v)))
+        for r in v:
+            print("\t%s" %r)
 
 if __name__ == "__main__":
     main()
