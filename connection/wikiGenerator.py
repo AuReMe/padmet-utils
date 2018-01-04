@@ -54,14 +54,17 @@ def main():
     try:
         db = padmetSpec.info["DB_info"]["DB"].lower()
         if db == "metacyc":
-            ext_link = "http://metacyc.org/META/NEW-IMAGE?object"
+            ext_link = {"Reaction": "http://metacyc.org/META/NEW-IMAGE?object=",
+                        "Pathway": "http://metacyc.org/META/NEW-IMAGE?object=",
+                        "Metabolite": "http://metacyc.org/META/NEW-IMAGE?object="}
         elif db == "bigg":
-            ext_link = "http://bigg.ucsd.edu/search?query"
+            ext_link = {"Reaction":"http://bigg.ucsd.edu/universal/reactions/",
+                        "Metabolite":"http://bigg.ucsd.edu/universal/metabolites/",
+                        "Pathway":"http://www.genome.jp/dbget-bin/www_bget?"}
         else:
             raise KeyError
     except KeyError:
-        ext_link = None
-            
+        ext_link = {}
     if args["--padmetRef"]:
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
@@ -277,9 +280,9 @@ def create_biological_page(category, page_node, output_folder):
     #properties = [{{#set PROPERTY_X:VALUE_1|...|VALUE_N}}, ...]
     properties = []
     #ext_link is used to create external link to the database of reference if known
-    if ext_link:
+    if ext_link.get(category):
         dataInArray = ['[[Category:'+category+']]',
-        '== '+category+' ['+ext_link+'='+page_node.id+' '+page_node.id+'] ==']
+        '== '+category+' ['+ext_link.get(category)+page_node.id+' '+page_node.id+'] ==']
     else:
         dataInArray = ['[[Category:'+category+']]',
         '== '+category+' '+page_node.id+' ==']
@@ -292,8 +295,8 @@ def create_biological_page(category, page_node, output_folder):
         for i in v:
             if k == "ec number":
                 line = "** [http://enzyme.expasy.org/EC/"+i.replace("EC-","")+" "+i+"]"
-            elif k == "taxonomic range" and ext_link:
-                line = "** ["+ext_link+"="+i+" "+i+"]"
+            elif k == "taxonomic range" and ext_link.get(category):
+                line = "** ["+ext_link.get(category)+i+" "+i+"]"
             else:
                 line = '** '+i
             #add_property is used to stock all added properties and add them at the end of the page
@@ -410,8 +413,8 @@ def create_biological_page(category, page_node, output_folder):
 
             #if external link known, adding external link to the pathway
             #line: PWY_ID, common name, extern link to PWY
-            if ext_link:
-                line += ' ['+ext_link+'='+pwy_id+' '+pwy_id+']'
+            if ext_link.get("Pathway"):
+                line += ' ['+ext_link.get("Pathway")+pwy_id+' '+pwy_id+']'
             dataInArray.append(line)
             dataInArray.append("** '''"+str(nbReactionsFound)+"''' reactions found over '''"+str(nbReactionsTotal)+"''' reactions in the full pathway")
         add_property(properties, "in pathway", pathways_ids)
@@ -521,9 +524,9 @@ def create_biological_page(category, page_node, output_folder):
         dataInArray.append("== Reaction(s) not found ==")
         dataInArray.append("* '''"+nb_not_in_padmet+"''' reaction(s) not found")        
         if rxn_not_in_padmetSpec:
-            if ext_link:
+            if ext_link.get("Reaction"):
                 for rxn_id in rxn_not_in_padmetSpec:
-                    dataInArray.append("** ["+ext_link+rxn_id+" "+rxn_id+"]")
+                    dataInArray.append("** ["+ext_link.get("Reaction")+rxn_id+" "+rxn_id+"]")
             else:
                 for rxn_id in rxn_not_in_padmetSpec:
                     dataInArray.append("** "+rxn_id)
