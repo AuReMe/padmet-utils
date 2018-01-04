@@ -45,12 +45,23 @@ import math
 import docopt
 
 def main(): 
-    global padmetSpec, padmetRef, wiki_folder, full_sources_dict, all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id, all_rxns, all_genes, all_pwys, all_cpds, verbose
+    global padmetSpec, padmetRef, wiki_folder, full_sources_dict, all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id, all_rxns, all_genes, all_pwys, all_cpds, verbose, ext_link
     all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id = set(), set(), set(), set(), set()
     full_sources_dict = dict()
     #files to upload: folder genomic_data, all sbml in output ortho, annot, external, seeds, targets
     args = docopt.docopt(__doc__)
     padmetSpec = PadmetSpec(args["--padmetSpec"])
+    try:
+        db = padmetSpec.info["DB_info"]["DB"].lower()
+        if db == "metacyc":
+            ext_link = "http://metacyc.org/META/NEW-IMAGE?object"
+        elif db == "bigg":
+            ext_link = "http://bigg.ucsd.edu/search?query"
+        else:
+            raise KeyError
+    except KeyError:
+        ext_link = None
+            
     if args["--padmetRef"]:
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
@@ -64,15 +75,15 @@ def main():
     all_rxns = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
     all_genes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
     for rxn_node in all_rxns:
-        create_biological_page("Reaction", rxn_node, wiki_folder+"reactions/", "http://metacyc.org/META/NEW-IMAGE?object")
+        create_biological_page("Reaction", rxn_node, wiki_folder+"reactions/")
     for gene_node in all_genes:    
         create_biological_page("Gene", gene_node, wiki_folder+"genes/")
     all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.iteritems() if node_id in total_pwy_id]
     all_cpds = [node for (node_id, node) in padmetSpec.dicOfNode.iteritems() if node_id in total_cpd_id]
     for pwy_node in all_pwys:
-        create_biological_page("Pathway", pwy_node, wiki_folder+"pathways/", "http://metacyc.org/META/NEW-IMAGE?object")
+        create_biological_page("Pathway", pwy_node, wiki_folder+"pathways/")
     for cpd_node in all_cpds:
-        create_biological_page("Metabolite", cpd_node, wiki_folder+"metabolites/", "http://metacyc.org/META/NEW-IMAGE?object")
+        create_biological_page("Metabolite", cpd_node, wiki_folder+"metabolites/")
 
     create_navigation_page(wiki_folder+"/navigation/")
     create_venn()
@@ -103,6 +114,7 @@ def create_venn():
     if verbose: print("Venn Diagramm")
     #'ARGSUCCINSYN-RXN'
     categories_dict ={}
+    all_categories = ["orthology","annotation","gap-filling","manual"]
     for category in all_categories:
         categories_dict[category] = set()
     for rxn_id, rxn_src_dict in full_sources_dict.items():
@@ -253,7 +265,7 @@ def create_navigation_page(output_folder):
         for line in sideBarData:
             f.write(line+"\n")
 
-def create_biological_page(category, page_node, output_folder, ext_link = None):
+def create_biological_page(category, page_node, output_folder):
     """
     
     """
