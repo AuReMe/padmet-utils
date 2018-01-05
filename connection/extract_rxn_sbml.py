@@ -101,7 +101,7 @@ def main():
                 f.write(line)
             for product in products:
                 stoich = str(abs(rxn.get_coefficient(product)))
-                product_id = product.id.replace("DASH","")[:-2]
+                product_id = convert_from_coded_id(product.id)[0]
                 compart = product.compartment
                 line = ":".join([stoich, product_id, compart])
                 line = "product"+"\t"+line+"\n"

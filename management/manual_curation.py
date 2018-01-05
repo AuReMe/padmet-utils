@@ -83,7 +83,6 @@ def main():
         csvfile.seek(0)
         reader = csv.reader(csvfile, dialect)
         header = reader.next()
-        print header
         if len(header) == 2:
             to_do = "rxn_creator"
         elif len(header) > 2:
