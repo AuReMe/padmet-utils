@@ -44,7 +44,7 @@ a new reaction in padmetSpec with the arg -f
 usage:
     sbml_to_padmet.py --sbml=FILE --padmetRef=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
     sbml_to_padmet.py --sbml=FILE --padmetSpec=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
-    sbml_to_padmet.py --sbml=FILE --padmetRef=FILE --padmetSpec=FILE [--output=FILE] [--mapping=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v] [-f]
+    sbml_to_padmet.py --sbml=FILE --padmetSpec=FILE [--padmetRef=FILE] [--output=FILE] [--mapping=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v] [-f]
 
 options:
     -h --help     Show help.
@@ -126,10 +126,8 @@ def main():
         for sbml_file in [i for i in all_files if i.endswith(".sbml") or i.endswith(".xml")]:
             mapping_file = os.path.splitext(sbml_file)[0] + "_dict.csv"
             if mapping_file not in all_files:
-                force = True
                 mapping_file = None
             else:
-                force = False
                 mapping_file = path+mapping_file
             sbml_file = path+sbml_file
             sbml_mapping_dict[sbml_file] = mapping_file
@@ -140,9 +138,9 @@ def main():
     #CORE
     for sbml_file, mapping_file in sbml_mapping_dict.items():
         if mapping_file:
-            force = True
+            force = False
         else:
-            force = args["-f"]
+            force = True
 
         if verbose:
             if mapping_file:
