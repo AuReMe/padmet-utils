@@ -51,6 +51,7 @@ if __name__ == '__main__':
         model2 = model.copy()
         #Create a new reaction that consume the given species
         FBA_rxn = Reaction("FBA_TEST")
+        model2.add_reaction(FBA_rxn)
         FBA_rxn.lower_bound = 0
         FBA_rxn.upper_bound = 1000
         FBA_rxn.objective_coefficient = 1.0
@@ -58,9 +59,8 @@ if __name__ == '__main__':
         metabolitedict[species]=-1.0
         FBA_rxn.add_metabolites(metabolitedict)
 
-        model2.add_reaction(FBA_rxn)
-        model2.optimize()
-        if (model2.solution.f > 1e-5):
+        solution = model2.optimize()
+        if (solution.f > 1e-5):
             dict_output["positive"][species] = model2.solution.f
         else:
             dict_output["negative"][species] = model2.solution.f

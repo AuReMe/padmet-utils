@@ -18,12 +18,23 @@ along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 @author: Meziane AITE, meziane.aite@inria.fr
 
 Description:
+For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen
+the output is a file with line = reaction_id in origin database, reaction_id in db_out database
+if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in
+the output file the mapping of those compounds
 
 usage:
     convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
 
 options:
     -h --help     Show help.
+    --mnx_rxn=FILE     path to the MetaNetX file for reactions
+    --mnx_cpd=FILE     path to the MetaNetX file for compounds
+    --sbml=FILE     path to the sbml file to convert
+    --output=FILE     path to the file containing the mapping, sep = "\t"
+    --db_out=FILE     id of the output database in ["BIGG","METACYC","KEGG"]
+    -v     verbose.
+
 """
 from libsbml import *
 #from padmet.padmetRef import PadmetRef
