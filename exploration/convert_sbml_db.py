@@ -247,14 +247,14 @@ def intern_mapping(id_to_map, db_out, _type):
     "UNIQ_ID_2":{"METACYC":["CARNOSINE-SYNTHASE-RXN"],"UNKNOWN":["HAL"]},
     "UNIQ_ID_3":{"METACYC":["ALANINE-AMINOTRANSFERASE-RXN"],"KEGG":["R00258"]},
     "UNIQ_ID_4":{"METACYC":["ASPAMINOTRANS-RXN"],"KEGG":["R00355"],"BIGG":["ASPATh"]},
-    "UNIQ_ID_5":{"METACYC":["PHEAMINOTRANS-RXN"],"KEGG":["R00694"],"BIGG":["POAT"]},
-    "UNIQ_ID_6":{"METACYC":["ORNCARBAMTRANSFER-RXN"],"KEGG":["R01398"],"BIGG":["OCT"]},
-    "UNIQ_ID_7":{"METACYC":["3PGAREARR-RXN"],"KEGG":["R01518"],"BIGG":["PGM"]},
+    "UNIQ_ID_5":{"METACYC":["PHEAMINOTRANS-RXN"],"KEGG":["R00694"],"BIGG":["POAT","POATh","POATm"]},
+    "UNIQ_ID_6":{"METACYC":["ORNCARBAMTRANSFER-RXN"],"KEGG":["R01398"],"BIGG":["OCT","OCTh","OCTm"]},
+    "UNIQ_ID_7":{"METACYC":["3PGAREARR-RXN"],"KEGG":["R01518"],"BIGG":["PGM","PGMf","PGMm"]},
     "UNIQ_ID_8":{"METACYC":["6PGLUCONDEHYDROG-RXN"],"KEGG":["R01528"],"BIGG":["PGDHh"]},
     "UNIQ_ID_9":{"METACYC":["4-HYDROXY-2-KETOPIMELATE-LYSIS-RXN"],"KEGG":["R01645"]},
     "UNIQ_ID_10":{"METACYC":["AMINEPHEN-RXN"],"KEGG":["R02613"]},
     "UNIQ_ID_11":{"METACYC":["SHIKIMATE-5-DEHYDROGENASE-RXN"],"KEGG":["R02413"]},
-    "UNIQ_ID_12":{"METACYC":["CARBODEHYDRAT-RXN"],"BIGG":["HCO3E"]}
+    "UNIQ_ID_12":{"METACYC":["CARBODEHYDRAT-RXN"],"BIGG":["HCO3E","HCO3Em","HCO3Ehi"]}
     }
     
     intern_cpd_dict = {
@@ -279,17 +279,24 @@ def intern_mapping(id_to_map, db_out, _type):
     "UNIQ_ID_18":{"METACYC":["Retinols"],"BIGG":["retinol"]},
     "UNIQ_ID_19":{"METACYC":["PHENYL-PYRUVATE"],"BIGG":["phpyr"]},
     "UNIQ_ID_20":{"METACYC":["CPD-6082"],"BIGG":["bamppald"]},
+    "UNIQ_ID_21":{"METACYC":["S-3-HYDROXYBUTANOYL-COA"],"BIGG":["3hbcoa"]},
+    "UNIQ_ID_22":{"METACYC":["Thiopurines"],"BIGG":["6mpur"]},
+    "UNIQ_ID_23":{"METACYC":["N-ACETYL-D-GLUCOSAMINE-6-P"],"BIGG":["acgam6p"]},
+    "UNIQ_ID_24":{"METACYC":["CHLOROPHYLL-B"],"BIGG":["chlb"]},
+    "UNIQ_ID_25":{"METACYC":["FORMALDEHYDE"],"BIGG":["fald"]},
+    "UNIQ_ID_26":{"METACYC":["GLC-1-P"],"BIGG":["g1p"]},
+    "UNIQ_ID_27":{"METACYC":["NA+"],"BIGG":["na1"]},
 
-    "UNIQ_ID_21":{"METACYC":["ADP"],"KEGG":["C00008"]},
-    "UNIQ_ID_22":{"METACYC":["L-DELTA1-PYRROLINE_5-CARBOXYLATE"],"KEGG":["C03912"]},
-    "UNIQ_ID_23":{"METACYC":["AMMONIA"],"KEGG":["C00014"]},
-    "UNIQ_ID_24":{"METACYC":["PPI"],"KEGG":["C00013"]},
-    "UNIQ_ID_25":{"METACYC":["NADP"],"KEGG":["C00006"]},
-    "UNIQ_ID_26":{"METACYC":["NADPH"],"KEGG":["C00005"]},
+    "UNIQ_ID_28":{"METACYC":["ADP"],"KEGG":["C00008"]},
+    "UNIQ_ID_29":{"METACYC":["L-DELTA1-PYRROLINE_5-CARBOXYLATE"],"KEGG":["C03912"]},
+    "UNIQ_ID_30":{"METACYC":["AMMONIA"],"KEGG":["C00014"]},
+    "UNIQ_ID_31":{"METACYC":["PPI"],"KEGG":["C00013"]},
+    "UNIQ_ID_32":{"METACYC":["NADP"],"KEGG":["C00006"]},
+    "UNIQ_ID_33":{"METACYC":["NADPH"],"KEGG":["C00005"]},
 
-    "UNIQ_ID_27":{"METACYC":["GLY"],"UNKNOWN":["Glycine"]},
-    "UNIQ_ID_28":{"METACYC":["METOH"],"UNKNOWN":["Methanol"]},
-    "UNIQ_ID_29":{"METACYC":["PPI"],"UNKNOWN":["Pyrophosphate"]},
+    "UNIQ_ID_34":{"METACYC":["GLY"],"UNKNOWN":["Glycine"]},
+    "UNIQ_ID_35":{"METACYC":["METOH"],"UNKNOWN":["Methanol"]},
+    "UNIQ_ID_36":{"METACYC":["PPI"],"UNKNOWN":["Pyrophosphate"]},
     }
 
 
