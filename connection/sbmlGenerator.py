@@ -99,7 +99,11 @@ def padmet_to_sbml(padmet, output, model_id = None, model_name = None, obj_fct =
         with open(mnx_chem_xref, 'r') as f:
             for k,v in [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#") and not line.startswith("MNX")]:
                 if ":" in k: k = k.split(":")[1]
-                dict_mnx_chem_xref[k] = v
+                try:
+                    dict_mnx_chem_xref[v].add(k)
+                except KeyError:
+                    dict_mnx_chem_xref[v] = set([k])
+                    
         #k=mnx_id, v = dict of data
         dict_mnx_chem_prop = {}
         with open(mnx_chem_prop, 'r') as f:
@@ -122,12 +126,13 @@ def padmet_to_sbml(padmet, output, model_id = None, model_name = None, obj_fct =
             sbml_species_id = sp.convert_to_coded_id(species_id, None,compart)
             #from mnx, get charge and formula.
             try:
-                species_prop = dict(dict_mnx_chem_prop[dict_mnx_chem_xref[species_id]])
+                mnx_id = [k for k,v in dict_mnx_chem_xref.items() if species_id in v][0]
+                species_prop = dict(dict_mnx_chem_prop[mnx_id])
                 species_formula = str(species_prop["formula"])
                 for k,v in species_prop.items():
                     if k in ["formula", "source", "description"] or v in ["NA",""]:
                         species_prop.pop(k)
-            except KeyError:
+            except (IndexError, KeyError) as e:
                 print(species_id)
                 species_prop = None
                 species_formula = None
