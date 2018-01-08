@@ -21,7 +21,7 @@ Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
 and return result in standard output
 
 usage:
-    flux_analysis.py --sbml=FILE [--seeds=FILE] [--targets=FILE]
+    flux_analysis.py --sbml=FILE
     flux_analysis.py --sbml=FILE --seeds=FILE --targets=FILE
     flux_analysis.py --sbml=FILE --all_species
 
