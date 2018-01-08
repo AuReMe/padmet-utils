@@ -125,9 +125,9 @@ def main():
     print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(bms_reactants)))
 
     for k,v in dict_output["positive"].items():
-        print("%s %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
+        print("%s // %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
     for k,v in dict_output["negative"].items():
-        print("%s %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
+        print("%s // %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
 
 
 def fba_on_targets(allspecies, model):
@@ -154,9 +154,9 @@ def fba_on_targets(allspecies, model):
     print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(allspecies)))
 
     for k,v in dict_output["positive"].items():
-        print("%s %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
+        print("%s // %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
     for k,v in dict_output["negative"].items():
-        print("%s %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
+        print("%s // %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
     
 
 if __name__ == "__main__":
