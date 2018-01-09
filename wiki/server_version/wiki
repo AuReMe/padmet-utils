@@ -164,7 +164,7 @@ def main():
             password =args["--password"]
 
             if wiki_pages_folder.endswith("/") : wiki_pages_folder = wiki_pages_folder[:-1]
-            print("Check in wiki %s exist" %wiki_id)
+            print("Check if wiki %s exist" %wiki_id)
             if wiki_id in os.walk(wiki_folders).next()[1]:
                 print("Folder %s found: OK" %(wiki_folders+wiki_id))
             else:
