@@ -47,7 +47,6 @@ def main():
         targets = create_cobra_model_from_sbml_file(targets_file).metabolites
     all_species = args["--all_species"]
     model=create_cobra_model_from_sbml_file(sbml_file)
-
     try:
         biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
         biomassname = biomassrxn.id

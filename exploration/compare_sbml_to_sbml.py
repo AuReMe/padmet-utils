@@ -20,7 +20,7 @@ Description:
 compare reactions in sbml and padmet files
 
 usage:
-    compare_sbml_padmet.py --padmet=FILE --sbml=FILE
+    compare_sbml_padmet.py --sbml1=FILE --sbml2=FILE
 
 option:
     -h --help    Show help.
@@ -62,8 +62,12 @@ def main():
         rxn_id = rxn2.id
         try:
             rxn1 = sbml_1.reactions.get_by_id(rxn_id)
-            if not compare_rxn(rxn1, rxn2) and rxn_id not in all_diff:
-                print("%s is diff" %rxn_id)
+            same_cpd, same_rev =  compare_rxn(rxn1, rxn2)
+            if rxn_id not in all_diff:
+                if not same_cpd:
+                    print("%s use diff cpds" %rxn_id)
+                if not same_rev:
+                    print("%s diff rev" %rxn_id)
                 all_diff.add(rxn_id)
         except KeyError:
             pass
@@ -81,7 +85,7 @@ def compare_rxn(rxn1,rxn2):
 
        same_rev = True
 
-    return same_cpd and same_rev
+    return (same_cpd, same_rev)
         
         
     

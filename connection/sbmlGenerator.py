@@ -493,14 +493,9 @@ def compound_to_sbml(species_compart, output, verbose = False):
         species_id = data[0]
         if len(data) == 1:
             compart = "c"
-            sId_encoded = sp.convert_to_coded_id(species_id,"M",compart)
         else:
             compart = data[1]
-            if compart == "C-BOUNDARY":
-                compart = "e"
-                sId_encoded = sp.convert_to_coded_id(species_id,"M","e_boundary")
-            else:
-                sId_encoded = sp.convert_to_coded_id(species_id,"M",compart)
+        sId_encoded = sp.convert_to_coded_id(species_id,"M",compart)
         s = model.createSpecies()
         check(s, 'create species')
         check(s.setId(sId_encoded), 'set species id')
