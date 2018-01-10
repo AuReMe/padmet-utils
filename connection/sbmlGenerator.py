@@ -330,12 +330,8 @@ def padmet_to_sbml2(padmet, output, obj_fct = None, verbose = False):
         rName = rNode.misc.get("COMMON-NAME",[rId])[0]
 
         #generator of tuple (reactant_id,stoichiometry,compart)
-        try:
-            consumed = ((rlt.id_out, rlt.misc["STOICHIOMETRY"][0], rlt.misc.get("COMPARTMENT",[None])[0]) 
-            for rlt in padmet.dicOfRelationIn.get(rId, None) if rlt.type == "consumes")
-        except TypeError:
-            print rId
-            exit()
+        consumed = ((rlt.id_out, rlt.misc["STOICHIOMETRY"][0], rlt.misc.get("COMPARTMENT",[None])[0]) 
+        for rlt in padmet.dicOfRelationIn.get(rId, None) if rlt.type == "consumes")
             
         #generator of tuple (product_id,stoichiometry,compart)        
         produced = ((rlt.id_out, rlt.misc["STOICHIOMETRY"][0], rlt.misc.get("COMPARTMENT",[None])[0]) 
@@ -421,7 +417,7 @@ def padmet_to_sbml2(padmet, output, obj_fct = None, verbose = False):
             linked_genes = set([rlt.id_out for rlt in padmet.dicOfRelationIn.get(rId, [])
             if rlt.type == "is_linked_to"])
             if len(linked_genes) != 0:
-                if verbose: print rId, "is linked to", len(linked_genes), "genes."
+                #if verbose: print rId, "is linked to", len(linked_genes), "genes."
                 notes = "<body xmlns=\"http://www.w3.org/1999/xhtml\">"
                 linked_genes = " or ".join(linked_genes)
                 notes += "<p>"+"GENE_ASSOCIATION:" + linked_genes + "</p>"
