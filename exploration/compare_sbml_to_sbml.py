@@ -44,8 +44,14 @@ def main():
     print("sbml2:")
     print("metabolites: %s" %(len(sbml_2.metabolites)))
     print("reactions: %s" %(len(sbml_2.reactions)))
-    print("reactions not in sbml1: %s" %len([i for i in sbml_2.reactions if i not in sbml_1.reactions]))
-    print("reactions not in sbml2: %s" %len([i for i in sbml_1.reactions if i not in sbml_2.reactions]))
+    not_in1 = [i for i in sbml_2.reactions if i not in sbml_1.reactions]
+    print("reactions not in sbml1: %s" %len(not_in1))
+    for i in not_in1:
+        print("\t%s" %i)
+    not_in2 = [i for i in sbml_1.reactions if i not in sbml_2.reactions]
+    print("reactions not in sbml2: %s" %len(not_in2))
+    for j in not_in2:
+        print("\t%s" %j)
     
     all_diff = set()
     for rxn1 in sbml_1.reactions:

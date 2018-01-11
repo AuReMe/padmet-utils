@@ -471,10 +471,13 @@ def pwy_rate(padmetRef, padmetSpec, metabolic_network, output):
         url_pwy = url_dict["pathway"]
     except KeyError:
         url_pwy = url_dict["default"]
+    """
     try:
         url_padmetSpec = url_dict[padmetSpec_name]
     except KeyError:
         url_padmetSpec = url_dict["default"]
+    """
+    url_padmetSpec = url_dict["default"]
 
     if network_pathways_dict:
         fieldnames = ["pathway","is_part_of@metabolic_network","RATE"]
@@ -484,12 +487,15 @@ def pwy_rate(padmetRef, padmetSpec, metabolic_network, output):
             for pwy_id, rxns_set in network_pathways_dict.items():
                 #pwy_id = "PWY-5497"
                 #rxns_set = network_pathways_dict["PWY-5497"]
-                all_rxns_set = all_pathways_dict[pwy_id]
+                all_rxns_set = all_pathways_dict.get(pwy_id,set())
                 nb_all_rxns = len(all_rxns_set)
                 nb_in_network = len(rxns_set.intersection(all_rxns_set))
                 #rate nb rxn in network / nb total rxn in pwy
-                rate = round(float(nb_in_network)/float(nb_all_rxns),2)
-                rate = str(rate).replace(",",".")
+                if nb_all_rxns:
+                    rate = round(float(nb_in_network)/float(nb_all_rxns),2)
+                    rate = str(rate).replace(",",".")
+                else:
+                    rate = "NA"
                 writer.writerow([url_pwy + pwy_id, url_padmetSpec + metabolic_network, rate])
 
 def extract_entity_xref(entity_xref_rlt, padmet):
@@ -501,7 +507,7 @@ def extract_entity_xref(entity_xref_rlt, padmet):
             try:
                 url_rxn = url_dict["reaction"]
             except KeyError:
-                url_rxn = url_dict["default"] ~#TODO IICCCCCCCCIIIII !!!!!!!!
+                url_rxn = url_dict["default"] #TODO IICCCCCCCCIIIII !!!!!!!!
             line = [xref_id,entity_id, "", ""]
             line.insert(0, "_".join(line))
         elif padmet.dicOfNode[entity_id].type == "pathway":

@@ -820,17 +820,21 @@ default_colors = [
 
 main_template = ["== MODEL_IDGEM description ==",
      "== Automatic reconstruction with [http://aureme.genouest.org AuReMe] ==",
-     "The automatic reconstruction of ''MODEL_NAME'' results to a Genome scale Model containing NB_RXN reactions, NB_CPD metabolites, NB_GENE genes and NB_PWY pathways. This GeM was obtained based on the following sources:",
+     " Model summary [[MEDIA:summary.txt]]",
+     "",
+     "Download '''AuReMe''' Input/Output [LINK OR MEDIA data]",
+     "",
+     "The automatic reconstruction of ''MODEL_NAME'' results to a Genome scale [[MEDIA:model.xml|Model]] containing NB_RXN reactions, NB_CPD metabolites, NB_GENE genes and NB_PWY pathways. This GeM was obtained based on the following sources:",
      "",
      "[[FILE:venn.png|frameless|border]]",
      "",
      "== Collaborative curation == ",
      "* Suggest reactions to add or remove:",
-     "** Download this [[MEDIA:Add_delete_reaction.csv|from]]",
+     "** Download this [[MEDIA:Add_delete_reaction.csv|form]]",
      "* Suggest new reactions to create and add:",
      "** Download this [[MEDIA:Reaction_creator.csv|form]]",
-     "* '''Follow the examples given in the form to correctly share your suggestions'''",
-     "* Send the completed form(s) to: CONTACT_MAIL"]
+     "* '''Follow the examples given in the form(s) to correctly share your suggestions'''",
+     "* Send the filled form(s) to: CONTACT_MAIL"]
 
 if __name__ == "__main__":
     main()
