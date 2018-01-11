@@ -51,7 +51,6 @@ def main():
     args = docopt.docopt(__doc__)
     output = args["--output"]
     verbose = args["-v"]
-    print args
     if args["--padmet"]:
         padmet = PadmetSpec(args["--padmet"])
         if args["--init_source"]:
