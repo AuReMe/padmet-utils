@@ -138,7 +138,7 @@ def create_main(model_id, model_name):
     ### create main page
     for line in main_template:
         main_template[main_template.index(line)] = line.replace("MODEL_ID",model_id).replace("MODEL_NAME",model_name)
-    final_network_index = main_template.index("== Automatic reconstruction with [http://aureme.genouest.org AuReMe] ==")+1
+    final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
     main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
     reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0}
     for rec_node in [node for node in padmetSpec.dicOfNode.values() if node.type == "reconstructionData"]:
@@ -213,7 +213,7 @@ def create_navigation_page(output_folder):
     sideBarData.append("** Category:"+category+"|"+category)
     fileName = output_folder+"Category:Pathway"
     if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Pathway]]","| ?common name","| ?reaction found","| ?reaction not found","}}"]
+    dataInArray = ["{{#ask: [[Category:Pathway]]","| ?common name","| ?reaction found","| ?reaction not found","| ?completion rate","}}"]
     with open(fileName,'w') as f:
         for line in dataInArray:
             f.write(line+"\n")
@@ -386,7 +386,7 @@ def create_biological_page(category, page_node, output_folder):
                     dataInArray.append("** "+src)
                     if assignment:
                         dataInArray.append("***"+assignment)
-
+        
         dataInArray.append('== Pathways  ==')
         #set of pathways id associated to the reaction
         pathways_ids = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[page_node.id]
@@ -404,6 +404,7 @@ def create_biological_page(category, page_node, output_folder):
             else:
                 nbReactionsTotal = "NA"
             nbReactionsFound = len([rlt for rlt in padmetSpec.dicOfRelationOut[pwy_id] if rlt.type == "is_in_pathway"])
+
             #extract pwy common name
             pwy_cname = padmetSpec.dicOfNode[pwy_id].misc.get("COMMON-NAME",[None])[0]
             if pwy_cname:
@@ -511,25 +512,33 @@ def create_biological_page(category, page_node, output_folder):
 
     elif category == "Pathway":
         dataInArray.append("== Reaction(s) found ==")
-        rxn_in_padmetSpec = set([rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"])
-        rxn_total =  set([rlt.id_in for rlt in padmetRef.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"])
-        rxn_not_in_padmetSpec = rxn_total.difference(rxn_in_padmetSpec)
-        nb_in_padmet = str(len(rxn_in_padmetSpec))
-        nb_not_in_padmet = str(len(rxn_not_in_padmetSpec))
-        add_property(properties, "reaction found", [nb_in_padmet])
-        add_property(properties, "reaction not found", [nb_not_in_padmet])
-        dataInArray.append("* '''"+nb_in_padmet+"''' reaction(s) found")        
-        for rxn_id in rxn_in_padmetSpec:
-            dataInArray.append("** [["+rxn_id+"]]")
+        #recovering the nb of reactions associated to the pathway
+        if padmetRef is not None:
+            try:
+                reactionsTotal = [rlt.id_in for rlt in padmetRef.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
+            # If keyError: pathway not in padmetRef, pathway added manualy
+            except KeyError: 
+                reactionsTotal = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
+        else:
+                reactionsTotal = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
+        reactionsFound = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
+        reactionsMissing = [rxn_id for rxn_id in reactionsTotal if rxn_id not in reactionsFound]
+        pwy_ratio = round(float(len(reactionsFound))/float(len(reactionsTotal)),2)*100
+        dataInArray.append(" '''%s''' reactions found over '''%s''' reactions in the full pathway" %(len(reactionsFound), len(reactionsTotal)))
+
+        add_property(properties, "reaction found", [len(reactionsFound)])
+        add_property(properties, "reaction not found", [len(reactionsTotal)])
+        add_property(properties, "completion rate", [pwy_ratio])
+        for rxn_id in reactionsFound:
+            dataInArray.append("* [["+rxn_id+"]]")
         dataInArray.append("== Reaction(s) not found ==")
-        dataInArray.append("* '''"+nb_not_in_padmet+"''' reaction(s) not found")        
-        if rxn_not_in_padmetSpec:
+        if reactionsMissing:
             if ext_link.get("Reaction"):
-                for rxn_id in rxn_not_in_padmetSpec:
-                    dataInArray.append("** ["+ext_link.get("Reaction")+rxn_id+" "+rxn_id+"]")
+                for rxn_id in reactionsMissing:
+                    dataInArray.append("* ["+ext_link.get("Reaction")+rxn_id+" "+rxn_id+"]")
             else:
-                for rxn_id in rxn_not_in_padmetSpec:
-                    dataInArray.append("** "+rxn_id)
+                for rxn_id in reactionsMissing:
+                    dataInArray.append("* "+rxn_id)
 
     elif category == "Metabolite":
         rxn_cp = {"c":set(), "p": set(), "cp": set()}
@@ -578,6 +587,7 @@ def create_biological_page(category, page_node, output_folder):
     print("\n")
     """
 def add_property(properties, prop_id, prop_values):
+    prop_values = [str(i) for i in prop_values]
     start_line = "{{#set: "+prop_id+"="
     values_part = "|".join(prop_values)
     end_line = "}}"
@@ -820,7 +830,7 @@ default_colors = [
 
 main_template = ["== MODEL_IDGEM description ==",
      "== Automatic reconstruction with [http://aureme.genouest.org AuReMe] ==",
-     " Model summary [[MEDIA:summary.txt]]",
+     "Model summary: [[MEDIA:summary.txt|summary]]",
      "",
      "Download '''AuReMe''' Input/Output [LINK OR MEDIA data]",
      "",
