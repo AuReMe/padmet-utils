@@ -28,7 +28,7 @@ usage:
 option:
     -h --help    Show help.
     --padmet=FILE    pathname to the padmet file to convert.
-    --padmet=FILE    pathname to the output file, col: rxn, row: metabo, sep = "\t".
+    --output=FILE    pathname to the output file, col: rxn, row: metabo, sep = "\t".
 """
 import docopt
 from padmet.padmetSpec import PadmetSpec
@@ -68,5 +68,6 @@ def main():
             f.write("\t".join(line)+"\n")
                 
             
-        
+if __name__ == "__main__":
+    main()        
     
