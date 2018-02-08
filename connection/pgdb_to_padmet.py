@@ -855,7 +855,7 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
         count += 1
         #if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
         rxn_id = dict_values["REACTION"][0]
-        names = dict_values["COMMON-NAME"]
+        names = dict_values.get("COMMON-NAME",[])
         for name in names: 
             if name.endswith("_"):
                 names[names.index(name)] = name[:-1] 
