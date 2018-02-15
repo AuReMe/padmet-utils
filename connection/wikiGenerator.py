@@ -527,7 +527,7 @@ def create_biological_page(category, page_node, output_folder):
         dataInArray.append(" '''%s''' reactions found over '''%s''' reactions in the full pathway" %(len(reactionsFound), len(reactionsTotal)))
 
         add_property(properties, "reaction found", [len(reactionsFound)])
-        add_property(properties, "reaction not found", [len(reactionsTotal)])
+        add_property(properties, "reaction not found", [len(reactionsMissing)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
             dataInArray.append("* [["+rxn_id+"]]")
