@@ -49,7 +49,10 @@ import csv
 
 def main():
     args = docopt.docopt(__doc__)
-    global tool, category
+    global tool, category, source
+    data_file = args["--data"]
+    filename = os.path.splitext(os.path.basename(data_file))[0]
+
     tool = args["--tool"]
     if tool:
         tool = tool.upper()
@@ -57,7 +60,8 @@ def main():
         category = args["--category"].upper()
     else:
         category = "MANUAL"
-    output = args["--output"]
+    source = "-".join([category,filename])
+
     if args["--template_new_rxn"]:
         template_new_rxn(output)
         return()
@@ -70,10 +74,9 @@ def main():
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
+    output = args["--output"]
     if not output:
         output = args["--padmetSpec"]
-    data_file = args["--data"]
-    output = args["--output"]
     verbose = args["-v"]
 
         
@@ -89,7 +92,6 @@ def main():
             to_do = "add_delete_rxn"
         else:
             raise TypeError("Unable to read the file")
-
     if to_do == "rxn_creator":
         rxn_creator(data_file, padmetSpec, padmetRef, output, verbose)
     elif to_do == "add_delete_rxn":
@@ -147,12 +149,12 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
         #reconstructionData:
         if tool:
             reconstructionData_id = reaction_id+"_reconstructionData_"+tool
-            reconstructionData =  {"CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
+            reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
             if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
         else:
             reconstructionData_id = reaction_id+"_reconstructionData_MANUAL"
-            reconstructionData =  {"CATEGORY":["MANUAL"], "COMMENT":[comment]}
+            reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":[comment]}
             if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
 
@@ -190,12 +192,12 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
                    and rlt.id_out == gene_id][0]
                    #rxn already linked to gene x, update misc
                    try:
-                       linked_rlt.misc["SOURCE:ASSIGNMENT"].append(category)
+                       linked_rlt.misc["SOURCE:ASSIGNMENT"].append(source)
                    except KeyError:
-                       linked_rlt.misc["SOURCE:ASSIGNMENT"] = [category]
+                       linked_rlt.misc["SOURCE:ASSIGNMENT"] = [source]
                #rxn not linked to gene x
                except IndexError:
-                   linked_rlt = Relation(reaction_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[category]})
+                   linked_rlt = Relation(reaction_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[source]})
                padmetSpec._addRelation(linked_rlt)
 
         if verbose: print("check if all metabolites are already in the network")
@@ -277,12 +279,12 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                     #reconstructionData:
                     if tool:
                         reconstructionData_id = element_id+"_reconstructionData_"+tool
-                        reconstructionData =  {"CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
+                        reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
                         if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
                             print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
                     else:
                         reconstructionData_id = element_id+"_reconstructionData_MANUAL"
-                        reconstructionData =  {"CATEGORY":["MANUAL"], "COMMENT":[comment]}
+                        reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":[comment]}
                         if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
                             print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
                         
@@ -319,12 +321,12 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                                and rlt.id_out == gene_id][0]
                                #rxn already linked to gene x, update misc
                                try:
-                                   linked_rlt.misc["SOURCE:ASSIGNMENT"].append(category)
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"].append(source)
                                except KeyError:
-                                   linked_rlt.misc["SOURCE:ASSIGNMENT"] = [category]
+                                   linked_rlt.misc["SOURCE:ASSIGNMENT"] = [source]
                            #rxn not linked to gene x
                            except IndexError:
-                               linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[category]})
+                               linked_rlt = Relation(element_id, "is_linked_to", gene_id,{"SOURCE:ASSIGNMENT":[source]})
                            padmetSpec._addRelation(linked_rlt)
 
             elif action.upper() == "DELETE":
