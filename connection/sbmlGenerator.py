@@ -40,7 +40,7 @@ import padmet.sbmlPlugin as sp
 import os
 import docopt
 import libsbml
-  
+import re
 #default variables
 global def_max_lower_bound, def_max_upper_bound, BOUNDARY_ID
 def_max_upper_bound = 1000
@@ -123,13 +123,19 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     model_id = os.path.splitext(os.path.basename(output))[0]
     model.setId(model_id)
     
+    """
     #set units
-    model.setSubstanceUnits("substance")
+    #model.setSubstanceUnits("substance")
     model.setTimeUnits("second")
-    model.setVolumeUnits("volume")
+    #model.setVolumeUnits("volume")
     model.setAreaUnits("area")
     model.setLengthUnits("metre")
-    model.setExtentUnits("substance")
+    #model.setExtentUnits("substance")
+    """
+    check(model,                              'create model')
+    check(model.setTimeUnits("second"),       'set model-wide time units')
+    check(model.setExtentUnits("mole"),       'set model units of extent')
+    check(model.setSubstanceUnits('mole'),    'set model substance units')
     math_ast = libsbml.parseL3Formula('FLUX_VALUE')
     check(math_ast, 'create AST for rate expression')
 
@@ -185,6 +191,8 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                 except ValueError:
                     charge = 0
                 formula = species_prop["formula"]
+                #remove () from forumla
+                formula = re.sub("\(|\)|.","",formula).upper()
                 if sbml_lvl == 3:
                     splugin = s.getPlugin("fbc")
                     check(splugin.setCharge(charge), 'set charge')
@@ -319,6 +327,8 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
             check(species_ref, 'create reactant')
             check(species_ref.setSpecies(cId_encoded), 'assign reactant species %s' %cId_encoded)
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
+            check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
+            check(species_ref.setConstant(False), 'set constant %s' %False)
 
         for pId, stoich, compart in produced:
             pId_encoded = sp.convert_to_coded_id(pId,"M",compart)
@@ -330,6 +340,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
             check(species_ref, 'create product')
             check(species_ref.setSpecies(pId_encoded), 'assign product species %s' %pId_encoded)
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
+            check(species_ref.setConstant(False), 'set constant %s' %False)
 
         #set notes
         notes_dict = {}
