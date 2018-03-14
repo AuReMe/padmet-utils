@@ -175,7 +175,7 @@ def main():
         for rxn_id, dict_basename_data in dict_rxns.items():
             dict_row = {'reaction': rxn_id}
             for basename_file, rxn_data in dict_basename_data.items():
-                dict_row.update({basename_file : 'X', basename_file+"_genes_assoc (sep=;)": rxn_data["genes_associated"], basename_file+"_formula": rxn_data["formula"]})
+                dict_row.update({basename_file : 'present', basename_file+"_genes_assoc (sep=;)": rxn_data["genes_associated"], basename_file+"_formula": rxn_data["formula"]})
             writer.writerow(dict_row)
 
     #pathways
@@ -189,7 +189,7 @@ def main():
         for pwy_id, dict_basename_data in dict_pwys.items():
             dict_row = {'pathway': pwy_id}
             for basename_file, pwy_data in dict_basename_data.items():
-                dict_row.update({basename_file+"_ratio": pwy_data["ratio"], basename_file+"_rxn_assoc (sep=;)": pwy_data["rxn_associated"]})
+                dict_row.update({basename_file+"_completion_rate": pwy_data["ratio"], basename_file+"_rxn_assoc (sep=;)": pwy_data["rxn_associated"]})
             writer.writerow(dict_row)
 
     #metabolites
