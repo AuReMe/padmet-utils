@@ -525,7 +525,14 @@ def create_biological_page(category, page_node, output_folder):
         add_property(properties, "reaction not found", [len(reactionsMissing)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
+            gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
             dataInArray.append("* [["+rxn_id+"]]")
+            if gene_assoc:
+                dataInArray.append("** %s Genes associated:" %(len_gene_assoc))
+                for gene_id in gene_assoc:
+                    dataInArray.append("** [["+gene_id+"]]")
+            else:
+                dataInArray.append("** 0 Gene associated:")
         dataInArray.append("== Reaction(s) not found ==")
         if reactionsMissing:
             if ext_link.get("Reaction"):
