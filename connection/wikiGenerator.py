@@ -528,7 +528,7 @@ def create_biological_page(category, page_node, output_folder):
             gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
             dataInArray.append("* [["+rxn_id+"]]")
             if gene_assoc:
-                dataInArray.append("** %s Genes associated:" %(len_gene_assoc))
+                dataInArray.append("** %s Genes associated:" %(len(gene_assoc)))
                 for gene_id in gene_assoc:
                     dataInArray.append("** [["+gene_id+"]]")
             else:
