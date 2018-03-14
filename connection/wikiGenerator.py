@@ -236,7 +236,7 @@ def create_navigation_page(output_folder):
         fileName = output_folder+rec_category
         if verbose: print("Reconstruction category: %s" %rec_category)
         dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction category::"+rec_category+"]]","| ?common name","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?gene associated","| ?in pathway","}}"]
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
         with open(fileName,'w') as f:
             for line in dataInArray:
                 f.write(line+"\n")
@@ -247,7 +247,7 @@ def create_navigation_page(output_folder):
         fileName = output_folder+rec_tool
         if verbose: print("Reconstruction tool: %s" %rec_tool)
         dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction tool::"+rec_tool+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?gene associated","| ?in pathway","}}"]
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
         with open(fileName,'w') as f:
             for line in dataInArray:
                 f.write(line+"\n")
@@ -258,7 +258,7 @@ def create_navigation_page(output_folder):
         fileName = output_folder+rec_source
         if verbose: print("Reconstruction source: %s" %rec_source)
         dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction source::"+rec_source+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?gene associated","| ?in pathway","}}"]
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
         with open(fileName,'w') as f:
             for line in dataInArray:
                 f.write(line+"\n")
@@ -333,7 +333,7 @@ def create_biological_page(category, page_node, output_folder):
         elif direction == "LEFT-TO-RIGHT":
             direction = " '''=>''' "
         
-        #global var total_cpd_id will contains all ids of compounds involoved in a reaction
+        #global var total_cpd_id will contains all ids of compounds involved in a reaction
         total_cpd_id.update([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type in ["consumes","produces"]])
         # Recovering the formula
         dataInArray.append('== Reaction Formula ==', )
@@ -422,63 +422,58 @@ def create_biological_page(category, page_node, output_folder):
 
         dataInArray.append('== Reconstruction information  ==')
         reconstruction_data = [padmetSpec.dicOfNode[rlt.id_out] for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "has_reconstructionData"]
-        #src_data = {category:{tool:set(sources or comment)}
-        #src_data = {MANUAL:set(comment and or source)}
+        #src_data = {category:{source:{comment:comment, tool:tool}}}
         src_data = {}
         for category in set([rec_data_node.misc["CATEGORY"][0].lower() for rec_data_node in reconstruction_data]):
-            if category == "manual":
-                src_data[category] = set()
-            else:
-                src_data[category] = dict()
+            src_data[category] = dict()
+        rxn_srcs, rxn_tools, rxn_comments, rxn_categories = set(), set(), set(), set()
         for rec_data_node in reconstruction_data:
+            #if found, lower to standardize
             category = rec_data_node.misc.get("CATEGORY",[None])[0]
-            if category: category = category.lower()
+            if category: 
+                category = category.lower()
+                rxn_categories.add(category)
             tool = rec_data_node.misc.get("TOOL",[None])[0]
-            if tool: tool = tool.lower()
+            if tool: 
+                tool = tool.lower()
+                rxn_tools.add(tool)
+            comment = rec_data_node.misc.get("COMMENT",[None])[0]
+            if comment: 
+                comment = comment.lower()
+                rxn_comments.add(comment)
+
             source = rec_data_node.misc.get("SOURCE",[None])[0]
+            if comment in ["added to manage seeds from boundary to extracellular compartment", "added to manage seeds from extracellular to cytosol compartment"]:
+                source = "MANUAL:IMPORT_FROM_MEDIUM"
             if source:
                 source = source.lower()
                 if source.startswith("output_pantograph_"):
                     source = source.replace("output_pantograph_","")
-            comment = rec_data_node.misc.get("COMMENT",[None])[0]
-            if comment: comment = comment.lower()
-            if category == "manual":
-                if comment:
-                    src_data[category].add(comment)
-                if source:
-                    src_data[category].add(source)
-            else:
-                try:
-                    if source:
-                        src_data[category][tool].add(source)
-                    if comment:
-                        src_data[category][tool].add(comment)
-                except KeyError:
-                    if source:
-                        src_data[category][tool] = set([source])
-                    if comment:
-                        src_data[category][tool] = set([comment])
+                rxn_srcs.add(source)
+            src_data[category][source] = {"comment":comment,"tool":tool}
+        all_categories.update(rxn_categories)
+        add_property(properties, "reconstruction category", rxn_categories)
+        if rxn_srcs:
+            all_sources.update(rxn_srcs)
+            add_property(properties, "reconstruction source", rxn_srcs)
+        if rxn_tools:
+            all_tools.update(rxn_tools)
+            add_property(properties, "reconstruction tool", rxn_tools)
+        if rxn_comments:
+            add_property(properties, "reconstruction comment", rxn_comments)
+
         #udpating global var full_sources_dict: k = rxn_id, v = previous src_data dict
         full_sources_dict[page_node.id] = src_data
         for category, category_data in src_data.items():
-            all_categories.add(category)
-            add_property(properties, "reconstruction category", [category])
-            dataInArray.append("* [["+category+"]]:")
-            if type(category_data) is dict:
-                for tool, sources in category_data.items():
-                    all_tools.add(tool)
-                    add_property(properties, "reconstruction tool", [tool])
-                    dataInArray.append("** [["+tool+"]]:")
-                    if sources:
-                        add_property(properties, "reconstruction source", sources)
-                        for src in sources:
-                            all_sources.add(src)
-                            dataInArray.append("*** [["+src+"]]")
-            else:
-                add_property(properties, "reconstruction source", category_data)
-                for comment_source in category_data:
-                    all_sources.add(comment_source)
-                    dataInArray.append("** [["+comment_source+"]]")
+            dataInArray.append("* Category: [["+category+"]]:")
+            for source, source_data in category_data.items():
+                dataInArray.append("** Source: [["+source+"]]:")
+                if source_data["tool"]:
+                    dataInArray.append("*** Tool: [["+source_data["tool"]+"]]:")
+                    if source_data["comment"]:
+                        dataInArray.append("**** Comment: [["+source_data["comment"]+"]]:")
+                elif source_data["comment"]:
+                    dataInArray.append("*** Comment: [["+source_data["comment"]+"]]:")
 
     elif category == "Gene":
         dataInArray.append("== Reactions associated ==")
