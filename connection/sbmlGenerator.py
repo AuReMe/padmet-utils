@@ -192,14 +192,16 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                     charge = 0
                 formula = species_prop["formula"]
                 #remove () from forumla
-                formula = re.sub("\(|\)|.","",formula).upper()
+                #formula = re.sub("\(|\)|\.","",formula).upper()
+                if re.findall("\(|\)|\.",formula): formula = None
                 if sbml_lvl == 3:
                     splugin = s.getPlugin("fbc")
                     check(splugin.setCharge(charge), 'set charge')
-                    try:
-                        check(splugin.setChemicalFormula(formula), 'set Formula')
-                    except TypeError:
-                        pass
+                    if formula:
+                        try:
+                            check(splugin.setChemicalFormula(formula), 'set Formula')
+                        except TypeError:
+                            print formula, original_id, mnx_id
                     for prop, prop_v in species_prop.items():
                         if prop in ["charge", "formula", "source", "description"] or prop_v in ["NA",""]:
                             species_prop.pop(prop)
