@@ -444,7 +444,7 @@ def create_biological_page(category, page_node, output_folder):
 
             source = rec_data_node.misc.get("SOURCE",[None])[0]
             if comment in ["added to manage seeds from boundary to extracellular compartment", "added to manage seeds from extracellular to cytosol compartment"]:
-                source = "MANUAL:IMPORT_FROM_MEDIUM"
+                source = "MANUAL-IMPORT_FROM_MEDIUM"
             if source:
                 source = source.lower()
                 if source.startswith("output_pantograph_"):
