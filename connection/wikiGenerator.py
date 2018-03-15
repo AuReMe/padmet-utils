@@ -465,15 +465,15 @@ def create_biological_page(category, page_node, output_folder):
         #udpating global var full_sources_dict: k = rxn_id, v = previous src_data dict
         full_sources_dict[page_node.id] = src_data
         for category, category_data in src_data.items():
-            dataInArray.append("* Category: [["+category+"]]:")
+            dataInArray.append("* Category: [["+category+"]]")
             for source, source_data in category_data.items():
-                dataInArray.append("** Source: [["+source+"]]:")
+                dataInArray.append("** Source: [["+source+"]]")
                 if source_data["tool"]:
-                    dataInArray.append("*** Tool: [["+source_data["tool"]+"]]:")
+                    dataInArray.append("*** Tool: [["+source_data["tool"]+"]]")
                     if source_data["comment"]:
-                        dataInArray.append("**** Comment: [["+source_data["comment"]+"]]:")
+                        dataInArray.append("**** Comment: [["+source_data["comment"]+"]]")
                 elif source_data["comment"]:
-                    dataInArray.append("*** Comment: [["+source_data["comment"]+"]]:")
+                    dataInArray.append("*** Comment: [["+source_data["comment"]+"]]")
 
     elif category == "Gene":
         dataInArray.append("== Reactions associated ==")
@@ -525,14 +525,28 @@ def create_biological_page(category, page_node, output_folder):
         add_property(properties, "reaction not found", [len(reactionsMissing)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
+            print(rxn_id)
             gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
             dataInArray.append("* [["+rxn_id+"]]")
             if gene_assoc:
-                dataInArray.append("** %s Genes associated:" %(len(gene_assoc)))
+                dataInArray.append("** %s associated gene(s):" %(len(gene_assoc)))
                 for gene_id in gene_assoc:
-                    dataInArray.append("** [["+gene_id+"]]")
+                    dataInArray.append("*** [["+gene_id+"]]")
             else:
-                dataInArray.append("** 0 Gene associated:")
+                dataInArray.append("** 0 associated gene:")
+
+            try:
+                src_data = full_sources_dict[rxn_id]
+                sources = set()
+                [sources.update(category_data.keys()) for category_data in src_data.values()]
+                if sources:
+                    dataInArray.append("** %s reconstruction source(s) associated:" %(len(sources)))
+                    for src in sources:
+                        dataInArray.append("*** [["+src+"]]")
+            except KeyError:
+                #if keyError, not a reaction but a pathway in a pathway
+                pass
+
         dataInArray.append("== Reaction(s) not found ==")
         if reactionsMissing:
             if ext_link.get("Reaction"):
