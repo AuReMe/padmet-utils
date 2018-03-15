@@ -120,7 +120,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         mplugin = model.getPlugin("fbc")
         association = ['<annotation>', 
         '<listOfGeneAssociations xmlns="http://www.sbml.org/sbml/level3/version1/fbc/version1">']
-    model_id = os.path.splitext(os.path.basename(output))[0]
+    if not model_id: model_id = os.path.splitext(os.path.basename(output))[0]
     model.setId(model_id)
     
     """
@@ -198,10 +198,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                     splugin = s.getPlugin("fbc")
                     check(splugin.setCharge(charge), 'set charge')
                     if formula:
-                        try:
-                            check(splugin.setChemicalFormula(formula), 'set Formula')
-                        except TypeError:
-                            print formula, original_id, mnx_id
+                        check(splugin.setChemicalFormula(formula), 'set Formula')
                     for prop, prop_v in species_prop.items():
                         if prop in ["charge", "formula", "source", "description"] or prop_v in ["NA",""]:
                             species_prop.pop(prop)
