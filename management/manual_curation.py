@@ -60,7 +60,7 @@ def main():
         category = args["--category"].upper()
     else:
         category = "MANUAL"
-    source = "-".join([category,filename])
+    source = filename
 
     if args["--template_new_rxn"]:
         template_new_rxn(output)

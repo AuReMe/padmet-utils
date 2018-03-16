@@ -446,8 +446,8 @@ def create_biological_page(category, page_node, output_folder):
             source = source.lower()
             if source.startswith("output_pantograph_"):
                 source = source.replace("output_pantograph_","")
-            rxn_srcs.add(source)
             source = category+"-"+source
+            rxn_srcs.add(source)
             src_data[category][source] = {"comment":comment,"tool":tool}
         all_categories.update(rxn_categories)
         add_property(properties, "reconstruction category", rxn_categories)

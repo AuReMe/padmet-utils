@@ -24,6 +24,7 @@ usage:
     flux_analysis.py --sbml=FILE
     flux_analysis.py --sbml=FILE --seeds=FILE --targets=FILE
     flux_analysis.py --sbml=FILE --all_species
+    
 
 option:
     -h --help    Show help.
@@ -121,12 +122,12 @@ def main():
             dict_output["negative"][reactant] = solution.objective_value
         model.remove_reactions([test_rxn])
     print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(bms_reactants)))
-    print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(bms_reactants)))
+    print("%s/%s compounds without flux" %(len(dict_output["negative"].keys()), len(bms_reactants)))
 
     for k,v in dict_output["positive"].items():
         print("%s // %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
     for k,v in dict_output["negative"].items():
-        print("%s // %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
+        print("%s // %s %s NULL" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
 
 
 def fba_on_targets(allspecies, model):
@@ -146,17 +147,9 @@ def fba_on_targets(allspecies, model):
                 
         solution = model2.optimize()
         if (solution.objective_value > 1e-5):
-            dict_output["positive"][species] = solution.objective_value
+            print("%s // %s %s positive" %(species, convert_from_coded_id(species.id)[0]+"_"+convert_from_coded_id(species.id)[2], solution.objective_value))
         else:
-            dict_output["negative"][species] = solution.objective_value
-    print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(allspecies)))
-    print("%s/%s compounds with negative flux" %(len(dict_output["negative"].keys()), len(allspecies)))
-
-    for k,v in dict_output["positive"].items():
-        print("%s // %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
-    for k,v in dict_output["negative"].items():
-        print("%s // %s %s negative" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
-    
+            print("%s // %s %s NULL" %(species, convert_from_coded_id(species.id)[0]+"_"+convert_from_coded_id(species.id)[2], solution.objective_value))    
 
 if __name__ == "__main__":
     main()

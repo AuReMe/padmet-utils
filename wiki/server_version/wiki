@@ -33,7 +33,7 @@ options:
 	--init=ID    identifier of the new wiki to initialize.
 	--wiki=ID    identifier of the wiki.
 	--update=DIR    folder containing wiki pages.
-	--api_url=STR    url of the wiki api. ex: https://my_site/wiki
+	--api_url=STR    url of the wiki api. ex: https://my_site/wiki/index.php
 	--username=STR    username of the admin account.
 	--password=STR    password of the admin account.
 
