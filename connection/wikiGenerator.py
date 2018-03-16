@@ -213,7 +213,7 @@ def create_navigation_page(output_folder):
     sideBarData.append("** Category:"+category+"|"+category)
     fileName = output_folder+"Category:Pathway"
     if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Pathway]]","| ?common name","| ?reaction found","| ?reaction not found","| ?completion rate","}}"]
+    dataInArray = ["{{#ask: [[Category:Pathway]]","| ?common name","| ?reaction found","| ?total reaction","| ?completion rate","}}"]
     with open(fileName,'w') as f:
         for line in dataInArray:
             f.write(line+"\n")
@@ -222,7 +222,7 @@ def create_navigation_page(output_folder):
     sideBarData.append("** Category:"+category+"|"+category)
     fileName = output_folder+"Category:Metabolite"
     if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Metabolite]]","| ?common name","| ?consumed by","| ?produced by","| ?consumed or produced by","}}"]
+    dataInArray = ["{{#ask: [[Category:Metabolite]]","| ?common name","| ?consumed by","| ?produced by","| ?reversible reaction associated","}}"]
     with open(fileName,'w') as f:
         for line in dataInArray:
             f.write(line+"\n")
@@ -443,13 +443,11 @@ def create_biological_page(category, page_node, output_folder):
                 rxn_comments.add(comment)
 
             source = rec_data_node.misc.get("SOURCE",[None])[0]
-            if comment in ["added to manage seeds from boundary to extracellular compartment", "added to manage seeds from extracellular to cytosol compartment"]:
-                source = "MANUAL-IMPORT_FROM_MEDIUM"
-            if source:
-                source = source.lower()
-                if source.startswith("output_pantograph_"):
-                    source = source.replace("output_pantograph_","")
-                rxn_srcs.add(source)
+            source = source.lower()
+            if source.startswith("output_pantograph_"):
+                source = source.replace("output_pantograph_","")
+            rxn_srcs.add(source)
+            source = category+"-"+source
             src_data[category][source] = {"comment":comment,"tool":tool}
         all_categories.update(rxn_categories)
         add_property(properties, "reconstruction category", rxn_categories)
@@ -522,7 +520,7 @@ def create_biological_page(category, page_node, output_folder):
         dataInArray.append(" '''%s''' reactions found over '''%s''' reactions in the full pathway" %(len(reactionsFound), len(reactionsTotal)))
 
         add_property(properties, "reaction found", [len(reactionsFound)])
-        add_property(properties, "reaction not found", [len(reactionsMissing)])
+        add_property(properties, "total reaction", [len(reactionsTotal)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
             print(rxn_id)
@@ -580,7 +578,7 @@ def create_biological_page(category, page_node, output_folder):
                 dataInArray.append("* [["+rxn_id+"]]")
         dataInArray.append("== Reaction(s) of unknown directionality ==")
         if rxn_cp["cp"]:
-            add_property(properties, "consumed or produced by",rxn_cp["cp"])
+            add_property(properties, "reversible reaction associated",rxn_cp["cp"])
             for rxn_id in rxn_cp["cp"]:
                 dataInArray.append("* [["+rxn_id+"]]")
 

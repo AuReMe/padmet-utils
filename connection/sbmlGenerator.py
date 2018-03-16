@@ -112,6 +112,32 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         document = libsbml.SBMLDocument(sbmlns)
         model = document.createModel()
         association = None
+        # Create a unit definition
+        mmol_per_gDW_per_hr = model.createUnitDefinition()
+        check(mmol_per_gDW_per_hr, 'create unit definition')
+        check(mmol_per_gDW_per_hr.setId('mmol_per_gDW_per_hr'), 'set unit definition id')
+        
+        unit = mmol_per_gDW_per_hr.createUnit()
+        check(unit, 'create mole unit')
+        check(unit.setKind(libsbml.UNIT_KIND_MOLE), 'set unit kind')
+        check(unit.setScale(-3), 'set unit scale')
+        check(unit.setMultiplier(1), 'set unit multiplier')
+        check(unit.setOffset(0), 'set unit offset')
+        
+        unit = mmol_per_gDW_per_hr.createUnit()
+        check(unit, 'create gram unit')
+        check(unit.setKind(libsbml.UNIT_KIND_GRAM), 'set unit kind')
+        check(unit.setExponent(-1), 'set unit exponent')
+        check(unit.setMultiplier(1), 'set unit multiplier')
+        check(unit.setOffset(0), 'set unit offset')
+        
+        unit = mmol_per_gDW_per_hr.createUnit()
+        check(unit, 'create second unit')
+        check(unit.setKind(libsbml.UNIT_KIND_SECOND), 'set unit kind')
+        check(unit.setExponent(-1), 'set unit exponent')
+        check(unit.setMultiplier(0.00027777), 'set unit multiplier')
+        check(unit.setOffset(0), 'set unit offset')
+
     elif sbml_lvl == 3:
         sbmlns = libsbml.SBMLNamespaces(3,1,"fbc",1)
         document = libsbml.SBMLDocument(sbmlns)
@@ -120,22 +146,12 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         mplugin = model.getPlugin("fbc")
         association = ['<annotation>', 
         '<listOfGeneAssociations xmlns="http://www.sbml.org/sbml/level3/version1/fbc/version1">']
+        check(model,                              'create model')
+        check(model.setTimeUnits("second"),       'set model-wide time units')
+        check(model.setExtentUnits("mole"),       'set model units of extent')
+        check(model.setSubstanceUnits('mole'),    'set model substance units')
     if not model_id: model_id = os.path.splitext(os.path.basename(output))[0]
     model.setId(model_id)
-    
-    """
-    #set units
-    #model.setSubstanceUnits("substance")
-    model.setTimeUnits("second")
-    #model.setVolumeUnits("volume")
-    model.setAreaUnits("area")
-    model.setLengthUnits("metre")
-    #model.setExtentUnits("substance")
-    """
-    check(model,                              'create model')
-    check(model.setTimeUnits("second"),       'set model-wide time units')
-    check(model.setExtentUnits("mole"),       'set model units of extent')
-    check(model.setSubstanceUnits('mole'),    'set model substance units')
     math_ast = libsbml.parseL3Formula('FLUX_VALUE')
     check(math_ast, 'create AST for rate expression')
 
@@ -327,7 +343,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
             check(species_ref.setSpecies(cId_encoded), 'assign reactant species %s' %cId_encoded)
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
-            check(species_ref.setConstant(False), 'set constant %s' %False)
+            if sbml_lvl == 3: check(species_ref.setConstant(False), 'set constant %s' %False)
 
         for pId, stoich, compart in produced:
             pId_encoded = sp.convert_to_coded_id(pId,"M",compart)
@@ -339,7 +355,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
             check(species_ref, 'create product')
             check(species_ref.setSpecies(pId_encoded), 'assign product species %s' %pId_encoded)
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
-            check(species_ref.setConstant(False), 'set constant %s' %False)
+            if sbml_lvl == 3: check(species_ref.setConstant(False), 'set constant %s' %False)
 
         #set notes
         notes_dict = {}
@@ -391,7 +407,13 @@ def create_note(dict_data):
         notes += "<p>"+k+": "+v+"</p>"
     notes += "</body>"
     return notes
-    
+
+def create_annotation(dict_data):
+    """
+    dict_data, k = url, v = id
+    """
+    annotation = ['</annotation>']
+
 def add_ga(linked_genes, rId_encoded):
     global all_ga
     ga_count = len(all_ga) + 1
