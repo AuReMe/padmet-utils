@@ -172,13 +172,14 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         #update dicts
         species_dict[species_id_encoded] = {"species_id":species_id, "compart":compart, "name":name}
         
-    for k, v in species_dict.iteritems():
-        compart = v["compart"]
-        name = v["name"]
-        original_id = v["species_id"]
+    for species_id_encoded, s_dict in species_dict.iteritems():
+        compart = s_dict["compart"]
+        name = s_dict["name"]
+        original_id = s_dict["species_id"]
         s = model.createSpecies()
         check(s, 'create species')
-        check(s.setId(k), 'set species id %s' %k)
+        check(s.setId(species_id_encoded), 'set species id %s' %species_id_encoded)
+        check(s.setMetaId(species_id_encoded), 'set species meta id %s' %species_id_encoded)
         check(s.setBoundaryCondition(False), 'set boundaryCondition to False')
         check(s.setHasOnlySubstanceUnits(False), 'set setHasOnlySubstanceUnits to False')
         check(s.setConstant(False), 'set setConstant to False')
@@ -202,21 +203,24 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                 #print(species_id)
                 species_prop = None
             if species_prop:
+                [species_prop.pop(k) for k,v in species_prop.items() if (not v or v == "NA")]
                 try:
                     charge = int(species_prop["charge"])
-                except ValueError:
+                except (ValueError, KeyError) as e:
                     charge = 0
-                formula = species_prop["formula"]
-                #remove () from forumla
-                #formula = re.sub("\(|\)|\.","",formula).upper()
+                formula = species_prop.get("formula","")
                 if re.findall("\(|\)|\.",formula): formula = None
+                inchi = species_prop.get("inchi", None)
                 if sbml_lvl == 3:
                     splugin = s.getPlugin("fbc")
                     check(splugin.setCharge(charge), 'set charge')
                     if formula:
                         check(splugin.setChemicalFormula(formula), 'set Formula')
+                    if inchi:
+                        annot_xml = create_annotation(inchi, species_id_encoded)
+                        check(s.setAnnotation(annot_xml), 'set Annotations')
                     for prop, prop_v in species_prop.items():
-                        if prop in ["charge", "formula", "source", "description"] or prop_v in ["NA",""]:
+                        if prop in ["charge", "formula", "source", "description","inchi"] or prop_v in ["NA",""]:
                             species_prop.pop(prop)
                 notes = create_note(species_prop)
                 check(s.setNotes(notes), 'set Notes')
@@ -408,12 +412,14 @@ def create_note(dict_data):
     notes += "</body>"
     return notes
 
-def create_annotation(dict_data):
+def create_annotation(inchi, ref_id):
     """
     dict_data, k = url, v = id
     """
-    annotation = ['</annotation>']
-
+    annotations = '<annotation>\n  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">\n    <rdf:Description rdf:about="'+ref_id+'">\n      <bqbiol:isVersionOf>\n        <rdf:Bag>\n          <rdf:li rdf:resource="http://identifiers.org/inchi/'+inchi+'"/>\n        </rdf:Bag>\n      </bqbiol:isVersionOf>\n    </rdf:Description>\n  </rdf:RDF>\n</annotation>'
+    annot_xml = libsbml.XMLNode.convertStringToXMLNode(annotations)
+    return annot_xml
+    
 def add_ga(linked_genes, rId_encoded):
     global all_ga
     ga_count = len(all_ga) + 1
