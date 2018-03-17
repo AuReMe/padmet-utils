@@ -465,18 +465,18 @@ def add_ga(rId_encoded, all_ga_subsets):
     elif len > 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure
     if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure
     """    
-    #[set(['Tiso_gene_15846']), set(['Tiso_gene_11866']), set(['Tiso_gene_11866', 'Tiso_gene_15846'])]
-    print(all_ga_subsets, len(all_ga_subsets))
     global all_ga
     ga_count = len(all_ga) + 1
     ga = [' <geneAssociation id="ga_'+str(ga_count)+'" reaction="'+rId_encoded+'">']
     if len(all_ga_subsets) == 1:
         uniqu_ga_list = list(all_ga_subsets[0])
         if len(uniqu_ga_list) == 1:
-            ga.append('<gene reference="'+uniqu_ga_list[0]+'"/>')
+            gene_id = sp.convert_to_coded_id(uniqu_ga_list[0])
+            ga.append('<gene reference="'+gene_id+'"/>')
         else:
             ga.append('<or>')
             for gene_id in uniqu_ga_list:
+                gene_id = sp.convert_to_coded_id(gene_id)
                 ga.append('<gene reference="'+gene_id+'"/>')
             ga.append('</or>')
     else:
@@ -484,10 +484,12 @@ def add_ga(rId_encoded, all_ga_subsets):
         for ga_list in all_ga_subsets:
             ga_list = list(ga_list)
             if len(ga_list) == 1:
-                ga.append('<gene reference="'+ga_list[0]+'"/>')
+                gene_id = sp.convert_to_coded_id(ga_list[0])
+                ga.append('<gene reference="'+gene_id+'"/>')
             else:
                 ga.append('<and>')
                 for gene_id in ga_list:
+                    gene_id = sp.convert_to_coded_id(gene_id)
                     ga.append('<gene reference="'+gene_id+'"/>')
                 ga.append('</and>')
         ga.append('</or>')
