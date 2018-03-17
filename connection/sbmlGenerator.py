@@ -41,6 +41,8 @@ import os
 import docopt
 import libsbml
 import re
+import subprocess
+
 #default variables
 global def_max_lower_bound, def_max_upper_bound, BOUNDARY_ID
 def_max_upper_bound = 1000
@@ -100,6 +102,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     @rtype: int
     """
     global all_ga
+    dir_path_gbr = os.path.dirname(os.path.realpath(__file__))+"/grammar-boolean-rapsody.py"
     all_ga = []
     #create an empty sbml model
     with_mnx = False
@@ -244,7 +247,6 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     if obj_fct is not None:
         obj_fct_encoded = sp.convert_to_coded_id(obj_fct)
         if verbose: print("the objectif reaction is: %s" %(obj_fct_encoded))
-        
     reactions = [node for node in padmet.dicOfNode.itervalues() if node.type == "reaction"]
     nb_reactions = str(len(reactions))    
     # Create reactions
@@ -361,14 +363,46 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
             check(species_ref.setStoichiometry(stoich), 'set stoichiometry %s' %stoich)
             if sbml_lvl == 3: check(species_ref.setConstant(False), 'set constant %s' %False)
 
-        #set notes
-        notes_dict = {}
         linked_genes = set([rlt.id_out for rlt in padmet.dicOfRelationIn.get(rId, [])
         if rlt.type == "is_linked_to"])
+        all_suppData = [padmet.dicOfNode[rlt.id_out] for rlt in padmet.dicOfRelationIn[rId] if rlt.type == "has_suppData"]
+        #if rxn has suppdata, check in each suppData, if GENE_ASSOCIATION in misc
+        #if run gbr.py to convert the gene assoc to a list of tuple representing the assoc
+        #ex: #orignia_la: (a or b) and c => #ga_subsets: [(a,b),(c)]
+        #add each ga in ga_subsets in all_ga_subsets
+        #for each ga in all_ga_subsets: if len == 1: if the only ga len == 1: just add gene, else create OR structure
+        #elif len > 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure
+        #if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure
+        all_ga_subsets = list()
+        if all_suppData:
+            for suppData in all_suppData:
+                try:
+                    original_ga = suppData.misc["GENE_ASSOCIATION"][0]
+                    ga_for_gbr = re.sub(r" or " , "|", original_ga)
+                    ga_for_gbr = re.sub(r" and " , "&", ga_for_gbr)
+                    ga_for_gbr = re.sub(r"\s" , "", ga_for_gbr)
+                    ga_for_gbr = "\"" + ga_for_gbr + "\""
+                    if re.findall("\||\&",ga_for_gbr):
+                        ga_subsets = []
+                        [ga_subsets.append(set(i)) for i in eval(subprocess.check_output("python3 "+dir_path_gbr+" "+ga_for_gbr, shell=True))]
+                        for ga in ga_subsets:
+                            if ga not in all_ga_subsets:
+                                all_ga_subsets.append(ga)
+                except KeyError:
+                    pass
+        if not all_ga_subsets:
+            for gene_id in linked_genes:
+                all_ga_subsets.append([gene_id])
+        if association:
+            if all_ga_subsets:
+                add_ga(rId_encoded, all_ga_subsets)
+            elif linked_genes:
+                add_ga(rId_encoded, all_ga_subsets)
+        #set notes
+        notes_dict = {}
         if linked_genes:
-            notes_dict["GENE ASSOCIATION"] = " or ".join(linked_genes)
-            if association:
-                add_ga(list(linked_genes), rId_encoded)
+            notes_dict["GENE ASSOCIATION"] = " or ".join(["("+" and ".join([i for i in g])+")" for g in all_ga_subsets])
+
         categories = set([padmet.dicOfNode[rlt.id_out].misc["CATEGORY"][0] for rlt in padmet.dicOfRelationIn.get(rId,[]) if rlt.type == "has_reconstructionData"])
         if categories:
             notes_dict["CATEGORIES"] = " and ".join(categories)
@@ -379,6 +413,9 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         if notes_dict.keys():
             notes = create_note(notes_dict)            
             check(reaction.setNotes(notes), 'set notes %s' %notes)
+
+
+
     if all_ga:
         for ga in all_ga:
             association.extend(ga)
@@ -420,16 +457,39 @@ def create_annotation(inchi, ref_id):
     annot_xml = libsbml.XMLNode.convertStringToXMLNode(annotations)
     return annot_xml
     
-def add_ga(linked_genes, rId_encoded):
+def add_ga(rId_encoded, all_ga_subsets):
+    """
+    if list_ga len == 1: only 1 list of gene: if len of this list is 1: just add gene, else create OR structure
+    else: create OR structure, then for each list of gene
+    for each ga in list_ga: if len == 1: if the only ga len == 1: just add gene, else create OR structure
+    elif len > 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure
+    if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure
+    """    
+    #[set(['Tiso_gene_15846']), set(['Tiso_gene_11866']), set(['Tiso_gene_11866', 'Tiso_gene_15846'])]
+    print(all_ga_subsets, len(all_ga_subsets))
     global all_ga
     ga_count = len(all_ga) + 1
     ga = [' <geneAssociation id="ga_'+str(ga_count)+'" reaction="'+rId_encoded+'">']
-    if len(linked_genes) == 1:
-        ga.append('<gene reference="'+linked_genes[0]+'"/>')
+    if len(all_ga_subsets) == 1:
+        uniqu_ga_list = list(all_ga_subsets[0])
+        if len(uniqu_ga_list) == 1:
+            ga.append('<gene reference="'+uniqu_ga_list[0]+'"/>')
+        else:
+            ga.append('<or>')
+            for gene_id in uniqu_ga_list:
+                ga.append('<gene reference="'+gene_id+'"/>')
+            ga.append('</or>')
     else:
         ga.append('<or>')
-        for gene_id in linked_genes:
-            ga.append('<gene reference="'+gene_id+'"/>')
+        for ga_list in all_ga_subsets:
+            ga_list = list(ga_list)
+            if len(ga_list) == 1:
+                ga.append('<gene reference="'+ga_list[0]+'"/>')
+            else:
+                ga.append('<and>')
+                for gene_id in ga_list:
+                    ga.append('<gene reference="'+gene_id+'"/>')
+                ga.append('</and>')
         ga.append('</or>')
     ga.append('</geneAssociation>')
     all_ga.append(ga)        
