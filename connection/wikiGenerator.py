@@ -22,13 +22,11 @@ Contains all necessary functions to generate wikiPages from a padmet file and up
 a wiki online. Require WikiManager module (with wikiMate,Vendor)
 
 usage:
-    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] -v
+    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] -v
+    wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
 
 options:
     -h --help     Show help.
-    --reaction_file=FILE    pathname of the file containing the reactions id, 1/line 
-    --padmetRef=FILE    pathname of the padmet representing the database.
-    --output=FILE    pathname of the file with line = pathway id, all reactions id, reactions ids from reaction file, ratio. sep = "\t"
 """
 from padmet.padmetRef import PadmetRef
 from padmet.padmetSpec import PadmetSpec
@@ -43,6 +41,7 @@ import matplotlib.patches as patches
 from matplotlib import colors
 import math
 import docopt
+import re
 
 def main(): 
     global padmetSpec, padmetRef, wiki_folder, full_sources_dict, all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id, all_rxns, all_genes, all_pwys, all_cpds, verbose, ext_link
@@ -50,7 +49,18 @@ def main():
     full_sources_dict = dict()
     #files to upload: folder genomic_data, all sbml in output ortho, annot, external, seeds, targets
     args = docopt.docopt(__doc__)
-    padmetSpec = PadmetSpec(args["--padmetSpec"])
+    if args["--aureme_run"]:
+        aureme_run = args["--aureme_run"]
+        if not aureme_run.endswith("/"): aureme_run += "/"
+        padmetSpec_file = aureme_run + "/networks/" + args["--padmetSpec"]
+        log_file = aureme_run+"log.txt"
+        
+
+    else:
+        padmetSpec_file = args["--padmetSpec"]
+
+    padmetSpec = PadmetSpec(padmetSpec_file)
+
     try:
         db = padmetSpec.info["DB_info"]["DB"].lower()
         if db == "metacyc":
@@ -65,15 +75,15 @@ def main():
             raise KeyError
     except KeyError:
         ext_link = {}
-    if args["--padmetRef"]:
+    if args["--padmetRef"]:#TODO: finir case aureme_run vs all args given in param
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
     verbose = args["-v"]
     model_id, model_name = args["--model_id"], args["--model_name"]
     wiki_folder = args["--output"]
-    if not wiki_folder.endswith("/"): wiki_folder += "/"    
-
+    if not wiki_folder.endswith("/"): wiki_folder += "/"  
+    log_file = args["--log_file"]
     createDirectory()
     all_rxns = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
     all_genes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
@@ -91,6 +101,9 @@ def main():
     create_navigation_page(wiki_folder+"/navigation/")
     create_venn()
     create_main(model_id, model_name)
+    if log_file:
+        create_log_page(log_file, wiki_folder+"/navigation/")
+    
 
 def createDirectory():
     """
@@ -859,6 +872,54 @@ main_template = ["== MODEL_IDGEM description ==",
      "** Download this [[MEDIA:Reaction_creator.csv|form]]",
      "* '''Follow the examples given in the form(s) to correctly share your suggestions'''",
      "* Send the filled form(s) to: CONTACT_MAIL"]
+
+def create_log_page(log_file, output_folder):
+    """
+    
+    """
+    cmd_regex = '--cmd=\"(.*)\"'
+    fileName = output_folder+"workflow"
+    log_page = ["=Worklow command history=","","==Command sequence=="]
+    with open(log_file, 'r') as f:
+        log_data = [line for line in f.read().splitlines() if not line.startswith("#")]
+    for cmd_line in log_data:
+        print(cmd_line)
+        re_result = re.search(cmd_regex, cmd_line)
+        if re_result:
+            full_cmd = list(re_result.groups(1))
+            cmd = full_cmd[0].split(" ")[0]
+            cmd_label,desc = get_cmd_label(cmd)
+            if cmd_label and desc:
+                log_page.append("* '''%s''':" %cmd_label)
+                log_page.append("''%s''" %desc)
+    #todo downalosalsjka
+    with open(fileName, 'w') as f:
+        for line in log_page:
+            f.write(line+"\n")
+        
+                
+
+def get_cmd_label(cmd):
+    """
+    """
+
+    cmd_label_dict = {'init':{'CMD_LABEL':'Initialization','DESC':'''Initialization of the bridge directory architecture'''},
+                      'getdb':{'CMD_LABEL':'Get database','DESC':'''Display the available reference databases'''},
+                      'check_input':{'CMD_LABEL':'Check input','DESC':'''Check the validity, consistency and presence of input files'''},
+                      'check_studied_organism_input':{'CMD_LABEL':'Check studied organism input','DESC':'''Check if FAA or GBK was given for the studied organism'''},
+                      'check_model_organism_input':{'CMD_LABEL':'Check model organism input','DESC':'''Check (if existing) each folder in orthology based reconstruction'''},
+                      'curation':{'CMD_LABEL':'Manual curation','DESC':'Apply the curation described in the form file CURATION_FILE_NAME'},
+                      }
+
+    current_cmd_dict = cmd_label_dict.get(cmd)
+    if current_cmd_dict:
+        cmd_label = current_cmd_dict["CMD_LABEL"]
+        desc = current_cmd_dict["DESC"]
+    else:
+        cmd_label, desc = None, None
+    return(cmd_label,desc)
+
+
 
 if __name__ == "__main__":
     main()

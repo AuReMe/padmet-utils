@@ -217,7 +217,6 @@ def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
                     padmetRef._addRelation(pwy_rlt)
                 else:
                     if verbose: print("%s in pwy %s but not in padmet" %(rxn_id, pwy_id))
-    padmetRef.generateFile("/home/maite/Documents/data/bigg/bigg_v2.padmet")
             
     
 if __name__ == "__main__":

@@ -390,9 +390,14 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                                 all_ga_subsets.append(ga)
                 except KeyError:
                     pass
-        if not all_ga_subsets:
+        if all_ga_subsets:
+            for gene_id in linked_genes:
+                if not any([gene_id in ga for ga in all_ga_subsets]):
+                    all_ga_subsets.append([gene_id])
+        else:
             for gene_id in linked_genes:
                 all_ga_subsets.append([gene_id])
+
         if association:
             if all_ga_subsets:
                 add_ga(rId_encoded, all_ga_subsets)
