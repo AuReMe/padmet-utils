@@ -881,7 +881,7 @@ def create_log_page(log_file, output_folder):
             cmd_label,desc = get_cmd_label(cmd)
             if cmd_label and desc:
                 if cmd == "curation":
-                    curation_file = re.search('DATA=(.*)',full_cmd).groups(1)[0]
+                    curation_file = re.search('DATA=(.*\.\w+)\s?',full_cmd).groups(1)[0]
                     desc = desc.replace('FORM_FILE_NAME', curation_file)
                 log_page.append("* '''%s''':" %cmd_label)
                 log_page.append("''%s''" %desc)
