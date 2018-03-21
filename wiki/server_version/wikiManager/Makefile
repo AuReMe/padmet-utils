@@ -20,6 +20,13 @@ update:
 	@make -s -j send_all_page
 	@php $(sendPage) $(pages_dir)/navigation $(api_url) $(U) $(P)
 
+update_old:
+	@make -s send_genes
+	@make -s send_metabolites
+	@make -s send_pathways
+	@make -s send_reactions
+	@php $(sendPage) $(pages_dir)/navigation $(api_url) $(U) $(P)
+
 send_all_page: send_genes send_metabolites send_pathways send_reactions
 
 

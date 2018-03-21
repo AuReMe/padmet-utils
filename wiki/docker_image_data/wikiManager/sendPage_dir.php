@@ -44,13 +44,13 @@ try {
 
 $files = listFolderFiles($argv[1]);
 foreach($files as $file) {
-	$filename = basename($file,".txt");
+	$filename = str_replace ("__47__", "/", basename($file,".txt"));
+	echo $filename, "\n";
 	$textpage = file_get_contents($file);
 	// create a new page object
 	$page = $wiki->getPage($filename);
 	// check if the page exists or not and output the page
 	$page->setText($textpage);
-	echo $filename, "\n";
 }
 
 
