@@ -22,7 +22,7 @@ Contains all necessary functions to generate wikiPages from a padmet file and up
 a wiki online. Require WikiManager module (with wikiMate,Vendor)
 
 usage:
-    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] -v
+    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] [-v]
     wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
 
 options:
@@ -276,7 +276,11 @@ def create_biological_page(category, page_node, output_folder):
     """
     global padmetSpec, all_pwy_id, all_cpd_id
 
-    fileName = output_folder + page_node.id.replace("/",".")
+    if "/" in page_node.id:
+        print("%s contains not allowed caractere" %page_node.id)
+        fileName = output_folder + page_node.id.replace("/","__47__")
+    else:
+        fileName = output_folder + page_node.id
     if verbose: print("%s: %s" %(category, page_node.id))
     #stock in properties: all properties associated to the current page.
     #properties = [{{#set PROPERTY_X:VALUE_1|...|VALUE_N}}, ...]
@@ -527,7 +531,6 @@ def create_biological_page(category, page_node, output_folder):
         add_property(properties, "total reaction", [len(reactionsTotal)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
-            print(rxn_id)
             gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
             dataInArray.append("* [["+rxn_id+"]]")
             if gene_assoc:
@@ -870,7 +873,7 @@ def create_log_page(log_file, output_folder):
     """
     cmd_regex = '--cmd=\"(.*)\"'
     fileName = output_folder+"workflow"
-    log_page = ["=Worklow command history=","","==Command sequence=="]
+    log_page = ["=Workflow command history=","","==Command sequence=="]
     with open(log_file, 'r') as f:
         log_data = [line for line in f.read().splitlines() if not line.startswith("#")]
     for cmd_line in log_data:
