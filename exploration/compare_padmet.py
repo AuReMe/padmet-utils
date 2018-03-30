@@ -183,7 +183,7 @@ def main():
     pwys_file = root_folder+"pathways.csv"
     if verbose: print("creating %s" %pwys_file)
     with open(pwys_file, 'w') as csvfile:
-        fieldnames = ['pathway'] + [i+"_ratio" for i in all_basename_files] + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
+        fieldnames = ['pathway'] + [i+"_completion_rate" for i in all_basename_files] + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
         for pwy_id, dict_basename_data in dict_pwys.items():
