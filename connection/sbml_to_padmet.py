@@ -57,8 +57,7 @@ options:
     --version=STR    database version
     -v   print info
 """
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
+from padmet.classes import PadmetSpec, PadmetRef
 from time import time
 from datetime import datetime
 import os
@@ -83,9 +82,11 @@ def main():
     else:
         raise TypeError("%s is not a dir or a file" %(args["--sbml"]))
 
-
-    if padmetRef_file and os.path.isfile(padmetRef_file):
-        padmetRef = PadmetRef(padmetRef_file)
+    if padmetRef_file:
+        if os.path.isfile(padmetRef_file):
+            padmetRef = PadmetRef(padmetRef_file)
+        else:
+            raise IOError("No such file %s" %padmetRef_file)
     else:
         padmetRef = None
 

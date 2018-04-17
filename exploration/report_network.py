@@ -34,7 +34,7 @@ options:
     --output_dir=dir    directory for the results.
     -v   print info.
 """
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 import docopt
 
 def main():

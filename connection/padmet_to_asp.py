@@ -33,7 +33,6 @@ options:
     --output=FILE    pathname of the lp file
     -v   print info
 """
-from padmet.aspGenerator import padmet_to_asp
 import docopt
 
 def main():

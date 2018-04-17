@@ -27,8 +27,8 @@ options:
     --sbml=FILE     Path to the sbml file to be analysed.
     --mnx=FILE     path to the metatnetx file for reaction, reac_xref.tsv.
 """
-from libsbml import *
-from padmet.sbmlPlugin import convert_from_coded_id
+import libsbml
+from padmet.utils.sbmlPlugin import convert_from_coded_id
 import docopt
 
 def main():
@@ -39,7 +39,7 @@ def main():
     with open(rxn_mnx,'r') as f:
         db = dict([tuple(line.split("\t")[0].split(":")[::-1]) for line in f.read().splitlines() if not line.startswith("#")])
 
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
         print (document.getError(i).getMessage())

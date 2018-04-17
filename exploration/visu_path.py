@@ -33,8 +33,7 @@ options:
     --pathway=ID    pathway id to visualize.
 
 """
-from padmet.padmetRef import PadmetRef
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetRef, PadmetSpec
 import networkx as nx
 import matplotlib.pylab as plt
 import docopt

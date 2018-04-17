@@ -44,10 +44,10 @@ options:
     -v   print info
 
 """
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
-from padmet.node import Node
-from padmet.relation import Relation
+from padmet.classes import PadmetSpec
+from padmet.classes import PadmetRef
+from padmet.classes import Node
+from padmet.classes import Relation
 import docopt
 
 def main():

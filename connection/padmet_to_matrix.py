@@ -31,7 +31,7 @@ option:
     --output=FILE    pathname to the output file, col: rxn, row: metabo, sep = "\t".
 """
 import docopt
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 
 def main():
     args = docopt.docopt(__doc__) 

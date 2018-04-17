@@ -118,8 +118,8 @@ options:
 import re
 from datetime import datetime
 from time import time
-from padmet.padmetSpec import *
-import padmet.sbmlPlugin as sbmlPlugin
+from padmet.classes import PadmetRef, PadmetSpec, Policy, Node, Relation
+import padmet.utils.sbmlPlugin as sbmlPlugin
 from libsbml import *
 import docopt
 

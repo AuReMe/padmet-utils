@@ -22,14 +22,14 @@ Contains all necessary functions to generate wikiPages from a padmet file and up
 a wiki online. Require WikiManager module (with wikiMate,Vendor)
 
 usage:
-    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] [-v]
+    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] -v
     wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
 
 options:
     -h --help     Show help.
 """
-from padmet.classes import PadmetRef
-from padmet.classes import PadmetSpec
+from padmet.padmetRef import PadmetRef
+from padmet.padmetSpec import PadmetSpec
 import os
 import shutil
 from itertools import chain
@@ -49,7 +49,18 @@ def main():
     full_sources_dict = dict()
     #files to upload: folder genomic_data, all sbml in output ortho, annot, external, seeds, targets
     args = docopt.docopt(__doc__)
-    padmetSpec = PadmetSpec(args["--padmetSpec"])
+    if args["--aureme_run"]:
+        aureme_run = args["--aureme_run"]
+        if not aureme_run.endswith("/"): aureme_run += "/"
+        padmetSpec_file = aureme_run + "/networks/" + args["--padmetSpec"]
+        log_file = aureme_run+"log.txt"
+        
+
+    else:
+        padmetSpec_file = args["--padmetSpec"]
+
+    padmetSpec = PadmetSpec(padmetSpec_file)
+
     try:
         db = padmetSpec.info["DB_info"]["DB"].lower()
         if db == "metacyc":
@@ -190,7 +201,7 @@ def create_navigation_page(output_folder):
     """
     
     """
-    sideBarData = ["* navigation","** mainpage|mainpage-description","** workflow|workflow command history","** randompage-url|randompage","** Special:ListFiles|Files","* Metabolic network components"]
+    sideBarData = ["* navigation","** mainpage|mainpage-description","** randompage-url|randompage","** Special:ListFiles|Files","* Metabolic network components"]
 
     category = "Reaction"
     sideBarData.append("** Category:"+category+"|"+category)
@@ -276,11 +287,7 @@ def create_biological_page(category, page_node, output_folder):
     """
     global padmetSpec, all_pwy_id, all_cpd_id
 
-    if "/" in page_node.id:
-        print("%s contains not allowed caractere" %page_node.id)
-        fileName = output_folder + page_node.id.replace("/","__47__")
-    else:
-        fileName = output_folder + page_node.id
+    fileName = output_folder + page_node.id.replace("/",".")
     if verbose: print("%s: %s" %(category, page_node.id))
     #stock in properties: all properties associated to the current page.
     #properties = [{{#set PROPERTY_X:VALUE_1|...|VALUE_N}}, ...]
@@ -372,7 +379,7 @@ def create_biological_page(category, page_node, output_folder):
             add_property(properties, "gene associated", [rlt.id_out for rlt in linked_rlt])
             for rlt in linked_rlt:
                 gene_id = rlt.id_out
-                dataInArray.append("* Gene: [[%s]]" %gene_id)
+                dataInArray.append("* [["+gene_id+"]]")
                 #a is_linked_to rlt have in misc a key "SOURCE:ASSIGNMENT"
                 #the value can be only the source, ex: OUTPUT_PANTOGRAPH_X
                 #or the source and the known assignment: SILI_ANNOTATION:EC-NUMBER
@@ -384,14 +391,14 @@ def create_biological_page(category, page_node, output_folder):
                     except ValueError:
                         src = src_data
                         assignment = None
-                    category = (node.misc["CATEGORY"][0] for node in padmetSpec.dicOfNode.values() if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src)).next()
-                    src = src.lower()
-                    category = category.lower()
-                    if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
-                    src = "-".join([category, src])
-                    dataInArray.append("** Source: [[%s]]" %src)
+                    #TODO: not only for pantograph... 
+                    #if reconstruction source start with output_pantograph_...
+                    #reconverting it to a more readable format: [[PANTOGRAPH]]-[['TEMPLATE']]
+                    if src.startswith("OUTPUT_PANTOGRAPH_"):
+                        src = "[[pantograph]]-[["+src.replace("OUTPUT_PANTOGRAPH_","").lower()+"]]"
+                    dataInArray.append("** "+src)
                     if assignment:
-                        dataInArray.append("*** Assignment: %s" %assignment)
+                        dataInArray.append("***"+assignment)
         
         dataInArray.append('== Pathways  ==')
         #set of pathways id associated to the reaction
@@ -488,7 +495,7 @@ def create_biological_page(category, page_node, output_folder):
             for rlt in linked_rlt:
                 rxn_id = rlt.id_in
                 [pwy_assoc.add(rlt_pwy.id_out) for rlt_pwy in padmetSpec.dicOfRelationIn[rxn_id] if rlt_pwy.type == "is_in_pathway"]
-                dataInArray.append("* Reaction: [[%s]]" %rxn_id)
+                dataInArray.append("* [["+rxn_id+"]]")
                 sources = rlt.misc["SOURCE:ASSIGNMENT"]
                 for src_data in sources:
                     try:
@@ -496,15 +503,13 @@ def create_biological_page(category, page_node, output_folder):
                     except ValueError:
                         src = src_data
                         assignment = None
-                    category = (node.misc["CATEGORY"][0] for node in padmetSpec.dicOfNode.values() if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src)).next()
                     src = src.lower()
-                    category = category.lower()
-                    if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
-                    src = "-".join([category, src])
-                    dataInArray.append("** Source: [[%s]]" %src)
+                    if src.startswith("output_pantograph_"):
+                        src = "[[pantograph]]-[["+src.replace("output_pantograph_","")+"]]"
+                    dataInArray.append("** "+src)
                     if assignment:
                         assignment = assignment.lower()
-                        dataInArray.append("*** Assignment: "+assignment)
+                        dataInArray.append("***"+assignment)
             dataInArray.append("== Pathways associated ==")
             if pwy_assoc :
                 add_property(properties, "pathway associated", pwy_assoc)
@@ -531,6 +536,7 @@ def create_biological_page(category, page_node, output_folder):
         add_property(properties, "total reaction", [len(reactionsTotal)])
         add_property(properties, "completion rate", [pwy_ratio])
         for rxn_id in reactionsFound:
+            print(rxn_id)
             gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
             dataInArray.append("* [["+rxn_id+"]]")
             if gene_assoc:
@@ -873,74 +879,142 @@ def create_log_page(log_file, output_folder):
     """
     cmd_regex = '--cmd=\"(.*)\"'
     fileName = output_folder+"workflow"
-    log_page = ["=Workflow command history=","","==Command sequence=="]
+    log_page = ["=Worklow command history=","","==Command sequence=="]
     with open(log_file, 'r') as f:
         log_data = [line for line in f.read().splitlines() if not line.startswith("#")]
     for cmd_line in log_data:
+        print(cmd_line)
         re_result = re.search(cmd_regex, cmd_line)
         if re_result:
-            full_cmd = re_result.groups(1)[0]
-            cmd = full_cmd.split(" ")[0]
+            full_cmd = list(re_result.groups(1))
+            cmd = full_cmd[0].split(" ")[0]
             cmd_label,desc = get_cmd_label(cmd)
             if cmd_label and desc:
-                if cmd == "curation":
-                    curation_file = re.search('DATA=(.*\.\w+)\s?',full_cmd).groups(1)[0]
-                    desc = desc.replace('FORM_FILE_NAME', curation_file)
                 log_page.append("* '''%s''':" %cmd_label)
                 log_page.append("''%s''" %desc)
-    log_page.extend(["==Downloads==","You can download the [[MEDIA:log.txt|command log file here]]"])
     #todo downalosalsjka
     with open(fileName, 'w') as f:
         for line in log_page:
             f.write(line+"\n")
         
-                 
+                
 
 def get_cmd_label(cmd):
     """
     """
-    cmd_label_dict = {'getdb':{'CMD_LABEL':'Get database','DESC':"Display the available reference databases"},
-                      'check_input':{'CMD_LABEL':'Check input','DESC':"Check the validity, consistency and presence of input files"},
-                      'check_studied_organism_input':{'CMD_LABEL':'Check studied organism input','DESC':"Check if FAA or GBK was given for the studied organism"},
-                      'check_model_organism_input':{'CMD_LABEL':'Check model organism input','DESC':"Check (if existing) each folder in orthology based reconstruction"},
-                      'sbml_validity':{'CMD_LABEL':"Check SBML validity", 'DESC':"Check the SBML validity of $(METABOLIC_MODEL)."},
-                      'faa_validity':{'CMD_LABEL':"Check Fasta validity", 'DESC':"Check if genes IDs in the model metabolic network are the same than in the Fasta file.<BR>If the rate of validated genes IDs is lower than the CUTOFF (see config.txt), raise an error and break the workflow."},
-                      'check_gap_filling_input':{'CMD_LABEL':"Check inputs for gap-filling", 'DESC':"Check the seeds, targets and artefacts files."},
-                      'curation':{'CMD_LABEL':"Manual curation",'DESC':"Apply the curation described in the form file FORM_FILE_NAME."},
-                      'annotation_based':{'CMD_LABEL':"Annotation based reconstruction", 'DESC':"Extract network data from Pathway Tools annotation output."},
-                      'pathwaytools':{'CMD_LABEL':"Pathway Tools", 'DESC':"For each folder in /annotation_based_reconstruction, check or generate from pgdb files (.dat) the SBML file."},
-                      'orthology_based':{'CMD_LABEL':"Orthology based reconstruction", 'DESC':"Run the orthology based reconstruction."},
-                      'inparanoid':{'CMD_LABEL':"Inparanoid", 'DESC':"Run Inparanoid : search for orthologs."},
-                      'OMCL':{'CMD_LABEL':"OrthoMCL", 'DESC':"Run OrthoMCL : search for orthologs."},
-                      'mp_pantograph' :{'CMD_LABEL':"Pantograph multiprocessed", 'DESC':"Run Pantograph : merges OrthoMCL and inparanoid results.<BR>Quickened by mulitprocessing."},
-                      'pantograph':{'CMD_LABEL':"Pantograph", 'DESC':"Run Pantograph : merges OrthoMCL and inparanoid results."},
-                      'draft':{'CMD_LABEL':"Create draft network", 'DESC':"Merges all available networks from the /networks directory into one metabolic network.<BR>Merge all data on the studied species."},
-                      'gap_filling':{'CMD_LABEL':"Run gap-filling", 'DESC':"Calculate the gap-filling solution and generate the metabolic network, completed with the gap-filling solution."},
-                      'gap_filling_solution':{'CMD_LABEL':"Calculate gap-filling solution", 'DESC':"Only calculate the gap-filling solution."},
-                      'meneco':{'CMD_LABEL':"Meneco", 'DESC':"Run Meneco : a gap-filling reconstruction method."},
-                      'final':{'CMD_LABEL':"Final network", 'DESC':"Generate the final metabolic network, once applyed all the reconstruction methods."},
-                      'gbk_to_faa':{'CMD_LABEL':"GBK to Fasta", 'DESC':"Export a GeneBank (.gbk) file in Fasta (faa) format."},
-                      'pgdb_to_padmet':{'CMD_LABEL':"PGDB to PADMet", 'DESC':"Export a PGDB (.dat Pathway Tools files) in PADMet (.padmet) format."},
-                      'padmet_to_sbml':{'CMD_LABEL':"PADMet to SBML", 'DESC':"Export a PADMet (.padmet) file in the SBML format."},
-                      'compounds_to_sbml':{'CMD_LABEL':"Compounds to SBML", 'DESC':"Export a list of compounds (.txt) in the SBML format."},
-                      'sbml_mapping':{'CMD_LABEL':"SBML mapping", 'DESC':"Map an SBML file (all the entities IDs) to a reference database (specified in config.txt)."},
-                      'get_medium':{'CMD_LABEL':"Get medium", 'DESC':"Display the studied species specified growth medium."},
-                      'set_medium':{'CMD_LABEL':"Set medium", 'DESC':"Set the growth medium for the studied species."},
-                      'del_medium':{'CMD_LABEL':"Delete medium", 'DESC':"Delete the growth medium for the studied species."},
-                      'get_compart':{'CMD_LABEL':"Get compartments", 'DESC':"Display all the compartments of the metabolic network."},
-                      'del_compart':{'CMD_LABEL':"Delete compartment", 'DESC':"Remove a compartment from the metabolic network."},
-                      'change_compart':{'CMD_LABEL':"Change compartment", 'DESC':"Modify a compartment in the metabolic network."},
-                      'report':{'CMD_LABEL':"Report", 'DESC':"Generate reports on the metabolic network reconstruction."},
-                      'set_fba':{'CMD_LABEL':"Set FBA", 'DESC':"Set the biomass reaction to run flux balance analysis on the network."},
-                      'summary':{'CMD_LABEL':"Test FBA", 'DESC':"Run flux balance analysis on the network."},
-                      'menecheck':{'CMD_LABEL':"Menecheck", 'DESC':"Run topological analysis on the network."},
-                      'shogen':{'CMD_LABEL':"Shogen", 'DESC':"Run Shogen : find shortest genome segments that regulate metabolic pathways."},
-                      'wiki_pages':{'CMD_LABEL':"Create Wiki pages", 'DESC':"Create Wiki pages to display the metabolic network."},
-                      'wiki_run':{'CMD_LABEL':"Run Wiki", 'DESC':"Create a Docker container for the Wiki."},
-                      'wiki_init':{'CMD_LABEL':"Wiki initialization", 'DESC':"Send data on the metabolic network to the Docker container to fill in the Wiki."},
-                      'send_all_page':{'CMD_LABEL':"Send all pages to Wiki", 'DESC':"Send all the generated pages on the metabolic network to the Wiki."},
-                      'tsv':{'CMD_LABEL':"PADMet to tsv",'DESC':"Convert a PADMet (.padmet) file to a tsv files (for Askomics)."}
-                      }
+
+    cmd_label_dict = {'init':{'CMD_LABEL':'Initialization','DESC':'''Initialization of the bridge directory architecture'''},
+                      'getdb':{'CMD_LABEL':'Get database','DESC':'''Display the available reference databases'''},
+                      'check_input':{'CMD_LABEL':'Check input','DESC':'''Check the validity, consistency and presence of input files'''},
+                      'check_studied_organism_input':{'CMD_LABEL':'Check studied organism input','DESC':'''Check if FAA or GBK was given for the studied organism'''},
+                      'check_model_organism_input':{'CMD_LABEL':'Check model organism input','DESC':'''Check (if existing) each folder in orthology based reconstruction'''},
+                      'sbml_validity':{'CMD_LABEL':"Check SBML validity", 'DESC':"''Check the SBML validity of $(METABOLIC_MODEL).''",
+                      'faa_validity':{'CMD_LABEL':"Check Fasta validity", 'DESC':"''Check if genes IDs in the model metabolic network are the same than in the Fasta file.<BR>If the rate of validated genes IDs is lower than the CUTOFF (see config.txt), raise an error and break the workflow.''",
+                      'check_gap_filling_input':CMD_LABEL:"Check inputs for gap-filling", 'DESC':"''Check the seeds, targets and artefacts files.''",
+		,
+curation:CMD_LABEL:"Manual curation",
+		DESC:"''Apply the curation described in the form file $(XXXFORM_FILE_NAMEXXX).''"
+		,
+annotation_based:CMD_LABEL:"Annotation based reconstruction",
+		DESC:"''Extract network data from Pathway Tools annotation output.''"
+		,
+pathwaytools:CMD_LABEL:"Pathway Tools",
+		DESC:"''For each folder in /annotation_based_reconstruction, check or generate from pgdb files (.dat) the SBML file.''"
+		,
+orthology_based:CMD_LABEL:"Orthology based reconstruction",
+		DESC:"''Run the orthology based reconstruction (with Pantograph).''"
+		,
+inparanoid:CMD_LABEL:"Inparanoid",
+		DESC:"''Run Inparanoid : search for orthologs.''"
+		,
+OMCL:CMD_LABEL:"OrthoMCL",
+		DESC:"''Run OrthoMCL : search for orthologs.''"
+		,
+mp_pantograph :CMD_LABEL:"Pantograph multiprocessed",
+		DESC:"''Run Pantograph : merges OrthoMCL and inparanoid results.<BR>Quickened by mulitprocessing.''"
+		,
+pantograph:CMD_LABEL:"Pantograph",
+		DESC:"''Run Pantograph : merges OrthoMCL and inparanoid results.''"
+		,
+draft:CMD_LABEL:"Create draft network",
+		DESC:"''Merges all available networks from the /networks directory into one metabolic network.<BR>Merge all data on the studied species.''"
+		,
+gap_filling:CMD_LABEL:"Run gap-filling",
+		DESC:"''Calculate the gap-filling solution and generate the metabolic network, completed with the gap-filling solution.''"
+		,
+gap_filling_solution:CMD_LABEL:"Calculate gap-filling solution",
+		DESC:"''Only calculate the gap-filling solution.''"
+		,
+meneco:CMD_LABEL:"Meneco",
+		DESC:"''Run Meneco : a gap-filling reconstruction method.''"
+		,
+final:CMD_LABEL:"Final network",
+		DESC:"''Generate the final metabolic network, once applyed all the reconstruction methods.''"
+		,
+gbk_to_faa:CMD_LABEL:"GBK to Fasta",
+		DESC:"''Export a GeneBank (.gbk) file in Fasta (faa) format.''"
+		,
+pgdb_to_padmet:CMD_LABEL:"PGDB to PADMet",
+		DESC:"''Export a PGDB (.dat Pathway Tools files) in PADMet (.padmet) format.''"
+		,
+padmet_to_sbml:CMD_LABEL:"PADMet to SBML",
+		DESC:"''Export a PADMet (.padmet) file in the SBML format.''"
+		,
+compounds_to_sbml:CMD_LABEL:"Compounds to SBML",
+		DESC:"''Export a list of compounds (.txt) in the SBML format.''"
+		,
+sbml_mapping:CMD_LABEL:"SBML mapping",
+		DESC:"''Map an SBML file (all the entities IDs) to a reference database (specified in config.txt).''"
+		,
+get_medium:CMD_LABEL:"Get medium",
+		DESC:"''Display the studied species specified growth medium.''"
+		,
+set_medium:CMD_LABEL:"Set medium",
+		DESC:"''Set the growth medium for the studied species.''"
+		,
+del_medium:CMD_LABEL:"Delete medium",
+		DESC:"''Delete the growth medium for the studied species.''"
+		,
+get_compart:CMD_LABEL:"Get compartments",
+		DESC:"''Display all the compartments of the metabolic network.''"
+		,
+del_compart:CMD_LABEL:"Delete compartment",
+		DESC:"''Remove a compartment from the metabolic network.''"
+		,
+change_compart:CMD_LABEL:"Change compartment",
+		DESC:"''Modify a compartment in the metabolic network.''"
+		,
+report:CMD_LABEL:"Report",
+		DESC:"''Generate reports on the metabolic network reconstruction.''"
+		,
+set_fba:CMD_LABEL:"Set FBA",
+		DESC:"''Set the biomass reaction to run flux balance analysis on the network.''"
+		,
+test_fba:CMD_LABEL:"Test FBA",
+		DESC:"''Run flux balance analysis on the network.''"
+		,
+menecheck:CMD_LABEL:"Menecheck",
+		DESC:"''Run topological analysis on the network.''"
+		,
+shogen:CMD_LABEL:"Shogen",
+		DESC:"''Run Shogen : find shortest genome segments that regulate metabolic pathways.''"
+		,
+wiki_pages:CMD_LABEL:"Create Wiki pages",
+		DESC:"''Create Wiki pages to display the metabolic network.''"
+		,
+wiki_run:CMD_LABEL:"Run Wiki",
+		DESC:"''Create a Docker container for the Wiki.''"
+		,
+wiki_init:CMD_LABEL:"Wiki initialization",
+		DESC:"''Send data on the metabolic network to the Docker container to fill in the Wiki.''"
+		,
+send_all_page:CMD_LABEL:"Send all pages to Wiki",
+		DESC:"''Send all the generated pages on the metabolic network to the Wiki.''"
+		,
+tsv:CMD_LABEL:"PADMet to tsv",
+		DESC:"''Convert a PADMet (.padmet) file to a tsv files (for Askomics).''"
+                }
+
     current_cmd_dict = cmd_label_dict.get(cmd)
     if current_cmd_dict:
         cmd_label = current_cmd_dict["CMD_LABEL"]

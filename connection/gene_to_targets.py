@@ -31,7 +31,7 @@ option:
     -v   print info
 
 """
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 import docopt
 
 def main():

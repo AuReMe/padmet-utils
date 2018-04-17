@@ -27,9 +27,9 @@ option:
     --padmet=FILE    pathname of the padmet file
     --sbml=FILE    pathanme of the sbml file
 """
-from padmet.padmetSpec import PadmetSpec
-import padmet.sbmlPlugin as sp
-from libsbml import *
+from padmet.classes import PadmetSpec
+import padmet.utils.sbmlPlugin as sp
+import libsbml
 import docopt
 
 def main():
@@ -37,7 +37,7 @@ def main():
     sbml_file = args["--sbml"]
     padmetSpec = PadmetSpec(args["--padmet"])
     
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     model = document.getModel()
     sbml_listOfReactions = set([sp.convert_from_coded_id(r.getId())[0] for r in model.getListOfReactions()])

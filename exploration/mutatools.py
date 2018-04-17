@@ -31,7 +31,7 @@ option:
 import os
 import shutil
 from libsbml import *
-from padmet.sbmlPlugin import parseGeneAssoc, parseNotes
+from padmet.utils.sbmlPlugin import parseGeneAssoc, parseNotes
 from multiprocessing import Pool, cpu_count
 from cobra.io.sbml import create_cobra_model_from_sbml_file, write_cobra_model_to_sbml_file
 from cobra import *

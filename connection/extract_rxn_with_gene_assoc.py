@@ -30,15 +30,15 @@ options:
     -v   print info
 
 """
-from libsbml import *
-from padmet.sbmlPlugin import parseNotes
+import libsbml
+from padmet.utils.sbmlPlugin import parseNotes
 import docopt
 
 def main():
     args = docopt.docopt(__doc__)
     sbml_file = args["--sbml"]
     output = args["--output"]
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
@@ -50,7 +50,7 @@ def main():
     for rId in reactions_to_remove:
         listOfReactions.remove(rId)
     
-    writeSBMLToFile(document, output)
+    libsbml.writeSBMLToFile(document, output)
 
 if __name__ == "__main__":
     main()

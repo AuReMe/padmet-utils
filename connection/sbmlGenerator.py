@@ -35,8 +35,8 @@ option:
     --sbml_lvl=STR    sbml level 2 is sufficient for FBA.
     -v   print info.
 """
-from padmet.padmetSpec import PadmetSpec
-import padmet.sbmlPlugin as sp
+from padmet.classes import PadmetSpec
+import padmet.utils.sbmlPlugin as sp
 import os
 import docopt
 import libsbml

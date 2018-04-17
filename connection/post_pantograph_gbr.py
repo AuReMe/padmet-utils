@@ -32,8 +32,7 @@ option:
     -v   print info
 """
 import re
-from padmet.sbmlPlugin import parseNotes, parseGeneAssoc
-from padmet.sbmlGenerator import check
+from padmet.utils.sbmlPlugin import parseNotes, parseGeneAssoc
 from libsbml import *
 import docopt
 import os
@@ -176,6 +175,26 @@ def main():
     
     writeSBMLToFile(document_study, output)
 
+def check(value, message):
+    """If 'value' is None, prints an error message constructed using
+    'message' and then exits with status code 1.  If 'value' is an integer,
+    it assumes it is a libSBML return status code.  If the code value is
+    LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
+    prints an error message constructed using 'message' along with text from
+    libSBML explaining the meaning of the code, and exits with status code 1.
+    """
+    if value == None:
+        raise SystemExit('LibSBML returned a null value trying to ' + message + '.')
+    elif type(value) is int:
+        if value == libsbml.LIBSBML_OPERATION_SUCCESS:
+            return
+        else:
+            err_msg = 'Error encountered trying to ' + message + '.' \
+                 + 'LibSBML returned error code ' + str(value) + ': "' \
+                 + libsbml.OperationReturnValue_toString(value).strip() + '"'
+            raise TypeError(err_msg)
+    else:
+        return
 
 if __name__ == "__main__":
     main()

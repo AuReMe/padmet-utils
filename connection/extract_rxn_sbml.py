@@ -31,7 +31,7 @@ options:
 from cobra.io.sbml import create_cobra_model_from_sbml_file
 from cobra import *
 import docopt
-from padmet.sbmlPlugin import convert_from_coded_id
+from padmet.utils.sbmlPlugin import convert_from_coded_id
 
 def main():
     args = docopt.docopt(__doc__)

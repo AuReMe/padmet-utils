@@ -29,8 +29,7 @@ options:
     --output=FILE   pathanme to the new padmet file, if none overwritte init_padmet
     -v   print info
 """
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
+from padmet.classes import PadmetSpec, PadmetRef
 from time import time
 from datetime import datetime
 import os

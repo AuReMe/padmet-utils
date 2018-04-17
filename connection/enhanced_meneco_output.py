@@ -38,8 +38,8 @@ options:
     --output=FILE    pathname to tsv output file
 
 """
-from padmet.padmetRef import PadmetRef
-from padmet.sbmlPlugin import convert_from_coded_id
+from padmet.classes import PadmetRef
+from padmet.utils.sbmlPlugin import convert_from_coded_id
 import docopt
 
 

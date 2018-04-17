@@ -20,8 +20,17 @@ along with padmet. If not, see <http://www.gnu.org/licenses/>.
 Description:
 This module contains functions to convert a padmet file to predicats for ASP
 """
-from padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 __all__ = ['asp_synt', 'padmet_to_asp']
+import docopt
+
+def main():
+    args = docopt.docopt(__doc__)
+    padmet_file = args["--padmet"]
+    output = args["--output"]
+    verbose = args["-v"]
+
+    padmet_to_asp(padmet_file, output, verbose)
 
 def asp_synt(pred, list_args):
     """
@@ -251,3 +260,6 @@ def padmet_to_aspDE(padmet_file, output, seeds, targets, verbose = False):
     """
 
     padmet = PadmetSpec(padmet_file)
+
+if __name__ == "__main__":
+    main()

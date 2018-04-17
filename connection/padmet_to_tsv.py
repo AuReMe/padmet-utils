@@ -53,8 +53,7 @@ options:
     --output_dir=DIR
     -v
 """
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
+from padmet.classes import PadmetSpec, PadmetRef
 from itertools import izip_longest
 import os
 import csv

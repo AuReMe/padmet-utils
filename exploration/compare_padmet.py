@@ -28,8 +28,7 @@ option:
     --output_dir=FILE    pathname of the output folder
     --sbml=FILE    pathanme of the sbml file
 """
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
+from padmet.classes import PadmetSpec, PadmetRef
 import os
 import shutil
 import docopt

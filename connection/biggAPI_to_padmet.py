@@ -36,9 +36,9 @@ options:
     --pwy_file=FILE   add kegg pathways from this pathways file 'pwy_id, pwy_name, x, rxn_id'.
     -v   print info.
 """
-from padmet.node import Node
-from padmet.relation import Relation
-from padmet.padmetRef import PadmetRef
+from padmet.classes import Node
+from padmet.classes import Relation
+from padmet.classes import PadmetRef
 from datetime import datetime
 from time import time
 

@@ -40,10 +40,10 @@ option:
 import docopt
 import os
 from time import time
-from padmet.padmetSpec import PadmetSpec
-from padmet.padmetRef import PadmetRef
-from padmet.relation import Relation
-from padmet.sbmlPlugin import parseGeneAssoc
+from padmet.classes import PadmetSpec
+from padmet.classes import PadmetRef
+from padmet.classes import Relation
+from padmet.utils.sbmlPlugin import parseGeneAssoc
 import re
 import csv
 

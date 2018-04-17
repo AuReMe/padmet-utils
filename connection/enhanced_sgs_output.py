@@ -31,7 +31,7 @@ options:
     --mnx=FILE    pathanme to metanetx file for reactions (reac_xref.tsv)
     --output=FILE    pathname to tsv output file
 """
-from padmet.padmetRef import PadmetRef
+from padmet.classes import PadmetRef
 import csv
 import re
 import docopt

@@ -33,7 +33,7 @@ option:
     --targets=FILE    pathname to the sbml file containing the targets.
     --all_species    allow to make FBA on all the metabolites of the given model.
 """
-from padmet.sbmlPlugin import convert_from_coded_id
+from padmet.utils.sbmlPlugin import convert_from_coded_id
 from cobra import *
 from cobra.io.sbml import create_cobra_model_from_sbml_file
 import docopt

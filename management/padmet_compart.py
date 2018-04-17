@@ -30,7 +30,7 @@ options:
     --new=STR    new compartment id
     --output=FILE    new padmet pathname, if none, overwritting the original padmet
 """
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 import docopt
 
 def main():

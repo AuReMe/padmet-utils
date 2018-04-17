@@ -30,7 +30,7 @@ options:
     --padmetRef=FILE    pathname of the padmet representing the database.
     --output=FILE    pathname of the file with line = pathway id, all reactions id, reactions ids from reaction file, ratio. sep = "\t"
 """
-from padmet.padmetSpec import PadmetSpec
+from padmet.classes import PadmetSpec
 import docopt
 
 def main():
