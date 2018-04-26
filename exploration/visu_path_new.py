@@ -16,7 +16,7 @@ def main():
     ulva_bact = PadmetSpec("/home/maite/Documents/data/Ulva/ulva_bacteria.padmet")
     padmetRef = PadmetRef("/home/maite/Forge/docker/aureme_workspace/ulva/database/metacyc_21.5_enhanced.padmet")
     output_folder = "/home/maite/Documents/data/Ulva/pwy_analysis/"
-    pwy_csv = output_folder+"pathways.csv"
+    pwy_csv = output_folder+"pathways.tsv"
     png_folder = output_folder+"pwys/"    
     #k=pwy_id, v = {'total':[rxn_ids], 'ulva':[rxn_ids], 'bact_1':[rxn_ids], 'bact_2':[rxn_ids]}
     pwy_dict = {}
@@ -59,11 +59,13 @@ def main():
     count = 0
     with open(pwy_csv, 'w') as csvfile:
         fieldnames = ['pathway_id','pathway_name',
-                      'All_reactions','Nb_all_reactions',
-                      'Reactions_in_ULVA','Nb_reactions_in_ULVA','Ratio_ULVA',
-                      'Reactions_in_ULVA_MS2_BACTERIA','Nb_reactions_in_ULVA_MS2_BACTERIA','Ratio_ULVA_MS2_BACTERIA',
-                      'Reactions_in_ULVA_MS6_BACTERIA','Nb_reactions_in_ULVA_MS6_BACTERIA','Ratio_ULVA_MS6_BACTERIA',
-                      'Reactions_in_ULVA_MS2_MS6_BACTERIA','Nb_reactions_in_ULVA_MS2_MS6_BACTERIA','Ratio_ULVA_MS2_MS6_BACTERIA']
+                      'Nb_all_reactions','Nb_reactions_in_ULVA','Ratio_ULVA',
+                      'Nb_reactions_in_ULVA_MS2_BACTERIA', 'Ratio_ULVA_MS2_BACTERIA',
+                      'Nb_reactions_in_ULVA_MS6_BACTERIA', 'Ratio_ULVA_MS6_BACTERIA',
+                      'Nb_reactions_in_ULVA_MS2_MS6_BACTERIA','Ratio_ULVA_MS2_MS6_BACTERIA',
+                      'All_reactions', 'Reactions_in_ULVA',
+                      'Reactions_in_ULVA_MS2_BACTERIA', 'Reactions_in_ULVA_MS6_BACTERIA',
+                      'Reactions_in_ULVA_MS2_MS6_BACTERIA']
 
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()

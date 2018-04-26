@@ -33,7 +33,7 @@ option:
 """
 import re
 from padmet.utils.sbmlPlugin import parseNotes, parseGeneAssoc
-from libsbml import *
+import libsbml
 import docopt
 import os
 import subprocess
@@ -93,7 +93,7 @@ def main():
     ortho_in_omcl_and_inp = ortho_in_omcl.intersection(ortho_in_inp)
 
     #read in model metabolic reactions with or & and in gene assoc'
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(model_metabolic)
     for i in range(document.getNumErrors()):
         print (document.getError(i).getMessage())
@@ -103,7 +103,7 @@ def main():
     and "and" in parseNotes(rxn).get("GENE_ASSOCIATION",[""])[0]]
     if verbose: print("nb TU reactions: %s" %len(TU_reactions))
 
-    reader_study = SBMLReader()
+    reader_study = libsbml.SBMLReader()
     document_study = reader_study.readSBML(study_metabolic)
     for i in range(document_study.getNumErrors()):
         print (document_study.getError(i).getMessage())
@@ -139,7 +139,7 @@ def main():
                 rxn_to_add[rxn] = new_ga
         print("%s/%s reactions to add" %(len(rxn_to_add),len(TU_reactions)))
     
-        reader_study = SBMLReader()
+        reader_study = libsbml.SBMLReader()
         document_study = reader_study.readSBML(study_metabolic)
         for i in range(document_study.getNumErrors()):
             print (document_study.getError(i).getMessage())
@@ -173,7 +173,7 @@ def main():
     [species_in_rxn.update(set(x)) for x in species_in_rxn_temp]
     [listOfSpecies.remove(sId) for sId in set([x.id for x in listOfSpecies]).difference(species_in_rxn)]    
     
-    writeSBMLToFile(document_study, output)
+    libsbml.writeSBMLToFile(document_study, output)
 
 def check(value, message):
     """If 'value' is None, prints an error message constructed using
