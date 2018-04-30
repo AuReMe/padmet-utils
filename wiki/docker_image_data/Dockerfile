@@ -62,7 +62,6 @@ RUN sed -i -e 's#upload_max_filesize = 2M#upload_max_filesize = 25M#g' /etc/php5
 RUN sed -i -e 's#post_max_size = 8M#post_max_size = 25M#g' /etc/php5/fpm/php.ini
 
 # Config MySQL
-RUN find /var/lib/mysql -type f -exec touch {} \; && service mysql start;
 RUN expect << END_OF_EXPECT ;\
         set timeout 1\
 \
@@ -102,3 +101,4 @@ EXPOSE 80 3306
 #CMD service nginx start & service mysql start & service php5-fpm start && tail -F /var/log/nginx/error.log
 COPY supervisord.conf /etc/supervisor/conf.d/
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+RUN find /var/lib/mysql -type f -exec touch {} \; && service mysql start
