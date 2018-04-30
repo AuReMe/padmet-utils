@@ -37,14 +37,14 @@ RUN apt-get update;\
     echo mysql-server mysql-server/root_password password $MYSQL_DB_ROOT_PWD | debconf-set-selections;\
     echo mysql-server mysql-server/root_password_again password $MYSQL_DB_ROOT_PWD | debconf-set-selections;\
     apt-get install -y mysql-server;\
-    apt-get -y -q clean;\
-    apt-get -y -q autoremove;\
     apt-get install -y -q curl;\
     apt-get install -y -q vim;\
     apt-get install -y -q php5-curl;\
     apt-get install -y -q python-pip;\
     apt-get install -y -q imagemagick;\
-    pip install docopt
+    pip install docopt;\
+    apt-get -y -q clean;\
+    apt-get -y -q autoremove
 
 # MediaWiki install
 COPY wiki_template /home/wiki_template
@@ -62,7 +62,7 @@ RUN sed -i -e 's#upload_max_filesize = 2M#upload_max_filesize = 25M#g' /etc/php5
 RUN sed -i -e 's#post_max_size = 8M#post_max_size = 25M#g' /etc/php5/fpm/php.ini
 
 # Config MySQL
-RUN service mysql start
+RUN find /var/lib/mysql -type f -exec touch {} \; && service mysql start;
 RUN expect << END_OF_EXPECT ;\
         set timeout 1\
 \

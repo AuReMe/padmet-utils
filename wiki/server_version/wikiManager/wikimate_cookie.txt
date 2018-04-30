@@ -10,3 +10,7 @@
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1539700747	gem_a1562_ulva_bacteria_UserID	1
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1539700747	gem_a1562_ulva_bacteria_UserName	Dyliss
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1539700747	gem_a1562_ulva_bacteria_Token	5087d3be20e5c36581bde35ea66ffc74
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	0	gem_a1562_fibrogem__session	81ia2qqht5lou3mkgl2dbg79o1
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_UserID	1
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_UserName	Dyliss
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_Token	2a50c61b6f36144dfd937110c48df7f5
