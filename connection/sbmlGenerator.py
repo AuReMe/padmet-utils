@@ -408,7 +408,10 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         if linked_genes:
             notes_dict["GENE ASSOCIATION"] = " or ".join(["("+" and ".join([i for i in g])+")" for g in all_ga_subsets])
 
-        categories = set([padmet.dicOfNode[rlt.id_out].misc["CATEGORY"][0] for rlt in padmet.dicOfRelationIn.get(rId,[]) if rlt.type == "has_reconstructionData"])
+        try:
+            categories = set([padmet.dicOfNode[rlt.id_out].misc["CATEGORY"][0] for rlt in padmet.dicOfRelationIn.get(rId,[]) if rlt.type == "has_reconstructionData"])
+        except KeyError:
+            categories = None
         if categories:
             notes_dict["CATEGORIES"] = " and ".join(categories)
         pathways = set([rlt.id_out for rlt in padmet.dicOfRelationIn.get(rId, [])
