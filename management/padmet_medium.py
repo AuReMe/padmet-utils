@@ -33,7 +33,7 @@ ex: for seed 'cpd-a'
 usage:
     padmet_medium.py --padmetSpec=FILE
     padmet_medium.py --padmetSpec=FILE -r [--output=FILE] [-v]
-    padmet_medium.py --padmetSpec=FILE --padmetRef=FILE --seeds=FILE [--output=FILE] [--b_compart=STR] [--e_compart=STR] [--c_compart=STR] [-v]
+    padmet_medium.py --padmetSpec=FILE --seeds=FILE [--padmetRef=FILE] [--output=FILE] [--b_compart=STR] [--e_compart=STR] [--c_compart=STR] [-v]
 
 options:
     -h --help     Show help.
@@ -58,7 +58,10 @@ def main():
     else:
         seeds = None
     padmetSpec = PadmetSpec(args["--padmetSpec"])
-    padmetRef  = PadmetRef(args["--padmetRef"])
+    if args["--padmetRef"]:
+        padmetRef  = PadmetRef(args["--padmetRef"])
+    else:
+        padmetRef = None
     output = args["--output"]
     verbose = args["-v"]
     #b_compart = args["--b_compart"]
@@ -82,7 +85,7 @@ def main():
     
     elif remove:
         padmetSpec.remove_growth_medium(verbose = verbose)
-        padmetSpec = PadmetSpec(output)
+        padmetSpec.generateFile(output)
 
 if __name__ == "__main__":
     main()  
