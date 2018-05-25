@@ -406,7 +406,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         #set notes
         notes_dict = {}
         if linked_genes:
-            notes_dict["GENE ASSOCIATION"] = " or ".join(["("+" and ".join([i for i in g])+")" for g in all_ga_subsets])
+            notes_dict["GENE_ASSOCIATION"] = " or ".join(["("+" and ".join([i for i in g])+")" for g in all_ga_subsets])
 
         try:
             categories = set([padmet.dicOfNode[rlt.id_out].misc["CATEGORY"][0] for rlt in padmet.dicOfRelationIn.get(rId,[]) if rlt.type == "has_reconstructionData"])
