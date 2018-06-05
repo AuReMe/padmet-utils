@@ -25,6 +25,7 @@ the output file the mapping of those compounds
 
 usage:
     convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
+    convert_sbml_db.py --mnx_rxn=FILE --sbml=FILE
 
 options:
     -h --help     Show help.
@@ -36,7 +37,7 @@ options:
     -v     verbose.
 
 """
-from libsbml import *
+import libsbml
 #from padmet.padmetRef import PadmetRef
 import re
 import docopt
@@ -45,21 +46,43 @@ def main():
     args = docopt.docopt(__doc__)
     mnx_rxn_file = args["--mnx_rxn"]
     mnx_cpd_file = args["--mnx_cpd"]
-    db_out = args["--db_out"].upper()
-    if db_out not in ["BIGG","METACYC","KEGG"]:
-        raise ValueError('Please choose a database id in ["BIGG","METACYC","KEGG"]')
-        exit()
     sbml_file = args["--sbml"]
-    output_dict = args["--output"]
-    verbose = args["-v"]
-
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
         print (document.getError(i).getMessage())
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
     listOfSpecies = model.getListOfSpecies()
+
+    if args["--db_out"]:
+        db_out = args["--db_out"].upper()
+    else:
+        print("Check from which database is this sbml:")
+        with open(mnx_rxn_file, "r") as f:
+            dict_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
+            if not line.startswith("#") and ":" in line.split("\t")[0]])
+        db_found = {'total_rxn':0}
+        for rxn in listOfReactions:
+            db_found['total_rxn'] += 1
+            rxn_id_decoded = convert_from_coded_id(rxn.id)[0]
+            db = dict_id_db.get(rxn_id_decoded,'Unknown')
+            try:
+                db_found[db] += 1
+            except KeyError:
+                db_found[db] = 1
+        db_select = [k for k, v in db_found.items()
+                     if v == max([v for k,v in db_found.items() if k != 'total_rxn'])][0]   
+        output = "Database ref:%s\n%s" %(db_select, db_found)
+        print(output)
+        return(output)
+                
+    if db_out not in ["BIGG","METACYC","KEGG"]:
+        raise ValueError('Please choose a database id in ["BIGG","METACYC","KEGG"]')
+        exit()
+    output_dict = args["--output"]
+    verbose = args["-v"]
+
 
     if verbose:
         print("nb reactions: %s" %len(listOfReactions)) 
