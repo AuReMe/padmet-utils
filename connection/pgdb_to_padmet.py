@@ -144,6 +144,7 @@ def main():
     enhanced_db = args["-m"]
     with_genes = args["-g"]
     source = args["--source"]
+    if not source: source = 'genome'
     padmetRef_file = args["--padmetRef"]
     if source : source = source.upper()
     
