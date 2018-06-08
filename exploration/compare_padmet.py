@@ -20,13 +20,13 @@ Description:
 compare 2 padmet files
 
 usage:
-    compare_sbml_padmet.py --padmet=FILE --output_dir=DIR --padmetRef=FILE [-v]
+    compare_padmet.py --padmet=FILES/DIR --output=DIR --padmetRef=FILE [-v]
 
 option:
     -h --help    Show help.
-    --padmet=FILE    pathname of the padmet files, sep all files by ',', ex: /path/padmet1.padmet;/path/padmet2.padmet
-    --output_dir=FILE    pathname of the output folder
-    --sbml=FILE    pathanme of the sbml file
+    --padmet=FILES/DIR    pathname of the padmet files, sep all files by ',', ex: /path/padmet1.padmet;/path/padmet2.padmet OR a folder
+    --output=DIR    pathname of the output folder
+    --padmetRef=FILE    pathanme of the database ref in padmet
 """
 from padmet.classes import PadmetSpec, PadmetRef
 import os
@@ -36,8 +36,7 @@ import csv
 
 def main():
     args = docopt.docopt(__doc__)
-    #args = {"--padmet":"/home/maite/Forge/docker/aureme_workspace/bft/networks/draft_curated.padmet,/home/maite/Forge/docker/aureme_workspace/bft/networks/bft_final.padmet", "-v":True,"--output_dir":"/home/maite/Forge/docker/aureme_workspace/bft/networks/compare"}
-    root_folder = args["--output_dir"]  
+    root_folder = args["--output"]  
     if not root_folder.endswith("/"): root_folder += "/"
     verbose = args["-v"]
     padmetRef = PadmetRef(args["--padmetRef"])
