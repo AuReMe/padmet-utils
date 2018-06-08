@@ -14,3 +14,11 @@
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_UserID	1
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_UserName	Dyliss
 #HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1540313517	gem_a1562_fibrogem_Token	2a50c61b6f36144dfd937110c48df7f5
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	0	gem_a1562_sjapgem__session	ku9s1ctm43u42pcs00j5vbe9i2
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542197507	gem_a1562_sjapgem_UserID	1
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542197507	gem_a1562_sjapgem_UserName	Dyliss
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542197507	gem_a1562_sjapgem_Token	bd9bb61a3f57562a6df9fae873a9e06a
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	0	gem_a1562_ccrgem__session	3o8onclovla4dqtgs69io43nj2
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542644157	gem_a1562_ccrgem_UserID	1
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542644157	gem_a1562_ccrgem_UserName	Dyliss
+#HttpOnly_gem-aureme.irisa.fr	FALSE	/	FALSE	1542644157	gem_a1562_ccrgem_Token	8afc6728636c171388119420d24f5b74
