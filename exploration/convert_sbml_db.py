@@ -72,7 +72,7 @@ def main():
             except KeyError:
                 db_found[db] = 1
         db_select = [k for k, v in db_found.items()
-                     if v == max([v for k,v in db_found.items() if k != 'total_rxn'])][0]   
+                     if v == max([j for i,j in db_found.items() if i != 'total_rxn'])][0]   
         output = "Database ref:%s\n%s" %(db_select, db_found)
         print(output)
         return(output)
