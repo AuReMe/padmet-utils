@@ -51,7 +51,14 @@ def main():
     args = docopt.docopt(__doc__)
     global tool, category, source
     data_file = args["--data"]
-    filename = os.path.splitext(os.path.basename(data_file))[0]
+    output = args["--output"]
+    if not output:
+        output = args["--padmetSpec"]
+    verbose = args["-v"]
+
+    if data_file:
+        filename = os.path.splitext(os.path.basename(data_file))[0]
+        source = filename
 
     tool = args["--tool"]
     if tool:
@@ -60,7 +67,6 @@ def main():
         category = args["--category"].upper()
     else:
         category = "MANUAL"
-    source = filename
 
     if args["--template_new_rxn"]:
         template_new_rxn(output)
@@ -74,10 +80,6 @@ def main():
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
-    output = args["--output"]
-    if not output:
-        output = args["--padmetSpec"]
-    verbose = args["-v"]
 
         
     chronoDepart = time()
