@@ -69,7 +69,9 @@ def main():
     output = args["--output"]
     verbose = args["-v"]
     db = args["--db"]
+    if not db: db = "NA"
     version = args["--version"]
+    if not version: version = "NA"
     padmetSpec_file = args["--padmetSpec"]
     src_tool = args["--source_tool"]
     src_category = args["--source_category"]
