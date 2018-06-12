@@ -37,6 +37,7 @@ import libsbml
 import docopt
 import os
 import subprocess
+import csv
 
 def main():
     args = docopt.docopt(__doc__)
@@ -64,14 +65,14 @@ def main():
     #create dict, k = OrtoA gene_id, v = set of OrtoB orthologus
     inp_dict = {}
     with open(inp_rez, 'r') as f:
-        inp_raw_data = [line.split("\t") for line in f.read().splitlines()][1:]
-    for line in inp_raw_data:
+        reader = csv.DictReader(f, delimiter = "\t")
         #line[2] or [3] contains genes id with score, delete score and blank
-        OrtoA = set([i for i in line[2].split(" ") if "." not in i and len(i) != 0])
-        OrtoB = set([i for i in line[3].split(" ") if "." not in i and len(i) != 0])
-        for gene in OrtoA:
-            if gene in inp_dict.keys(): print("%s multiple /!\\" %gene)
-            inp_dict[gene] = OrtoB
+        for line in reader:
+            OrtoA = set([i for i in line["OrtoA"].split(" ") if i != "1.000" and len(i) != 0])
+            OrtoB = set([i for i in line["OrtoB"].split(" ") if i != "1.000" and len(i) != 0])
+            for gene in OrtoA:
+                if gene in inp_dict.keys(): print("%s multiple /!\\" %gene)
+                inp_dict[gene] = OrtoB
 
     #create a dict K = FAA_model gene id, V = set of FAA_study gene ortho
     omcl_dict = {}
