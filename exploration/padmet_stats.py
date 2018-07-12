@@ -36,7 +36,7 @@ from padmet.classes import PadmetSpec
 
 def main():
 
-    parser = argparse.ArgumentParser(usage="python padmet_stats.py.py -p padmet_file_folder")
+    parser = argparse.ArgumentParser(usage="python padmet_stats.py -p padmet_file_folder")
     parser.add_argument("-p", "--padmet", dest = "padmet_file_folder", help = "Padmet file or folder containing padmet.")
 
     parser_args = parser.parse_args(sys.argv[1:])
