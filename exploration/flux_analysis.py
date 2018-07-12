@@ -74,7 +74,7 @@ def main():
         out = subprocess.check_output(["/bin/bash", "-i", "-c", cmd])
         #prod_targets = (i for i in out.splitlines() if i.endswith(" producible targets:")).next()[:-1]
         print("Number of targets: %s" %(len(targets)))
-        print out
+        print(out)
         print("#Flux Balance Analysis")
         fba_on_targets(targets, model)
     if all_species:
@@ -99,12 +99,12 @@ def main():
         print('\tEssential genes: %s' %len(essGenes))
     
     #get biomass rxn reactants
-    bms_reactants = dict([(k,v) for k,v in biomassrxn.metabolites.items() if v < 0])
-    bms_products = dict([(k,v) for k,v in biomassrxn.metabolites.items() if v > 0])
+    bms_reactants = dict([(k,v) for k,v in list(biomassrxn.metabolites.items()) if v < 0])
+    bms_products = dict([(k,v) for k,v in list(biomassrxn.metabolites.items()) if v > 0])
     dict_output = {"positive":{},"negative":{}}
     #for each metabolite in reactant, create a biomass rxn with only this metabolite in reactants
     biomassrxn.objective_coefficient = 0.0
-    for reactant, stoich in bms_reactants.items():
+    for reactant, stoich in list(bms_reactants.items()):
         test_rxn = Reaction("test_rxn")
         test_rxn.lower_bound = 0
         test_rxn.upper_bound = 1000
@@ -121,12 +121,12 @@ def main():
         else:
             dict_output["negative"][reactant] = solution.objective_value
         model.remove_reactions([test_rxn])
-    print("%s/%s compounds with positive flux" %(len(dict_output["positive"].keys()), len(bms_reactants)))
-    print("%s/%s compounds without flux" %(len(dict_output["negative"].keys()), len(bms_reactants)))
+    print("%s/%s compounds with positive flux" %(len(list(dict_output["positive"].keys())), len(bms_reactants)))
+    print("%s/%s compounds without flux" %(len(list(dict_output["negative"].keys())), len(bms_reactants)))
 
-    for k,v in dict_output["positive"].items():
+    for k,v in list(dict_output["positive"].items()):
         print("%s // %s %s positive" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
-    for k,v in dict_output["negative"].items():
+    for k,v in list(dict_output["negative"].items()):
         print("%s // %s %s NULL" %(k, convert_from_coded_id(k.id)[0]+"_"+convert_from_coded_id(k.id)[2], v))
 
 
@@ -149,7 +149,7 @@ def fba_on_targets(allspecies, model):
         if (solution.objective_value > 1e-5):
             print("%s // %s %s positive" %(species, convert_from_coded_id(species.id)[0]+"_"+convert_from_coded_id(species.id)[2], solution.objective_value))
         else:
-            print("%s // %s %s NULL" %(species, convert_from_coded_id(species.id)[0]+"_"+convert_from_coded_id(species.id)[2], solution.objective_value))    
+            print("%s // %s %s NULL" %(species, convert_from_coded_id(species.id)[0]+"_"+convert_from_coded_id(species.id)[2], solution.objective_value))
 
 if __name__ == "__main__":
     main()

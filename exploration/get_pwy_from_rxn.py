@@ -53,7 +53,7 @@ def main():
     with open(output, 'w') as f:
         header = ["pathway_id","total_rxn","rxn_from_list","ration"]
         f.write("\t".join(header)+"\n")
-        for pwy_id,all_rxn in dict_pwy.iteritems():
+        for pwy_id,all_rxn in dict_pwy.items():
             rxn_in_pwy = all_rxn.intersection(rxn_to_check)
             if len(rxn_in_pwy) != 0:
                 ratio = round(float(len(rxn_in_pwy))/float(len(all_rxn)),2)

@@ -125,7 +125,7 @@ def main():
         path = args["--sbml"]
         if not path.endswith("/"):
             path += "/"
-        all_files = [i for i in os.walk(path).next()[2] if not i.startswith(".~lock")]
+        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
         for sbml_file in [i for i in all_files if i.endswith(".sbml") or i.endswith(".xml")]:
             mapping_file = os.path.splitext(sbml_file)[0] + "_dict.csv"
             if mapping_file not in all_files:
@@ -139,7 +139,7 @@ def main():
 
     chronoDepart = time()
     #CORE
-    for sbml_file, mapping_file in sbml_mapping_dict.items():
+    for sbml_file, mapping_file in list(sbml_mapping_dict.items()):
         if mapping_file:
             force = False
         else:
@@ -152,7 +152,7 @@ def main():
                 print("Updating %s from %s" %(os.path.basename(padmetSpec_file),os.path.basename(sbml_file)))
         padmetSpec.updateFromSbml(sbml_file, padmetRef = padmetRef, verbose = verbose, source_category = src_category, source_id = src_id, source_tool = src_tool, mapping_file = mapping_file, force = force )
 
-    if len(sbml_mapping_dict.keys()) == 0:
+    if len(list(sbml_mapping_dict.keys())) == 0:
         if verbose: print("No sbml found in %s" %args["--sbml"])
     else:
         if not output:
@@ -163,7 +163,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print "done in: ", chrono, "s !"
+    if verbose: print("done in: ", chrono, "s !")
 
 
 if __name__ == "__main__":

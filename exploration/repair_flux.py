@@ -34,7 +34,7 @@ def main():
         if ga:
             not_in_with_ga.append(dec)
     for i in not_in_with_ga:
-        print i
+        print(i)
     
 
     with open("/home/maite/Forge/docker/aureme_workspace/chondrus/networks/not_in.txt", 'w') as f:
@@ -54,9 +54,9 @@ def main():
         dec, typ, comp =convert_from_coded_id(rxn_id)
         if comp:
             dec += "_"+comp
-        print dec,typ,comp
+        print(dec,typ,comp)
         rxn_to_keep.append(dec)
-    for rxn_id in [node.id for node in padmet.dicOfNode.values() if node.type == "reaction"]:
+    for rxn_id in [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]:
         if rxn_id not in rxn_to_keep:
             padmet.delNode(rxn_id)
     padmet.generateFile("/home/maite/Forge/docker/aureme_workspace/chondrus/networks/repair.padmet")
@@ -82,14 +82,14 @@ for rxn in not_in:
     dec, typ, comp =convert_from_coded_id(rxn)
     if comp:
         dec += "_"+comp
-    print dec,typ,comp
+    print(dec,typ,comp)
     chondrus_padmet.copyNode(ecto_padmet, dec)
 chondrus_padmet.generateFile("/home/maite/Forge/docker/aureme_workspace/chondrus/networks/add_rxn_flux_ecto.padmet")
 for rxn in not_in:
     dec, typ, comp =convert_from_coded_id(rxn)
     if comp:
         dec += "_"+comp
-    print dec,typ,comp
+    print(dec,typ,comp)
     chondrus_padmet.delNode(dec)
     
 
@@ -110,7 +110,7 @@ for rxn in new_flux:
     print("%s/%s %s" %(count, len(new_flux), rxn))
     temp.reactions.remove(rxn)
     if temp.optimize().objective_value < 0:
-        print rxn
+        print(rxn)
         break
 
 ecto_alanine = create_cobra_model_from_sbml_file("/home/maite/Forge/docker/aureme_workspace/chondrus/networks/ecto_test.sbml")

@@ -50,12 +50,12 @@ def main():
                 except KeyError:
                     if verbose:
                         try:
-                            print ("locus without Translation: "+seq_feature.qualifiers['locus_tag'][0])
+                            print("locus without Translation: "+seq_feature.qualifiers['locus_tag'][0])
                         except KeyError:
-                            print ("locus without Translation: "+seq_feature.qualifiers.get('gene',["Unknown"])[0])
+                            print("locus without Translation: "+seq_feature.qualifiers.get('gene',["Unknown"])[0])
 
     with open(faa_file,'w') as f:
-        for locus_tag, seq in dict_faa.iteritems():
+        for locus_tag, seq in dict_faa.items():
             f.write(">%s\n%s\n" % (locus_tag,seq))
 
 if __name__ == "__main__":

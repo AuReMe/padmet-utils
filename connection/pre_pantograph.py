@@ -17,8 +17,8 @@ along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
 
 @author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Before running pantograph it is necessary to check if the metabolic network 
-and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff). 
+Before running pantograph it is necessary to check if the metabolic network
+and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff).
 To only check this. Use the 2nd usage.
 If the genes ids are not the same, it is necessary to use a dictionnary of genes ids associating
 the genes ids from the proteom to the genes ids from the metabolic network.
@@ -37,8 +37,8 @@ option:
     -h --help    Show help.
     --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
     --model_faa=FILE    pathname to the proteom of the model (faa)
-    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70]. 
-    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = 
+    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70].
+    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line =
     --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
     -v   print info
 """
@@ -72,7 +72,7 @@ def main():
                 raise SystemExit("Also with the dictionnary, genes ids in the metabolic network and the FAA are not the same")
         else:
                 raise SystemExit("Change the cutoff or use an other dictionnary")
-                                
+        
     elif dict_ids_file is not None:
         if verbose: print("creating a valid FAA with the dictionnary")
         get_valid_faa(model_faa, dict_ids_file, output)
@@ -92,10 +92,10 @@ def check_ids(model_metabolic, model_faa, cutoff, verbose=False):
     document.getNumErrors()
     listOfReactions = model.getListOfReactions()
     #convert to set
-    model_metabolic_ids = set(itertools.chain.from_iterable([parseGeneAssoc(geneAssoc) 
+    model_metabolic_ids = set(itertools.chain.from_iterable([parseGeneAssoc(geneAssoc)
     for geneAssoc in (parseNotes(r).get("GENE_ASSOCIATION",[None])[0] for r in listOfReactions)
     if geneAssoc is not None]))
-    
+
     with open(model_faa, "rU") as f:
         model_faa_ids = set([record.id for record in SeqIO.parse(f, "fasta")])
 
@@ -113,9 +113,9 @@ def check_ids(model_metabolic, model_faa, cutoff, verbose=False):
         if verbose: print("Only %.2f%% genes of the model_metabolic are not in the model_faa" % (diff_genes_ratio*100))
         return True
     else:
-        if verbose: 
+        if verbose:
             print("%s%% genes of the model_metabolic are not in the model_faa" % (diff_genes_ratio*100))
-            print ";".join(diff_genes)
+            print(";".join(diff_genes))
         return False
 
 def get_valid_faa(model_faa, dict_ids_file, output):
@@ -189,7 +189,7 @@ def parseGeneAssoc(GeneAssocStr):
     if GeneAssocStr is not None:
         #sub '(',')',' ' by ''   sub "and" by "or"
         resultat = re.sub("\(|\)|\s","",GeneAssocStr).replace("and","or")
-        #create a set by spliting 'or' then convert to list, set for unique genes    
+        #create a set by spliting 'or' then convert to list, set for unique genes
         resultat = list(set(resultat.split("or")))
         return resultat
 

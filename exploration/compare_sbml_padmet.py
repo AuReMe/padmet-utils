@@ -41,7 +41,7 @@ def main():
     document = reader.readSBML(sbml_file)
     model = document.getModel()
     sbml_listOfReactions = set([sp.convert_from_coded_id(r.getId())[0] for r in model.getListOfReactions()])
-    padmet_reaction = set([node.id for node in padmetSpec.dicOfNode.itervalues() if node.type == "reaction"])
+    padmet_reaction = set([node.id for node in padmetSpec.dicOfNode.values() if node.type == "reaction"])
     diff = sbml_listOfReactions.difference(padmet_reaction)
     diff_inv = padmet_reaction.difference(sbml_listOfReactions)
     

@@ -74,14 +74,14 @@ def main():
     if not wiki_folder.endswith("/"): wiki_folder += "/"  
     log_file = args["--log_file"]
     createDirectory()
-    all_rxns = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
-    all_genes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
+    all_rxns = [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reaction"]
+    all_genes = [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "gene"]
     for rxn_node in all_rxns:
         create_biological_page("Reaction", rxn_node, wiki_folder+"reactions/")
     for gene_node in all_genes:    
         create_biological_page("Gene", gene_node, wiki_folder+"genes/")
-    all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.iteritems() if node_id in total_pwy_id]
-    all_cpds = [node for (node_id, node) in padmetSpec.dicOfNode.iteritems() if node_id in total_cpd_id]
+    all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_pwy_id]
+    all_cpds = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_cpd_id]
     for pwy_node in all_pwys:
         create_biological_page("Pathway", pwy_node, wiki_folder+"pathways/")
     for cpd_node in all_cpds:
@@ -122,12 +122,12 @@ def create_venn():
     all_categories = ["orthology","annotation","gap-filling","manual"]
     for category in all_categories:
         categories_dict[category] = set()
-    for rxn_id, rxn_src_dict in full_sources_dict.items():
-        for category in rxn_src_dict.keys():
+    for rxn_id, rxn_src_dict in list(full_sources_dict.items()):
+        for category in list(rxn_src_dict.keys()):
             categories_dict[category].add(rxn_id)
     
-    labels = get_labels(categories_dict.values())
-    fig, ax = venn4(labels, names=categories_dict.keys())
+    labels = get_labels(list(categories_dict.values()))
+    fig, ax = venn4(labels, names=list(categories_dict.keys()))
     fig.savefig(wiki_folder+"files/venn.png")
 
 def copy_io_files():
@@ -143,7 +143,7 @@ def create_main(model_id, model_name):
     final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
     main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
     reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0}
-    for rec_node in [node for node in padmetSpec.dicOfNode.values() if node.type == "reconstructionData"]:
+    for rec_node in [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reconstructionData"]:
         cat = rec_node.misc["CATEGORY"][0]
         if cat == "ORTHOLOGY":
             source = rec_node.misc["SOURCE"][0].replace("OUTPUT_PANTOGRAPH_","")
@@ -166,7 +166,7 @@ def create_main(model_id, model_name):
         index += 1
         main_template.insert(final_network_index+index, "** Tool: [http://pathtastic.gforge.inria.fr Pantograph]")
         index += 1        
-        for k,v in reconstruct_summary["ORTHOLOGY"].items():
+        for k,v in list(reconstruct_summary["ORTHOLOGY"].items()):
             main_template.insert(final_network_index+index, "*** From template ''"+k+"'' creation of a metabolic network containing: "+str(v)+" reactions")
             index += 1
     if reconstruct_summary["MANUAL"] != 0:
@@ -294,7 +294,7 @@ def create_biological_page(category, page_node, output_folder):
         '== '+category+' '+page_node.id+' ==']
     #extracting all data in dict misc of node. ex: misc= {"A":["X","Y"]}
     #adding in page: ** A: *X *Y
-    for k,v in page_node.misc.iteritems():
+    for k,v in page_node.misc.items():
         k = k.replace("-"," ").lower()
         line = '* '+k+':'
         dataInArray.append(line)
@@ -384,7 +384,7 @@ def create_biological_page(category, page_node, output_folder):
                     except ValueError:
                         src = src_data
                         assignment = None
-                    category = (node.misc["CATEGORY"][0] for node in padmetSpec.dicOfNode.values() if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src)).next()
+                    category = next(node.misc["CATEGORY"][0] for node in list(padmetSpec.dicOfNode.values()) if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src))
                     src = src.lower()
                     category = category.lower()
                     if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
@@ -468,9 +468,9 @@ def create_biological_page(category, page_node, output_folder):
 
         #udpating global var full_sources_dict: k = rxn_id, v = previous src_data dict
         full_sources_dict[page_node.id] = src_data
-        for category, category_data in src_data.items():
+        for category, category_data in list(src_data.items()):
             dataInArray.append("* Category: [["+category+"]]")
-            for source, source_data in category_data.items():
+            for source, source_data in list(category_data.items()):
                 dataInArray.append("** Source: [["+source+"]]")
                 if source_data["tool"]:
                     dataInArray.append("*** Tool: [["+source_data["tool"]+"]]")
@@ -496,7 +496,7 @@ def create_biological_page(category, page_node, output_folder):
                     except ValueError:
                         src = src_data
                         assignment = None
-                    category = (node.misc["CATEGORY"][0] for node in padmetSpec.dicOfNode.values() if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src)).next()
+                    category = next(node.misc["CATEGORY"][0] for node in list(padmetSpec.dicOfNode.values()) if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src))
                     src = src.lower()
                     category = category.lower()
                     if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
@@ -543,7 +543,7 @@ def create_biological_page(category, page_node, output_folder):
             try:
                 src_data = full_sources_dict[rxn_id]
                 sources = set()
-                [sources.update(category_data.keys()) for category_data in src_data.values()]
+                [sources.update(list(category_data.keys())) for category_data in list(src_data.values())]
                 if sources:
                     dataInArray.append("** %s reconstruction source(s) associated:" %(len(sources)))
                     for src in sources:
@@ -593,7 +593,7 @@ def create_biological_page(category, page_node, output_folder):
     dataInArray.append('== External links  ==')
     try:
         xref_node = [padmetSpec.dicOfNode[rlt.id_out] for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "has_xref"][0]
-        for db, ids in xref_node.misc.items():
+        for db, ids in list(xref_node.misc.items()):
             xrefLink(dataInArray, db, ids)
     except (IndexError, KeyError) as e:
         pass

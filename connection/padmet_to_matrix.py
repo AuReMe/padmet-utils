@@ -40,7 +40,7 @@ def main():
     padmet = PadmetSpec(padmet_file)
 
     all_metabolites = sorted(set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type in ["consumes","produces"]]))
-    all_reactions = sorted([node.id for node in padmet.dicOfNode.values() if node.type == "reaction"]) 
+    all_reactions = sorted([node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"])
     #col = reactions, row = metabolites
     matrix_dict = {}
     for met in all_metabolites:

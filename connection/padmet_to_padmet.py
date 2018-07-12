@@ -86,7 +86,7 @@ def main():
         path = args["--to_add"]
         if not path.endswith("/"):
             path += "/"
-        all_files = [i for i in os.walk(path).next()[2] if not i.startswith(".~lock")]
+        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
         padmetFiles = [path+i for i in all_files if i.endswith(".padmet")]
     else:
         padmetFiles = [args["--to_add"]]
@@ -110,7 +110,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print "done in: ", chrono, "s !"
+    if verbose: print("done in: ", chrono, "s !")
 
 
 if __name__ == "__main__":

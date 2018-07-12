@@ -115,7 +115,7 @@ def main():
     for rxn_id in [i for i in all_reactions_ids if not i.startswith("BIOMASS")]:
         count += 1
         if verbose: print("reaction: %s, %s/%s" %(rxn_id, count, len(all_reactions_ids)))
-        if rxn_id not in padmetRef.dicOfNode.keys():
+        if rxn_id not in list(padmetRef.dicOfNode.keys()):
             rxn_response = requests.get(url_bigg + "universal/reactions/" +rxn_id)
             rxn_dict = rxn_response.json()
     
@@ -149,9 +149,9 @@ def main():
                 has_xref_rlt = Relation(rxn_id, "has_xref", xref_id)
                 list_of_relation.append(has_xref_rlt)
     
-                for db, k in rxn_xrefs.items():
+                for db, k in list(rxn_xrefs.items()):
                     _id = k[0]["id"]
-                    if db in xref_node.misc.keys() and _id not in xref_node.misc[db]:
+                    if db in list(xref_node.misc.keys()) and _id not in xref_node.misc[db]:
                         xref_node.misc[db].append(_id)
                     else:
                         xref_node.misc[db] = [_id]
@@ -195,7 +195,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print "done in: ", chrono, "s !"
+    if verbose: print("done in: ", chrono, "s !")
 
 def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
     global list_of_relation
@@ -212,7 +212,7 @@ def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
                 except KeyError:
                     pwy_node.misc["COMMON_NAME"] = [name]
             if rxn_id:
-                if rxn_id in padmetRef.dicOfNode.keys():
+                if rxn_id in list(padmetRef.dicOfNode.keys()):
                     pwy_rlt = Relation(rxn_id,"is_in_pathway",pwy_id)
                     padmetRef._addRelation(pwy_rlt)
                 else:

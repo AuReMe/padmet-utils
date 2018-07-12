@@ -45,7 +45,7 @@ def main():
     
     reactions_to_remove = []
     for reaction in listOfReactions:
-        if "GENE_ASSOCIATION" not in parseNotes(reaction).keys():
+        if "GENE_ASSOCIATION" not in list(parseNotes(reaction).keys()):
             reactions_to_remove.append(reaction.getId())
     for rId in reactions_to_remove:
         listOfReactions.remove(rId)
