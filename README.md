@@ -7,14 +7,16 @@ version: 2.5
 
 ################################################################################
 
-##Descirption
+## Descirption
 The main concept underlying padmet-utils is to provide solutions that ensure the consistency, the internal standardization and the reconciliation of the information used within any workflow that combines several tools involving metabolic networks reconstruction or analysis. The PADMet package is at the core of the AuReMe workflow, dedicated to the primary reconstruction of genome-scale metabolic networks from raw data. It allows the study of organisms for which few experimental data are available. Its main feature is to undergo the reconstruction of the metabolic network by combining several
 heterogeneous knowledge and data sources, including the information reported by several scaffold metabolic networks for cousin species.
 
 ## Installation
 
 From git repository:
+
 	cd ~/programs
+
 	git clone https://gitlab.inria.fr/maite/padmet-utils.git
 
 ## Architecture
@@ -32,7 +34,7 @@ From git repository:
         │    ├── extract_rxn_with_gene_assoc.py
         │    ├── gbk_to_faa.py
         │    ├── gene_to_targets.py
-        │    ├── gramma-boolean-rapsody.py
+        │    ├── grammar-boolean-rapsody.py
         │    ├── padmet_to_askomic.py
         │    ├── padmet_to_asp.py
         │    ├── padmet_to_sbml.py
@@ -82,9 +84,10 @@ From git repository:
 
 
 
-##Documentation
+## Documentation
 
 .aureme.add_seeds_reactions.py
+
 	Description:
 	For a given set of compounds representing the growth medium (or seeds). Create 2 reactions
 	for each compounds to maintain consistency of the network for flux analysis.
@@ -111,6 +114,7 @@ From git repository:
 	    -v   print info
 
 .aureme.compounds_to_sbml.py
+
 	Convert a list of compounds to an sbml file. Often in sbml, the compartment of the
 	compounds is concatenate to the id. If wanted, possible to add a compart each compounds with compart_name
 	If verbose, will also check if each compound is in a padmetRef and or a padmetSpec
@@ -131,6 +135,7 @@ From git repository:
 	    -v    print info and check if ids in padmetRef and or padmet
 
 .aureme.enhanced_meneco_output.py
+
 	Description:
 	The standard output of meneco return ids of reactions corresponding to the solution for gapfilling.
 	The ids are those from the sbml and so they are encoded.
@@ -153,6 +158,7 @@ From git repository:
 	    --output=FILE    pathname to tsv file containing more informations about the reactions.
 
 .aureme.extract_deadends.py
+
 	Description:
 	extract first solution of dead_ends on output of clingo deadend_encoding.lp
 
@@ -165,6 +171,7 @@ From git repository:
 	    --output=FILE    file with deadends id.
 
 .aureme.extract_rxn_with_gene_assoc.py
+
 	Description:
 	From a given sbml file, create a sbml with only the reactions associated to a gene.
 	Need for a reaction, in section 'note', 'GENE_ASSOCIATION': ....
@@ -179,6 +186,7 @@ From git repository:
 	    -v   print info
 
 .aureme.fba_test.py
+
 	Description:
 	Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
 	and return result in standard output
@@ -191,6 +199,7 @@ From git repository:
 	    --sbml=FILE    pathname to the sbml file to test for fba and fva.
 
 .aureme.gbk_to_faa.py
+
 	Description:
 	convert GBK to FAA with Bio package
 
@@ -205,6 +214,7 @@ From git repository:
 	    -v   print info
 
 .aureme.gene_to_targets.py
+
 	Description:
 	From a list of genes, recovere from the linked reactions the list of products.
 	R1 is linked to G1, R1 produces M1 and M2.  output: M1,M2. Takes into account reversibility
@@ -219,7 +229,22 @@ From git repository:
 	    --output=FILE    pathname to the output file containing all tagerts which can by produced by all reactions associated to the given genes
 	    -v   print info
 
+.aureme.grammar-boolean-rapsody.py
+
+	Description:
+	Produce list of elements from a pattern.
+
+	usage:
+	    grammar-boolean-rapsody.py STRING
+
+	positional arguments:
+	input_string  The pattern to parse, must be a string like 'a&(b|c)&(d|e)'.
+
+	optional arguments:
+	-h, --help    show this help message and exit
+
 .aureme.manual_curation.py
+
 	Description:
 	This script allows to combine reaction_creator.py and update_padmetSpec.py.
 	This script was created specially for AuReMe and the default metabolic network
@@ -241,6 +266,7 @@ From git repository:
 	    -v    print info
 
 .aureme.pre_pantograph.py
+
 	Description:
 	Before running pantograph it is necessary to check if the metabolic network 
 	and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff). 
@@ -268,6 +294,7 @@ From git repository:
 	    -v   print info
 
 .aureme.reactions_to_sbml.py
+
 	Description:
 	Convert a list of reactions to SBML file.
 
@@ -282,6 +309,7 @@ From git repository:
 	    -v    print info
 
 .misc.bigg_to_padmet.py
+
 	Description:
 	Create a padmet file from 2 tsv files (reactions.tsv and metabolites.tsv)
 	metabolites.tsv: col1 = metabolite ID, col2 = metabolite Name 
@@ -318,6 +346,7 @@ From git repository:
 	    -v   print info
 
 .misc.change_compart.py
+
 	Description:
 	Two disctinct usages:
 	    change_compart.py --padmetSpec=FILE --compart=STR --output=FILE [-v]
@@ -344,6 +373,7 @@ From git repository:
 	    -v   print info
 
 .misc.compare_sbml_padmet.py
+
 	Description:
 	compare reactions in sbml and padmet files
 
@@ -356,6 +386,7 @@ From git repository:
 	    --sbml=FILE    pathanme of the sbml file
 
 .misc.padmetSpec_to_ASP_for_deadends.py
+
 	Description:
 	use the script padmetSpec_to_asp_for_deadend to convert a padmet file to .lp for
 	asp. the output is then used with clingo and deadend_encoding.lp to find deadends
@@ -371,6 +402,7 @@ From git repository:
 	    -v   print info.
 
 .misc.padmet_to_asp.py
+
 	Description:
 	Convert PADMet to ASP following this predicats:
 	direction(reaction_id, reaction_direction). #LEFT-TO-RIGHT or REVERSIBLE
@@ -389,6 +421,7 @@ From git repository:
 	    -v   print info
 
 .misc.padmet_to_sbml.py
+
 	Description:
 	Use the script padmet_to_sbml to convert padmet to a sbml file
 	give only the id of the reaction to test (obj_coef)
@@ -406,6 +439,7 @@ From git repository:
 	    -v   print info.
 
 .misc.pgdb_to_padmet.py
+
 	Description:
 
 	classes.dat:
@@ -502,6 +536,7 @@ From git repository:
 	    -v   print info
 
 .misc.reaction_creator.py
+
 	Description:
 	Allows to create news reactions that are not in the database of reference and add
 	them in a padmet file. First, fill the template (to get the template use the 2nd usage).
@@ -523,6 +558,7 @@ From git repository:
 	    -v   print info
 
 .misc.report_network.py
+
 	Description:
 	Create reports of a padmet file. 
 	all_pathways.tsv: header = ["dbRef_id", "Common name", "Number of reaction found", 
@@ -542,6 +578,7 @@ From git repository:
 	    -v   print info.
 
 .misc.sbml_to_padmet.py
+
 	Description:
 	To convert a sbml to padmet without a padmet of database reference use the 2nd usage.
 	It is possible to define a specific policy and info for the padmet. To learn more about
@@ -571,6 +608,7 @@ From git repository:
 	    -v   print info
 
 .misc.update_padmetSpec.py
+
 	Description:
 	Allows to add or delete reactions/metabolites/pathways based on the given id.
 	From the updateFile (obtained with 2nd usage) the script extract the id (col1),
@@ -595,6 +633,7 @@ From git repository:
 	    -v   print info
 
 .misc.visu_path.py
+
 	Description:
 	Allows to visualize a pathway in padmet network.
 	Color code: 
@@ -612,6 +651,7 @@ From git repository:
 	    --pathway=ID    pathway id to visualize.
 
 .misc.wikipage_creation.py
+
 	Description:
 	Create the files containing the wikicode for each page of the wiki relative to a
 	padmetSpec based on a database padmetRef. All the pages are stored in the folder
