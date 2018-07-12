@@ -193,8 +193,7 @@ def main():
                 padmet._addRelation(reconstructionData_rlt)
 
             except TypeError:
-                #if verbose: print("%s not in padmetRef" %(rxn_id))
-                print("%s not in padmetRef" %(rxn_id))
+                if verbose: print("%s not in padmetRef" %(rxn_id))
 
 
         if verbose: print("parsing genes")
@@ -263,7 +262,7 @@ def main():
         #[padmet.delNode(node.id) for node in rxn_to_del]
         for rxn in rxn_to_del:
             padmet.delNode(rxn.id)
-        print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
+        if verbose: print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
         all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
         all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
         count = 0
