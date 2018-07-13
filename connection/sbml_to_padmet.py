@@ -163,7 +163,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: ", chrono, "s !")
+    if verbose: print("done in: " + chrono + "s !")
 
 
 if __name__ == "__main__":
