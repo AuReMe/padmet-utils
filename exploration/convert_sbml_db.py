@@ -50,7 +50,7 @@ def main():
     reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
-        print (document.getError(i).getMessage())
+        print(document.getError(i).getMessage())
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
     listOfSpecies = model.getListOfSpecies()
@@ -71,8 +71,8 @@ def main():
                 db_found[db] += 1
             except KeyError:
                 db_found[db] = 1
-        db_select = [k for k, v in db_found.items()
-                     if v == max([j for i,j in db_found.items() if i != 'total_rxn'])][0]   
+        db_select = [k for k, v in list(db_found.items())
+                     if v == max([j for i,j in list(db_found.items()) if i != 'total_rxn'])][0]
         output = "Database ref:%s\n%s" %(db_select, db_found)
         print(output)
         return(output)
@@ -85,7 +85,7 @@ def main():
 
 
     if verbose:
-        print("nb reactions: %s" %len(listOfReactions)) 
+        print("nb reactions: %s" %len(listOfReactions))
 
     #For reactions: k = MNXid, v = {k=db_id,v=[list of ids]}
     mnx_rxn_dict = mnx_reader(mnx_rxn_file, db_out)
@@ -110,10 +110,10 @@ def main():
         if match_id:
             mapped_rxn[rxn_id] = match_id
         else:
-            for map_dict in mnx_rxn_dict.values():
+            for map_dict in list(mnx_rxn_dict.values()):
                 #print(mapp_dict)
                 all_rxn_id = []
-                [all_rxn_id.extend(i) for i in map_dict.values()]
+                [all_rxn_id.extend(i) for i in list(map_dict.values())]
                 if uncoded_rxn_id in all_rxn_id:
                     matchs_rxns = map_dict[db_out]
                     if len(matchs_rxns) > 1: 
@@ -134,10 +134,10 @@ def main():
         if match_id:
             mapped_cpd[cpd_id] = match_id
         else:
-            for map_dict in mnx_cpd_dict.values():
+            for map_dict in list(mnx_cpd_dict.values()):
                 #print(mapp_dict)
                 all_cpd_id = []
-                [all_cpd_id.extend(i) for i in map_dict.values()]
+                [all_cpd_id.extend(i) for i in list(map_dict.values())]
                 if uncoded_cpd_id in all_cpd_id:
                     matchs_cpds = map_dict[db_out]
                     if len(matchs_cpds) > 1:
@@ -151,28 +151,28 @@ def main():
                         mapped_cpd[cpd_id] = matchs_cpds[0]
                     break
 
-    for sbml_rxn in [i for i in listOfReactions if i.id not in mapped_rxn.keys()]:
+    for sbml_rxn in [i for i in listOfReactions if i.id not in list(mapped_rxn.keys())]:
         all_cpds = set([r.getSpecies() for r in sbml_rxn.getListOfReactants()] + [r.getSpecies() for r in sbml_rxn.getListOfProducts()])
-        match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in mapped_cpd.keys()])
+        match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in list(mapped_cpd.keys())])
 
         if len(match_cpd_in_rxn) == len(all_cpds):
             rxn_mapped_with_cpds.append(sbml_rxn.id)
     if verbose:
         print("#######")
-        print("Mapped reactions: %s/%s" %(len(mapped_rxn.keys()),len(listOfReactions)))
+        print("Mapped reactions: %s/%s" %(len(list(mapped_rxn.keys())),len(listOfReactions)))
         print("Reactions with more than one mapping: %s" %rxn_with_more_one_mapping)
-        print("Mapped species: %s/%s" %(len(mapped_cpd.keys()),len(listOfSpecies)))            
+        print("Mapped species: %s/%s" %(len(list(mapped_cpd.keys())),len(listOfSpecies)))
         print("Species with more than one mapping: %s" %cpd_with_more_one_mapping)
         print("Mapped reactions from species: %s" %(len(rxn_mapped_with_cpds)))
         for i in rxn_mapped_with_cpds:
             print("\t%s" %i)
-        print("Total reactions mapped:%s/%s" %(len(mapped_rxn.keys())+len(rxn_mapped_with_cpds),len(listOfReactions)))
+        print("Total reactions mapped:%s/%s" %(len(list(mapped_rxn.keys()))+len(rxn_mapped_with_cpds),len(listOfReactions)))
         print("#######")
 
     with open(output_dict, 'w') as f:
-        for k,v in mapped_rxn.items():
+        for k,v in list(mapped_rxn.items()):
             f.write(k+"\t"+v+"\n")
-        for k,v in mapped_cpd.items():
+        for k,v in list(mapped_cpd.items()):
             f.write(k+"\t"+v+"\n")
     
 
@@ -250,8 +250,8 @@ def mnx_reader(input_file, db_out):
         except KeyError:
             mnx_dict[k][db] = [_id]
     #clean ids not in db_out
-    for k,v in mnx_dict.items():
-        if db_out not in v.keys() or len(v.keys()) == 1:
+    for k,v in list(mnx_dict.items()):
+        if db_out not in list(v.keys()) or len(list(v.keys())) == 1:
             mnx_dict.pop(k)
     """
     for v in mnx_dict.values():
@@ -324,23 +324,23 @@ def intern_mapping(id_to_map, db_out, _type):
 
 
     if _type == "reaction":
-        for mapp_dict in intern_rxn_dict.values():
+        for mapp_dict in list(intern_rxn_dict.values()):
             all_rxn_id = []
-            [all_rxn_id.extend(i) for i in mapp_dict.values()]
+            [all_rxn_id.extend(i) for i in list(mapp_dict.values())]
             if id_to_map in all_rxn_id:
                 return mapp_dict[db_out][0]
 
     elif _type == "compound":
-        for mapp_dict in intern_cpd_dict.values():
+        for mapp_dict in list(intern_cpd_dict.values()):
             all_cpd_id = []
-            [all_cpd_id.extend(i) for i in mapp_dict.values()]
+            [all_cpd_id.extend(i) for i in list(mapp_dict.values())]
             if id_to_map in all_cpd_id:
                 return mapp_dict[db_out][0]
 
         if db_out == "METACYC":
-            for mapp_dict in intern_cpd_dict.values():
+            for mapp_dict in list(intern_cpd_dict.values()):
                 all_cpd_id = []
-                [all_cpd_id.extend(i) for i in mapp_dict.values()]
+                [all_cpd_id.extend(i) for i in list(mapp_dict.values())]
                 if id_to_map.upper() in all_cpd_id:
                     return mapp_dict[db_out][0]
 

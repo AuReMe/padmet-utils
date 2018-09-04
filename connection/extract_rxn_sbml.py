@@ -44,7 +44,7 @@ def main():
 
     if not args["--rxn_id"]:
         try:
-            rxn = (rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0).next()
+            rxn = next(rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0)
         except StopIteration:
             print("No reaction id given and no reaction with obj coefficient to 1.0, enable to get the reaction")
             exit()
@@ -80,7 +80,7 @@ def main():
             f.write(line)
             #check if have gene assoc
             try:
-                k = [i for i in rxn.notes.keys() if i.lower().startswith("gene")][0]
+                k = [i for i in list(rxn.notes.keys()) if i.lower().startswith("gene")][0]
                 gene_assoc = rxn.notes[k][0]
                 line = ["linked_gene", gene_assoc]
             except IndexError:

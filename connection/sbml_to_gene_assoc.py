@@ -33,11 +33,11 @@ def main():
     args = docopt.docopt(__doc__)
     sbml_file = args["--sbml"]
     #using libSbml to read sbml_file
-    print ("loading sbml file: %s" %sbml_file)
+    print("loading sbml file: %s" %sbml_file)
     reader = SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
-        print (document.getError(i).getMessage())
+        print(document.getError(i).getMessage())
 
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
@@ -48,9 +48,9 @@ def main():
         notes = parseNotes(reaction)
         try:
             gene_assoc = parseGeneAssoc(notes["GENE_ASSOCIATION"][0])
-            print (reaction.getId()+"\t"+";".join(gene_assoc))
+            print(reaction.getId()+"\t"+";".join(gene_assoc))
         except KeyError:
-            print ("No gene association for %s" %reaction.getId())
+            print("No gene association for %s" %reaction.getId())
             
             
 

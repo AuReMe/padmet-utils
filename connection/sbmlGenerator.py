@@ -60,7 +60,7 @@ def main():
             init_source = args["--init_source"].lower()
             rec_rlts = [rlt for rlt in padmet.getAllRelation() if rlt.type == "has_reconstructionData"]
             [rxn_to_del.add(rlt.id_in) for rlt in rec_rlts if padmet.dicOfNode[rlt.id_out].misc.get("SOURCE",[""])[0].lower() == init_source]            
-            reactions_to_add = set([node.id for node in padmet.dicOfNode.values() if node.type == "reaction"]).difference(rxn_to_del)
+            reactions_to_add = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]).difference(rxn_to_del)
             reaction_to_sbml(reactions_to_add, output, padmet, verbose)
             return
         if args["--model_id"]:
@@ -175,7 +175,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         #update dicts
         species_dict[species_id_encoded] = {"species_id":species_id, "compart":compart, "name":name}
         
-    for species_id_encoded, s_dict in species_dict.iteritems():
+    for species_id_encoded, s_dict in species_dict.items():
         compart = s_dict["compart"]
         name = s_dict["name"]
         original_id = s_dict["species_id"]
@@ -206,7 +206,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                 #print(species_id)
                 species_prop = None
             if species_prop:
-                [species_prop.pop(k) for k,v in species_prop.items() if (not v or v == "NA")]
+                [species_prop.pop(k) for k,v in list(species_prop.items()) if (not v or v == "NA")]
                 try:
                     charge = int(species_prop["charge"])
                 except (ValueError, KeyError) as e:
@@ -222,13 +222,13 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                     if inchi:
                         annot_xml = create_annotation(inchi, species_id_encoded)
                         check(s.setAnnotation(annot_xml), 'set Annotations')
-                    for prop, prop_v in species_prop.items():
+                    for prop, prop_v in list(species_prop.items()):
                         if prop in ["charge", "formula", "source", "description","inchi"] or prop_v in ["NA",""]:
                             species_prop.pop(prop)
                 notes = create_note(species_prop)
                 check(s.setNotes(notes), 'set Notes')
 
-    for k, v in compart_dict.iteritems():
+    for k, v in compart_dict.items():
         compart = model.createCompartment()
         check(compart,'create compartment')
         check(compart.setId(k),'set compartment id %s' %k)
@@ -247,7 +247,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     if obj_fct is not None:
         obj_fct_encoded = sp.convert_to_coded_id(obj_fct)
         if verbose: print("the objectif reaction is: %s" %(obj_fct_encoded))
-    reactions = [node for node in padmet.dicOfNode.itervalues() if node.type == "reaction"]
+    reactions = [node for node in padmet.dicOfNode.values() if node.type == "reaction"]
     nb_reactions = str(len(reactions))    
     # Create reactions
     if verbose: print("%s reactions" %nb_reactions)
@@ -418,7 +418,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
         if rlt.type == "is_in_pathway"])
         if len(pathways) != 0:
             notes_dict["SUBSYSTEM"] = " , ".join(pathways)
-        if notes_dict.keys():
+        if list(notes_dict.keys()):
             notes = create_note(notes_dict)            
             check(reaction.setNotes(notes), 'set notes %s' %notes)
 
@@ -452,7 +452,7 @@ def parse_mnx_chem_prop(mnx_chem_prop):
 
 def create_note(dict_data):
     notes = "<body xmlns=\"http://www.w3.org/1999/xhtml\">"
-    for k,v in dict_data.items():
+    for k,v in list(dict_data.items()):
         notes += "<p>"+k+": "+v+"</p>"
     notes += "</body>"
     return notes
@@ -525,7 +525,7 @@ def reaction_to_sbml(reactions, output, padmetRef, verbose = False):
     @rtype: int
     """
     #check if all rxn id are in padmetRef.
-    all_rxn = set([k for k,v in padmetRef.dicOfNode.iteritems() if v.type == "reaction"])
+    all_rxn = set([k for k,v in padmetRef.dicOfNode.items() if v.type == "reaction"])
     rxn_not_in_ref = reactions.difference(all_rxn)
     if len(rxn_not_in_ref) == len(reactions):
         raise KeyError("None of the reactions is in padmetRef")

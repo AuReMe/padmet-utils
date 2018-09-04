@@ -49,14 +49,14 @@ def main():
     input_f = args["--padmet"]
     if os.path.isdir(input_f):
         if not input_f.endswith("/"): input_f += "/"
-        all_files = [input_f+f for f in os.walk(input_f).next()[2]]
+        all_files = [input_f+f for f in next(os.walk(input_f))[2]]
     else:
         all_files = input_f.split(",")
 
     if len(all_files) < 2:
         raise ValueError("You must specify at least 2 files in order to make a comparison")
     if verbose:
-        print("%s padmet files to compare:" %len(all_files))
+        print(("%s padmet files to compare:" %len(all_files)))
         for f in all_files:
             print("\t%s" %os.path.basename(f))
     count_elem, dict_genes, dict_rxns, dict_pwys, dict_cpds = {}, {}, {}, {}, {}
@@ -75,7 +75,7 @@ def main():
         if verbose: print("reading %s" %basename_file)
         count_elem[basename_file] = {"genes":0,"reactions":0,"pathways":0,"metabolites":0}
         #genes
-        all_genes = set([node.id for node in padmet.dicOfNode.values() if node.type == "gene"])
+        all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
         count_elem[basename_file]["genes"] = len(all_genes)
         if verbose: print("\t%s genes..." %len(all_genes))
         for gene_id in all_genes:
@@ -87,7 +87,7 @@ def main():
                 dict_genes[gene_id] = {basename_file: ";".join(rxn_assoc)}
         
         #reactions
-        all_rxns = set([node.id for node in padmet.dicOfNode.values() if node.type == "reaction"])
+        all_rxns = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"])
         count_elem[basename_file]["reactions"] = len(all_rxns)
         if verbose: print("\t%s reactions..." %len(all_rxns))
         for rxn_id in all_rxns:
@@ -156,9 +156,9 @@ def main():
         fieldnames = ['gene'] + all_basename_files + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-        for gene_id, dic_basename_rxn_assoc in dict_genes.items():
+        for gene_id, dic_basename_rxn_assoc in list(dict_genes.items()):
             dict_row = {'gene': gene_id}
-            for basename_file, rxn_assoc in dic_basename_rxn_assoc.items():
+            for basename_file, rxn_assoc in list(dic_basename_rxn_assoc.items()):
                 dict_row.update({basename_file : 'X', basename_file+"_rxn_assoc (sep=;)": rxn_assoc})
             writer.writerow(dict_row)
 
@@ -170,9 +170,9 @@ def main():
         fieldnames = ['reaction'] + all_basename_files + [i+"_genes_assoc (sep=;)" for i in all_basename_files] + [i+"_formula" for i in all_basename_files]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-        for rxn_id, dict_basename_data in dict_rxns.items():
+        for rxn_id, dict_basename_data in list(dict_rxns.items()):
             dict_row = {'reaction': rxn_id}
-            for basename_file, rxn_data in dict_basename_data.items():
+            for basename_file, rxn_data in list(dict_basename_data.items()):
                 dict_row.update({basename_file : 'present', basename_file+"_genes_assoc (sep=;)": rxn_data["genes_associated"], basename_file+"_formula": rxn_data["formula"]})
             writer.writerow(dict_row)
 
@@ -184,21 +184,21 @@ def main():
         fieldnames = ['pathway'] + [i+"_completion_rate" for i in all_basename_files] + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-        for pwy_id, dict_basename_data in dict_pwys.items():
+        for pwy_id, dict_basename_data in list(dict_pwys.items()):
             dict_row = {'pathway': pwy_id}
-            for basename_file, pwy_data in dict_basename_data.items():
+            for basename_file, pwy_data in list(dict_basename_data.items()):
                 dict_row.update({basename_file+"_completion_rate": pwy_data["ratio"], basename_file+"_rxn_assoc (sep=;)": pwy_data["rxn_associated"]})
             writer.writerow(dict_row)
 
     #metabolites
     #metabolites file header: cpd, base_file_1, base_file_n
     cpds_file = root_folder+"metabolites.csv"
-    if verbose: print("creating %s" %cpds_file)
+    if verbose: print(("creating %s" %cpds_file))
     with open(cpds_file, 'w') as csvfile:
         fieldnames = ['metabolite'] + all_basename_files
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-        for cpd_id in dict_cpds.keys():
+        for cpd_id in list(dict_cpds.keys()):
             dict_row = {'metabolite': cpd_id}
             writer.writerow(dict_row)
 

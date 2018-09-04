@@ -5,12 +5,12 @@ Created on Tue Apr 10 11:34:54 2018
 @author: maite
 """
 
-from padmet.classes import PadmetRef, PadmetSpec
-import networkx as nx
-import matplotlib.pylab as plt
 import csv
+import matplotlib.pylab as plt
+import networkx as nx
 
-
+from padmet.classes import PadmetRef, PadmetSpec
+from networkx.drawing.nx_agraph import graphviz_layout
 
 def main():
     ulva_bact = PadmetSpec("/home/maite/Documents/data/Ulva/ulva_bacteria.padmet")
@@ -34,7 +34,7 @@ def main():
         total_reactions = set([rlt.id_in for rlt in padmetRef.dicOfRelationOut[pwy_id] if rlt.type == "is_in_pathway" and padmetRef.dicOfNode[rlt.id_in].type == "reaction"])
         pwy_dict[pwy_id]['total'] = total_reactions
         pwy_dict[pwy_id].update({'ULVA':set(),'MS6_BACTERIA':set(),'MS2_BACTERIA':set()})
-        for rxn_id in [rxn_id for rxn_id in total_reactions if rxn_id in ulva_bact.dicOfNode.keys()]:
+        for rxn_id in [rxn_id for rxn_id in total_reactions if rxn_id in list(ulva_bact.dicOfNode.keys())]:
             src = set([ulva_bact.dicOfNode[rlt.id_out].misc["SOURCE"][0] for rlt in ulva_bact.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"])
             all_src.update(src)
             if 'MS6_BACTERIA' in src:
@@ -46,7 +46,7 @@ def main():
     
     print("Creating pngs")
     count = 0
-    for pwy_id, pwy_data in pwy_dict.items():
+    for pwy_id, pwy_data in list(pwy_dict.items()):
         count += 1
         print("%s/%s %s" %(count, len(all_pwy), pwy_id))
         #pwy_id = 'PWY-5664'
@@ -70,7 +70,7 @@ def main():
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
                 
-        for pwy_id, pwy_data in pwy_dict.items():
+        for pwy_id, pwy_data in list(pwy_dict.items()):
             count += 1
             print("%s/%s %s" %(count, len(all_pwy), pwy_id))
             #pwy_id = 'PWY-5664'
@@ -109,7 +109,7 @@ def visu_path(pwy_data, padmetRef):
                 if rlt.type == "produces"]
         reac_rev = padmetRef.dicOfNode[reaction_id].misc['DIRECTION'][0]
         for reac in reactants:
-            if reac not in nodes_attrib.keys():
+            if reac not in list(nodes_attrib.keys()):
                 nodes_attrib[reac] = {}
                 nodes_attrib[reac]['type'] = "metabolite"
             DG.add_edge(reac, reaction_id)
@@ -117,7 +117,7 @@ def visu_path(pwy_data, padmetRef):
                 DG.add_edge(reaction_id, reac)
 
         for prod in products:
-            if prod not in nodes_attrib.keys():
+            if prod not in list(nodes_attrib.keys()):
                 nodes_attrib[prod] = {}
                 nodes_attrib[prod]['type'] = "metabolite"
             DG.add_edge(reaction_id, prod)
@@ -129,52 +129,52 @@ def visu_path(pwy_data, padmetRef):
     # pip install pygraphviz
     plt.figure(figsize=(20,20)) 
     nx.draw_networkx_nodes(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
-                           nodelist=[k for k,v in nodes_attrib.iteritems() if v['type'] == "reaction"],
+                           graphviz_layout(DG, prog='neato'),
+                           nodelist=[k for k,v in nodes_attrib.items() if v['type'] == "reaction"],
                            node_color="lightgreen",
                            node_size=2000,
                            node_shape='s',
                        alpha=0.2)
     nx.draw_networkx_nodes(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
-                           nodelist=[k for k,v in nodes_attrib.iteritems() if v['type'] == "reaction" and k in pwy_data['ULVA']], 
+                           graphviz_layout(DG, prog='neato'),
+                           nodelist=[k for k,v in nodes_attrib.items() if v['type'] == "reaction" and k in pwy_data['ULVA']],
                            node_color="green",
                            node_size=1500,
                            node_shape='s',
                            label="In Ulva",
                        alpha=0.8)
     nx.draw_networkx_nodes(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
-                           nodelist=[k for k,v in nodes_attrib.iteritems() if v['type'] == "reaction" and k in pwy_data['MS6_BACTERIA']], 
+                           graphviz_layout(DG, prog='neato'),
+                           nodelist=[k for k,v in nodes_attrib.items() if v['type'] == "reaction" and k in pwy_data['MS6_BACTERIA']],
                            node_color="red",
                            node_size=1000,
                            node_shape='s',
                            label="In MS6_BACTERIA",
                        alpha=0.8)
     nx.draw_networkx_nodes(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
-                           nodelist=[k for k,v in nodes_attrib.iteritems() if v['type'] == "reaction" and k in pwy_data['MS2_BACTERIA']], 
+                           graphviz_layout(DG, prog='neato'),
+                           nodelist=[k for k,v in nodes_attrib.items() if v['type'] == "reaction" and k in pwy_data['MS2_BACTERIA']],
                            node_color="blue",
                            node_size=500,
                            node_shape='s',
                            label="In MS2_BACTERIA",
                        alpha=0.8)
     nx.draw_networkx_nodes(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
-                           nodelist=[k for k,v in nodes_attrib.iteritems() if v['type'] == "metabolite"],
+                           graphviz_layout(DG, prog='neato'),
+                           nodelist=[k for k,v in nodes_attrib.items() if v['type'] == "metabolite"],
                            node_color="yellow",
                            node_size=500,
                            node_shape='o',
                            label="Metabolite",
                        alpha=0.8)
     nx.draw_networkx_edges(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
+                           graphviz_layout(DG, prog='neato'),
                            edge_color="black",
                            alpha=0.5,
                            width=2.0,
                            arrow=True)
     nx.draw_networkx_labels(DG,
-                           nx.graphviz_layout(DG, prog='neato'),
+                           graphviz_layout(DG, prog='neato'),
                            font_size=15)
     plt.axis('off')
     plt.legend(scatterpoints=1, markerscale=0.6)

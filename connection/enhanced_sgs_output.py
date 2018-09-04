@@ -74,7 +74,7 @@ def main():
     
     #2: extract all pathways from database Ref
     if verbose: print("extract all pathways from database Ref")
-    all_pathways_id = (node.id for node in padmetRef.dicOfNode.values() if node.type == "pathway")
+    all_pathways_id = (node.id for node in list(padmetRef.dicOfNode.values()) if node.type == "pathway")
     for pwy_id in all_pathways_id:
         rxns_assoc = [rlt.id_in for rlt in padmetRef.dicOfRelationOut[pwy_id] 
         if rlt.type == "is_in_pathway" and padmetRef.dicOfNode[rlt.id_in].type == "reaction"]
@@ -95,15 +95,15 @@ def main():
                     dict_mnxref[mnx][db].add(_id)
                 except KeyError:
                     dict_mnxref[mnx].update({db: set([_id])})
-        for k,v in dict_mnxref.items():
-            if len(v.keys()) < 2:
+        for k,v in list(dict_mnxref.items()):
+            if len(list(v.keys())) < 2:
                 dict_mnxref.pop(k)
                 
         
         #map reactions id
         assoc_sgs_id_reactions_mapped = {}
-        for sgs_id, set_rxn in assoc_sgs_id_reactions.iteritems():
-            for assoc_dict in dict_mnxref.values():
+        for sgs_id, set_rxn in assoc_sgs_id_reactions.items():
+            for assoc_dict in list(dict_mnxref.values()):
                 for _id in assoc_dict[db_origin]:
                     if _id in set_rxn:
                         try:
@@ -116,8 +116,8 @@ def main():
         if an intersection length is > 0 ==> the sgs covere a part of this pwy.
         Extract which reactions and the ratio on all the reactions in the pathways.
         """
-        for sgs_id, rxns_in_sgs in assoc_sgs_id_reactions_mapped.iteritems():
-            for pwy_id, rxns_in_pwy in assoc_pathways_reactions.iteritems():
+        for sgs_id, rxns_in_sgs in assoc_sgs_id_reactions_mapped.items():
+            for pwy_id, rxns_in_pwy in assoc_pathways_reactions.items():
                 rxns_inter = rxns_in_sgs.intersection(rxns_in_pwy)
                 len_rxns_inter = len(rxns_inter)
                 if len_rxns_inter > 0 and float(len_rxns_inter)/float(len(rxns_in_pwy)) > float(1)/float(3):
@@ -153,13 +153,13 @@ def main():
     
         header = ["PATHWAYS ID\SGS ID"]+all_sgs
         f.write("\t".join(header)+"\n")
-        for pwy_id,sgs_dict in assoc_pathways_sgs.iteritems():
+        for pwy_id,sgs_dict in assoc_pathways_sgs.items():
             line = [""]*len(header)
             try:
                 line[0] = pwy_id+"/"+padmetRef.dicOfNode[pwy_id].misc["COMMON_NAME"][0]
             except KeyError:
                 line[0] = pwy_id
-            for sgs_id, data in sgs_dict.iteritems():
+            for sgs_id, data in sgs_dict.items():
                 sgs_index = header.index(sgs_id)
                 line[sgs_index] = data
             line = "\t".join(line)+"\n"

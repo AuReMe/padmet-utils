@@ -77,7 +77,7 @@ def padmet_to_asp(padmet_file, output, verbose = False):
 
     with open(output, 'w') as f:
         #recover all reactions's data
-        reactions = [node for node in padmet.dicOfNode.itervalues()
+        reactions = [node for node in padmet.dicOfNode.values()
         if node.type == "reaction"]
         nb_reactions = len(reactions)
 
@@ -214,7 +214,7 @@ def padmet_to_asp(padmet_file, output, verbose = False):
                     except KeyError:
                         pass
         #recover all pathway's data
-        pathways = [node for node in padmet.dicOfNode.itervalues()
+        pathways = [node for node in padmet.dicOfNode.values()
         if node.type == "pathway"]
         nb_pathways = len(pathways)
         count = 0

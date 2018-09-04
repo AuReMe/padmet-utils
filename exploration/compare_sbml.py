@@ -81,9 +81,9 @@ def main():
 def compare_rxn(rxn1,rxn2):
     same_cpd, same_rev = False, False
     rxn1_dict,rxn2_dict = {}, {}
-    for k,v in rxn1.metabolites.items():
+    for k,v in list(rxn1.metabolites.items()):
         rxn1_dict[k.id] = v
-    for k,v in rxn2.metabolites.items():
+    for k,v in list(rxn2.metabolites.items()):
         rxn2_dict[k.id] = v
     if rxn1_dict == rxn2_dict: 
         same_cpd = True

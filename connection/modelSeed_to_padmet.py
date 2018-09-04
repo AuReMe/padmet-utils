@@ -73,7 +73,7 @@ def main():
     rxn_data.pop("rxn12985")
     if verbose: print("updating padmet")
     count = 0
-    for rxn_id, rxn_dict in rxn_data.items():
+    for rxn_id, rxn_dict in list(rxn_data.items()):
         count += 1
         if verbose: print("reaction: %s, %s/%s" %(rxn_id, count, len(rxn_data)))
         try:
@@ -82,7 +82,7 @@ def main():
         except KeyError:
             print(rxn_id)
             continue
-        if rxn_id not in padmetRef.dicOfNode.keys():
+        if rxn_id not in list(padmetRef.dicOfNode.keys()):
             if rxn_dict["reversibility"] == ">":
                 rxn_direction = "LEFT-TO-RIGHT"
             else:
@@ -160,7 +160,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print "done in: ", chrono, "s !"
+    if verbose: print("done in: ", chrono, "s !")
 
 def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
     global list_of_relation
@@ -177,7 +177,7 @@ def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
                 except KeyError:
                     pwy_node.misc["COMMON_NAME"] = [name]
             if rxn_id:
-                if rxn_id in padmetRef.dicOfNode.keys():
+                if rxn_id in list(padmetRef.dicOfNode.keys()):
                     pwy_rlt = Relation(rxn_id,"is_in_pathway",pwy_id)
                     padmetRef._addRelation(pwy_rlt)
                 else:

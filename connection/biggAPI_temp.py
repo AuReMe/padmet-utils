@@ -56,7 +56,7 @@ def raw_data():
     url_bigg = 'http://bigg.ucsd.edu/api/v2/'
     raw_data = requests.get(url_bigg + "universal/reactions").json()['results']
     all_reactions_ids = [rxn_dict['bigg_id'] for rxn_dict in raw_data if not rxn_dict['bigg_id'].startswith("BIOMASS")]
-    print("%s reactions to extract" %(len(all_reactions_ids)))
+    print(("%s reactions to extract" %(len(all_reactions_ids))))
 
     with open("/home/maite/Documents/data/bigg/bigg_raw.txt", 'w') as f:
         count = 0
@@ -129,7 +129,7 @@ def raw_to_padmet():
         count += 1
         print("%s/%s" %(count, len(raw_data)))
         rxn_id = rxn_dict["bigg_id"]
-        if rxn_id not in padmet.dicOfNode.keys():
+        if rxn_id not in list(padmet.dicOfNode.keys()):
             rxn_metabolites = rxn_dict["metabolites"]
             rxn_name = rxn_dict["name"]
             rxn_direction = rxn_dict["direction"]
@@ -141,9 +141,9 @@ def raw_to_padmet():
             has_xref_rlt = Relation(rxn_id, "has_xref", xref_id)
             list_of_relation.append(has_xref_rlt)
     
-            for db, k in rxn_xrefs.items():
+            for db, k in list(rxn_xrefs.items()):
                 _id = k[0]["id"]
-                if db in xref_node.misc.keys() and _id not in xref_node.misc[db]:
+                if db in list(xref_node.misc.keys()) and _id not in xref_node.misc[db]:
                     xref_node.misc[db].append(_id)
                 else:
                     xref_node.misc[db] = [_id]
@@ -199,7 +199,7 @@ def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
                 except KeyError:
                     pwy_node.misc["COMMON_NAME"] = [name]
             if rxn_id:
-                if rxn_id in padmetRef.dicOfNode.keys():
+                if rxn_id in list(padmetRef.dicOfNode.keys()):
                     pwy_rlt = Relation(rxn_id,"is_in_pathway",pwy_id)
                     padmetRef._addRelation(pwy_rlt)
                 else:

@@ -99,8 +99,8 @@ def main():
                      node_shape='s',    # shape of nodes
                      alpha=0.6,         # node & edge transparency
                      width=1.5,         # line width for edges
-                     node_list=custom_node_color.keys(),
-                     node_color=custom_node_color.values())
+                     node_list=list(custom_node_color.keys()),
+                     node_color=list(custom_node_color.values()))
     plt.axis('off')
     
     #save_plot(plt, 'pathway_' + pathway_id)

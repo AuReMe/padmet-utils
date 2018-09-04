@@ -42,10 +42,12 @@ Idea is, mainly, that a syntree is simple to store (dict {node:successors}),
 Note that there is no real error handling for parenthesis.
 
 """
+import argparse
 import re
-from enum import Enum
-from collections import ChainMap, defaultdict
 import sys
+
+from collections import ChainMap, defaultdict
+from enum import Enum
 
 # Constants
 ERROR_LIMIT = 10  # at most 10 errors before compilation abortion
@@ -333,7 +335,11 @@ def compile_input(string, combine_or:bool=False):
     yield from eval_tree(syntree, combine_or=bool(combine_or))
 
 if __name__ == '__main__':
-    string = sys.argv[1]
+    parser = argparse.ArgumentParser(usage="python grammar-boolean-rapsody.py STRING", description="Produce list of elements from a pattern.")
+    parser.add_argument("input_string", metavar = "input_string", help = "The pattern to parse, must be a string like 'a&(b|c)&(d|e)'.")
+    parser_args = parser.parse_args()
+    string = parser_args.input_string
+
     #print(string)
     #print(sys.argv)
     #string =  "(b3670|b3671)&(b0077|b0078)"

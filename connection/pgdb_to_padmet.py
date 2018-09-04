@@ -185,7 +185,7 @@ def main():
             try:
                 padmet.copyNode(padmetRef, rxn_id)
                 reconstructionData_id = rxn_id+"_reconstructionData_"+source
-                if reconstructionData_id in padmet.dicOfNode.keys() and verbose:
+                if reconstructionData_id in list(padmet.dicOfNode.keys()) and verbose:
                     print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
                 reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
                 reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
@@ -193,8 +193,7 @@ def main():
                 padmet._addRelation(reconstructionData_rlt)
 
             except TypeError:
-                #if verbose: print("%s not in padmetRef" %(rxn_id))
-                print("%s not in padmetRef" %(rxn_id))
+                if verbose: print("%s not in padmetRef" %(rxn_id))
 
 
         if verbose: print("parsing genes")
@@ -258,14 +257,14 @@ def main():
 
     if with_genes:
         #temp, removing or not reactions without gene assoc:
-        all_reactions = [node for node in padmet.dicOfNode.values() if node.type == "reaction"]
+        all_reactions = [node for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
         rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
         #[padmet.delNode(node.id) for node in rxn_to_del]
         for rxn in rxn_to_del:
             padmet.delNode(rxn.id)
-        print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
+        if verbose: print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
         all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
-        all_genes = set([node.id for node in padmet.dicOfNode.values() if node.type == "gene"])
+        all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
         count = 0
         for gene_id in [g for g in all_genes if g not in all_genes_linked]:
             count += 1
@@ -273,7 +272,7 @@ def main():
             padmet.dicOfNode.pop(gene_id)
         if verbose: print("%s/%s genes not linked to any reactions deleted" %(count, len(all_genes)))
     else:
-        rxns = [node.id for node in padmet.dicOfNode.values() if node.type == "reaction"]
+        rxns = [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
         for rxn_id in rxns:
             cp_rlts = set([rlt.type for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]])
             if len(cp_rlts) == 1:
@@ -284,7 +283,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print "done in: ", chrono, "s !"    
+    if verbose: print("done in: ", chrono, "s !")
 
 def classes_parser(filePath, padmet):
     """
@@ -306,7 +305,7 @@ def classes_parser(filePath, padmet):
     Create a relation current node has_xref xref_node.id
     """
     dict_data = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -326,8 +325,8 @@ def classes_parser(filePath, padmet):
             except ValueError:
                 pass
     count = 0
-    nb_classes = str(len(dict_data.keys()))
-    for class_id, dict_values in dict_data.iteritems():
+    nb_classes = str(len(list(dict_data.keys())))
+    for class_id, dict_values in dict_data.items():
         count += 1
         #if verbose: print("%s/%s\t%s" %(count, nb_classes, class_id))
         class_node = Node("class", class_id)
@@ -373,7 +372,7 @@ def reactions_parser(filePath, padmet):
     Create a relation current node has_xref xref_node.id
     """
     dict_data = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = [line for line in f.read().splitlines() if not line.startswith("#") and not line == "//"]
         index = -1        
         for line in data:
@@ -429,9 +428,9 @@ def reactions_parser(filePath, padmet):
                 pass
 
     count = 0
-    nb_rxn = str(len(dict_data.keys()))
-    for rxn_id, dict_values in dict_data.iteritems():
-        if "LEFT" in dict_values.keys() or "RIGHT" in dict_values.keys():
+    nb_rxn = str(len(list(dict_data.keys())))
+    for rxn_id, dict_values in dict_data.items():
+        if "LEFT" in list(dict_values.keys()) or "RIGHT" in list(dict_values.keys()):
             count += 1
             if verbose: print("%s/%s\t%s" %(count, nb_rxn, rxn_id))
             rxn_node = Node("reaction", rxn_id)
@@ -481,7 +480,7 @@ def reactions_parser(filePath, padmet):
                 pass
             if with_genes:
                 reconstructionData_id = rxn_id+"_reconstructionData_"+source
-                if reconstructionData_id in padmet.dicOfNode.keys() and verbose:
+                if reconstructionData_id in list(padmet.dicOfNode.keys()) and verbose:
                     print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
                 reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
                 reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
@@ -536,7 +535,7 @@ def reactions_parser(filePath, padmet):
 
 def pathways_parser(filePath, padmet):
     dict_data = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -557,8 +556,8 @@ def pathways_parser(filePath, padmet):
                 pass
     
     count = 0
-    nb_pathways = str(len(dict_data.keys()))
-    for pathway_id, dict_values in dict_data.iteritems():
+    nb_pathways = str(len(list(dict_data.keys())))
+    for pathway_id, dict_values in dict_data.items():
         count += 1
         #if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
         pathway_node = Node("pathway", pathway_id)
@@ -605,7 +604,7 @@ def pathways_parser(filePath, padmet):
 
 def compounds_parser(filePath, padmet):
     dict_data = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -626,8 +625,8 @@ def compounds_parser(filePath, padmet):
                 pass
 
     count = 0
-    nb_cpds = str(len(dict_data.keys()))
-    for compound_id, dict_values in dict_data.iteritems():
+    nb_cpds = str(len(list(dict_data.keys())))
+    for compound_id, dict_values in dict_data.items():
         count += 1
         #if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
         compound_node = Node("compound", compound_id)
@@ -688,8 +687,8 @@ def genes_parser(filePath, padmet):
                 pass
 
     count = 0
-    nb_genes = str(len(dict_data.keys()))
-    for current_id, dict_values in dict_data.iteritems():
+    nb_genes = str(len(list(dict_data.keys())))
+    for current_id, dict_values in dict_data.items():
         count += 1
         try:
             gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
@@ -760,8 +759,8 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
             
 
     count = 0
-    nb_proteins = str(len(dict_data.keys()))
-    for protein_id, dict_values in dict_data.iteritems():
+    nb_proteins = str(len(list(dict_data.keys())))
+    for protein_id, dict_values in dict_data.items():
         count += 1
         if verbose: print("%s/%s\t%s" %(count, nb_proteins, protein_id))
         protein_node = Node("protein", protein_id)
@@ -848,12 +847,12 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
                         dict_data[current_id][attrib] = [value]
             except ValueError:
                 pass
-    for k,v in dict_data.items():
+    for k,v in list(dict_data.items()):
         if len(v["ENZYME"]) > 1:
-            print k
+            print(k)
     count = 0
-    nb_enzrxns = str(len(dict_data.keys()))
-    for current_id, dict_values in dict_data.iteritems():
+    nb_enzrxns = str(len(list(dict_data.keys())))
+    for current_id, dict_values in dict_data.items():
         count += 1
         #if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
         rxn_id = dict_values["REACTION"][0]
@@ -936,22 +935,22 @@ def _setXrefs(xrefs, current_id, padmet):
         else:
             db = "GO-TERMS"
             _id = xref
-        if db in xref_node.misc.keys() and _id not in xref_node.misc[db]:
+        if db in list(xref_node.misc.keys()) and _id not in xref_node.misc[db]:
             xref_node.misc[db].append(_id)
         else:
             xref_node.misc[db] = [_id]
 
 def enhance_db(metabolic_reactions, padmet, with_genes=False):
-    print ("loading sbml file: %s" %metabolic_reactions)
+    print("loading sbml file: %s" %metabolic_reactions)
     reader = SBMLReader()
     document = reader.readSBML(metabolic_reactions)
     for i in range(document.getNumErrors()):
-        print (document.getError(i).getMessage())
+        print(document.getError(i).getMessage())
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
     #recovere the reactions that are not in the basic metacyc but in the sbml file
     #use the reactions_name instead of ids because the ids are encoded, the name is the non-encoded version of the id
-    padmet_reactions_id = set([node.id for node in padmet.dicOfNode.values() if node.type == "reaction"])
+    padmet_reactions_id = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"])
     reaction_to_add = [reaction for reaction in listOfReactions 
     if reaction.getName() not in padmet_reactions_id]
     count = 0
@@ -972,7 +971,7 @@ def enhance_db(metabolic_reactions, padmet, with_genes=False):
         reactants = reactionSBML.getListOfReactants()
         for reactant in reactants: #convert ids
             reactant_id, _type, reactant_compart = sbmlPlugin.convert_from_coded_id(reactant.getSpecies())
-            if reactant_id not in padmet.dicOfNode.keys():
+            if reactant_id not in list(padmet.dicOfNode.keys()):
                 reactant_node = Node("compound",reactant_id)
                 padmet.dicOfNode[reaction_id] = reactant_node
             reactant_stoich = reactant.getStoichiometry()
@@ -982,7 +981,7 @@ def enhance_db(metabolic_reactions, padmet, with_genes=False):
         products = reactionSBML.getListOfProducts()
         for product in products:
             product_id, _type, product_compart = sbmlPlugin.convert_from_coded_id(product.getSpecies())
-            if product_id not in padmet.dicOfNode.keys():
+            if product_id not in list(padmet.dicOfNode.keys()):
                 product_node = Node("compound",product_id)
                 padmet.dicOfNode[product_id] = product_node
             product_stoich = product.getStoichiometry()
@@ -991,7 +990,7 @@ def enhance_db(metabolic_reactions, padmet, with_genes=False):
         
         if with_genes:
             notes = sbmlPlugin.parseNotes(reactionSBML)
-            if "GENE_ASSOCIATION" in notes.keys():
+            if "GENE_ASSOCIATION" in list(notes.keys()):
                 #Using sbmlPlugin to recover all genes associated to the reaction
                 listOfGenes = sbmlPlugin.parseGeneAssoc(notes["GENE_ASSOCIATION"][0])
                 if len(listOfGenes) != 0:

@@ -65,7 +65,7 @@ def main():
         for line in file_in_array[start_index:]]
         reactions_ids = [convert_from_coded_id(r)[0] for r in encoded_reactions]
         nb_reactions = str(len(reactions_ids))
-    if verbose: print(nb_reactions+" reactions to check")    
+    if verbose: print(nb_reactions+" reactions to check")
     with open(output,'w') as f:
         header = ["idRef","Common name","EC-number","Formula (with id)","Formula (with cname)","Action","Comment", "Genes"]
         header = "\t".join(header)+"\n"

@@ -87,7 +87,7 @@ def main():
         dialect = csv.Sniffer().sniff(csvfile.read())
         csvfile.seek(0)
         reader = csv.reader(csvfile, dialect)
-        header = reader.next()
+        header = next(reader)
         if len(header) == 2:
             to_do = "rxn_creator"
         elif len(header) > 2:
@@ -102,7 +102,7 @@ def main():
     chrono = (time() - chronoDepart)
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    print "done in: ", chrono, "s !"
+    print("done in: ", chrono, "s !")
 
 def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose = False):
     dict_data = {}
@@ -125,13 +125,13 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
             except KeyError:
                 dict_data[current_id][attrib] = [value]
 
-    if verbose: print("%s reactions to add" %len(dict_data.keys()))
-    for reaction_id, reaction_data in dict_data.iteritems():
+    if verbose: print("%s reactions to add" %len(list(dict_data.keys())))
+    for reaction_id, reaction_data in dict_data.items():
         if verbose: print("check if the id %s is already used" %reaction_id)
-        if reaction_id in padmetSpec.dicOfNode.keys():
+        if reaction_id in list(padmetSpec.dicOfNode.keys()):
             print("the id : %s is already associated to an other reaction in padmetSpec, choose an other" %reaction_id)
             continue
-        if padmetRef is not None and reaction_id in padmetRef.dicOfNode.keys():
+        if padmetRef is not None and reaction_id in list(padmetRef.dicOfNode.keys()):
             print("the id : %s is already associated to an other reaction in padmetRef, choose an other" %reaction_id)
             continue
 
@@ -152,12 +152,12 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
         if tool:
             reconstructionData_id = reaction_id+"_reconstructionData_"+tool
             reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
-            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+            if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
         else:
             reconstructionData_id = reaction_id+"_reconstructionData_MANUAL"
             reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":[comment]}
-            if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+            if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
 
         reconstructionData_rlt = Relation(reaction_id,"has_reconstructionData",reconstructionData_id)
@@ -168,11 +168,11 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
             #suppData:
             if tool:
                 suppData_id = reaction_id+"_SuppData_"+tool
-                if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                if suppData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                     print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
             else:
                 suppData_id = reaction_id+"_SuppData_MANUAL"
-                if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                if suppData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                     print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
             suppData = {"GENE_ASSOCIATION":[genes_assoc]}
             #create the node suppData and the relation has_suppData
@@ -223,7 +223,7 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
                         if verbose:
                             print("creating a new compound")
                         padmetSpec.createNode("compound", metabo_id)
-                        if verbose: print("new compound created: id = %s" %metabo_id)
+                        if verbose: print(("new compound created: id = %s" %metabo_id))
                 rlt = Relation(reaction_id,"consumes",metabo_id)
                 rlt.misc.update({"STOICHIOMETRY":[stoechio],"COMPARTMENT":[compart]})
                 padmetSpec._addRelation(rlt)
@@ -282,12 +282,12 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                     if tool:
                         reconstructionData_id = element_id+"_reconstructionData_"+tool
                         reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
-                        if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                        if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                             print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
                     else:
                         reconstructionData_id = element_id+"_reconstructionData_MANUAL"
                         reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":[comment]}
-                        if reconstructionData_id in padmetSpec.dicOfNode.keys() and verbose:
+                        if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                             print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
                         
                     reconstructionData_rlt = Relation(element_id,"has_reconstructionData",reconstructionData_id)
@@ -297,11 +297,11 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
                         #suppData:
                         if tool:
                             suppData_id = element_id+"_SuppData_"+tool
-                            if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                            if suppData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                                 print("Warning: The reaction %s seems to be already added from the same source %s" %(element_id,tool))
                         else:
                             suppData_id = element_id+"_SuppData_MANUAL"
-                            if suppData_id in padmetSpec.dicOfNode.keys() and verbose:
+                            if suppData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                                 print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %element_id)
                         suppData = {"GENE_ASSOCIATION":[genes_assoc]}
                         #create the node suppData and the relation has_suppData

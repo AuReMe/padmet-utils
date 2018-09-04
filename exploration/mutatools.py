@@ -54,13 +54,13 @@ def main():
     """
     #for g in genes, get the reactions where g is needed and remove them
     original_model=create_cobra_model_from_sbml_file(sbml_path)
-    gene_rxn_dict = dict([(gene.id,[r.id for r in gene.reactions]) for gene in model.genes])
+    gene_rxn_dict = dict([(gene.id,[r.id for r in gene.reactions]) for gene in original_model.genes])
 
     print("creating gene_rxn.txt")
     with open(wdir+"gene_rxn.txt", 'w') as f:
         line = "\t".join(["gene","reactions"])+"\n"
         f.write(line)
-        for gene, rxns in gene_rxn_dict.items():
+        for gene, rxns in list(gene_rxn_dict.items()):
             line = "\t".join([gene, ";".join(rxns)])+"\n"
     
     print("multiprocess all models")
@@ -71,7 +71,7 @@ def main():
     """
     
     print("scope")
-    all_sbml_path = [wdir+"all_networks/"+i for i in os.walk(wdir+"all_networks").next()[2]]
+    all_sbml_path = [wdir+"all_networks/"+i for i in next(os.walk(wdir+"all_networks"))[2]]
     scope(all_sbml_path[0])
 
 
