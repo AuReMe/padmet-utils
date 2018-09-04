@@ -692,7 +692,7 @@ def genes_parser(filePath, padmet):
     for current_id, dict_values in dict_data.iteritems():
         count += 1
         try:
-            gene_id = dict_values["ACCESSION-1"][0]
+            gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
             enzyme_id = dict_values["PRODUCT"][0]
             dict_protein_gene_id[enzyme_id] = gene_id
             gene_node = Node("gene", gene_id)

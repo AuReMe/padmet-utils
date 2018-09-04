@@ -45,8 +45,9 @@ option:
 import re
 import itertools
 from Bio import SeqIO
-from libsbml import *
+import libsbml
 import docopt
+from padmet.utils import sbmlPlugin as sp
 
 def main():
     args = docopt.docopt(__doc__)
@@ -86,14 +87,14 @@ def check_ids(model_metabolic, model_faa, cutoff, verbose=False):
     @return: True if same ids, if verbose, print % of genes under cutoff
     @type: bool
     """
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(model_metabolic)
     model = document.getModel()
     document.getNumErrors()
     listOfReactions = model.getListOfReactions()
     #convert to set
-    model_metabolic_ids = set(itertools.chain.from_iterable([parseGeneAssoc(geneAssoc) 
-    for geneAssoc in (parseNotes(r).get("GENE_ASSOCIATION",[None])[0] for r in listOfReactions)
+    model_metabolic_ids = set(itertools.chain.from_iterable([sp.parseGeneAssoc(geneAssoc) 
+    for geneAssoc in (sp.parseNotes(r).get("GENE_ASSOCIATION",[None])[0] for r in listOfReactions)
     if geneAssoc is not None]))
     
     with open(model_faa, "rU") as f:
@@ -136,63 +137,6 @@ def get_valid_faa(model_faa, dict_ids_file, output):
                     new_gene_id = dict_ids.get(origin_id,origin_id)
                     line = line.replace(origin_id, new_gene_id)
                 o.write(line)
-
-def parseNotes(element):
-    """
-    From an SBML element (ex: species or reaction) will return all the section
-    note in a dictionnary.
-    ex:
-    <notes>
-        <html:body>
-            <html:p>BIOCYC: |Alkylphosphonates|</html:p>
-            <html:p>CHEBI: 60983</html:p>
-        </html:body>
-     </notes>
-    output: {'BIOCYC': ['Alkylphosphonates'],'CHEBI':['60983']}
-    value is a list in case diff lines for the same type of info
-
-    @param element: an element from libsbml
-    @type element: libsbml.element
-    @return: the dictionnary of note
-    @rtype: dict
-    """
-    notes = element.getNotesString()
-    notesList = notes.splitlines()
-    notesDict = {}
-    for line in notesList:
-        try:
-            #line = <html:p>BIOCYC: |Alkylphosphonates|</html:p>
-            start = line.index(">")+1
-            end = line.index("<",start)
-            line = line[start:end]
-            #line = BIOCYC: |Alkylphosphonates|
-            line = line.split(":")
-            #line = [BIOCYC,|Alkylphosphonates|]
-            line[0] = re.sub(" ","_",line[0])
-            line[1] = re.sub("\s|\|","",line[1])
-            if len(line[1]) != 0:
-                line[1] = line[1].split(",")
-                notesDict[line[0]] = line[1]
-        except ValueError:
-            continue
-    return notesDict
-
-def parseGeneAssoc(GeneAssocStr):
-    """
-    Given a grammar of 'and', 'or' and '(' ')'. Extracts genes ids to a list.
-    (geneX and geneY) or geneW' => [geneX,geneY,geneW]
-    @param GeneAssocStr: the string containing genes ids
-    @type GeneAssocStr: str
-    @return: the list of unique ids
-    @rtype: list
-    """
-    if GeneAssocStr is not None:
-        #sub '(',')',' ' by ''   sub "and" by "or"
-        resultat = re.sub("\(|\)|\s","",GeneAssocStr).replace("and","or")
-        #create a set by spliting 'or' then convert to list, set for unique genes    
-        resultat = list(set(resultat.split("or")))
-        return resultat
-
 
 if __name__ == "__main__":
     main()
