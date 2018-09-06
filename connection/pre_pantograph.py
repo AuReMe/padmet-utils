@@ -116,7 +116,7 @@ def check_ids(model_metabolic, model_faa, cutoff, verbose=False):
     else:
         if verbose: 
             print("%s%% genes of the model_metabolic are not in the model_faa" % (diff_genes_ratio*100))
-            print ";".join(diff_genes)
+            print(";".join(diff_genes))
         return False
 
 def get_valid_faa(model_faa, dict_ids_file, output):
