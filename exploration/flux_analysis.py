@@ -74,7 +74,7 @@ def main():
         out = subprocess.check_output(["/bin/bash", "-i", "-c", cmd])
         #prod_targets = (i for i in out.splitlines() if i.endswith(" producible targets:")).next()[:-1]
         print("Number of targets: %s" %(len(targets)))
-        print(out)
+        print(out.decode("UTF-8"))
         print("#Flux Balance Analysis")
         fba_on_targets(targets, model)
     if all_species:
