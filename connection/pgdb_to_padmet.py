@@ -118,9 +118,9 @@ options:
 import re
 from datetime import datetime
 from time import time
-from padmet.classes import PadmetRef, PadmetSpec, Policy, Node, Relation
+from padmet.classes import PadmetRef, PadmetSpec, Node, Relation
 import padmet.utils.sbmlPlugin as sbmlPlugin
-from libsbml import *
+import libsbml
 import docopt
 
 
@@ -667,7 +667,7 @@ def genes_parser(filePath, padmet):
     dict_data = {}
     #k='ACCESSION-1', v ='PRODUCT'
     dict_protein_gene_id = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -737,7 +737,7 @@ def genes_parser(filePath, padmet):
 def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     dict_data = {}
     dict_id_protein_gene_real = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -829,7 +829,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
 
 def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
     dict_data = {}
-    with open(filePath, 'rU') as f:
+    with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
             try:
@@ -942,7 +942,7 @@ def _setXrefs(xrefs, current_id, padmet):
 
 def enhance_db(metabolic_reactions, padmet, with_genes=False):
     print("loading sbml file: %s" %metabolic_reactions)
-    reader = SBMLReader()
+    reader = libsbml.SBMLReader()
     document = reader.readSBML(metabolic_reactions)
     for i in range(document.getNumErrors()):
         print(document.getError(i).getMessage())
@@ -999,7 +999,7 @@ def enhance_db(metabolic_reactions, padmet, with_genes=False):
                             #check if gene already in the padmet
                             padmet.dicOfNode[gene]
                         except TypeError:
-                            gene_node = Node("gene",k)
+                            gene_node = Node("gene",gene)
                             padmet.dicOfNode[gene] = gene_node
                         is_linked_rlt = Relation(reaction_id, "is_linked_to", gene)
                         list_of_relation.append(is_linked_rlt)
