@@ -68,8 +68,20 @@ def main():
         reader = csv.DictReader(f, delimiter = "\t")
         #line[2] or [3] contains genes id with score, delete score and blank
         for line in reader:
-            OrtoA = set([i for i in line["OrtoA"].split(" ") if i != "1.000" and len(i) != 0])
-            OrtoB = set([i for i in line["OrtoB"].split(" ") if i != "1.000" and len(i) != 0])
+            OrtoA = set()
+            for gene_id in line["OrtoA"].split(" "):
+                if len(gene_id) != 0:
+                    try:
+                        float(gene_id)
+                    except ValueError:
+                        OrtoA.add(gene_id)
+            OrtoB = set()
+            for gene_id in line["OrtoB"].split(" "):
+                if len(gene_id) != 0:
+                    try:
+                        float(gene_id)
+                    except ValueError:
+                        OrtoB.add(gene_id)
             for gene in OrtoA:
                 if gene in list(inp_dict.keys()): print(("%s multiple /!\\" %gene))
                 inp_dict[gene] = OrtoB
@@ -137,7 +149,7 @@ def main():
                     new_ga.append(correspondance)
                 new_ga = " or ".join(new_ga)
                 print("\t"+new_ga)
-                rxn_to_add[rxn] = new_ga
+                rxn_to_add[rxn.id] = new_ga
         print("%s/%s reactions to add" %(len(rxn_to_add),len(TU_reactions)))
 
         reader_study = libsbml.SBMLReader()
@@ -146,7 +158,8 @@ def main():
             print(document_study.getError(i).getMessage())
         model_study = document_study.getModel()
 
-        for rxn, new_ga in list(rxn_to_add.items()):
+        for rxn_id, new_ga in list(rxn_to_add.items()):
+            rxn = model.getReaction(rxn_id)
             notes = "<body xmlns=\"http://www.w3.org/1999/xhtml\">"
             notes += "<p>"+"GENE_ASSOCIATION:" + new_ga + "</p>"
             notes += "</body>"
