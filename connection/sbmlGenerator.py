@@ -253,6 +253,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     if verbose: print("%s reactions" %nb_reactions)
     for rNode in reactions:
         rId = rNode.id
+        print(rId)
         rId_encoded = sp.convert_to_coded_id(rId,"R")
         rName = rNode.misc.get("COMMON-NAME",[rId])[0]
         reaction = model.createReaction()
@@ -387,6 +388,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                         [ga_subsets.append(set(i)) for i in eval(subprocess.check_output("python3 "+dir_path_gbr+" "+ga_for_gbr, shell=True))]
                         for ga in ga_subsets:
                             if ga not in all_ga_subsets:
+                                print(ga)
                                 all_ga_subsets.append(ga)
                 except KeyError:
                     pass
