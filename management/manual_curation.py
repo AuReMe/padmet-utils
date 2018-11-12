@@ -116,6 +116,7 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
             attrib, value = line.split(sep)
         except TypeError:
             continue
+        attrib = attrib.replace(" ","")
         if attrib == "reaction_id":
             current_id = value
             dict_data[current_id] = {}

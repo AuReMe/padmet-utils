@@ -396,22 +396,22 @@ def pwy_rate(padmetRef, padmetSpec, metabolic_network, output):
     """
     all_pathways_dict = extract_pwy(padmetRef)    
     network_pathways_dict = extract_pwy(padmetSpec)
-    if network_pathways_dict:
-        fieldnames = ["pathway_rate","concerns@metabolic_network","concerns@pathway","RATE"]
-        with open(output, 'w') as f:
-            writer = csv.writer(f, delimiter="\t")
-            writer.writerow(fieldnames)
-            for pwy_id, rxns_set in list(network_pathways_dict.items()):
-                #pwy_id = "PWY-5497"
-                #rxns_set = network_pathways_dict["PWY-5497"]
-                all_rxns_set = all_pathways_dict[pwy_id]
-                nb_all_rxns = len(all_rxns_set)
-                nb_in_network = len(rxns_set.intersection(all_rxns_set))
-                #rate nb rxn in network / nb total rxn in pwy
-                rate = round(float(nb_in_network)/float(nb_all_rxns),2)
-                rate = str(rate).replace(",",".")
-                pwy_rate_id = "_".join([pwy_id, metabolic_network, rate])
-                writer.writerow([pwy_rate_id, metabolic_network, pwy_id, rate])
+    fieldnames = ["pathway_rate","concerns@metabolic_network","concerns@pathway","rate"]
+    with open(output, 'w') as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(fieldnames)
+        for pwy_id, all_rxns_set in list(all_pathways_dict.items()):
+            #pwy_id = "PWY-5497"
+            #rxns_set = network_pathways_dict["PWY-5497"]
+            all_rxns_set = all_pathways_dict[pwy_id]
+            nb_all_rxns = len(all_rxns_set)
+            rxns_set = network_pathways_dict.get(pwy_id, set())
+            nb_in_network = len(rxns_set.intersection(all_rxns_set))
+            #rate nb rxn in network / nb total rxn in pwy
+            rate = round(float(nb_in_network)/float(nb_all_rxns),2)
+            rate = str(rate).replace(",",".")
+            pwy_rate_id = "_".join([pwy_id, metabolic_network, rate])
+            writer.writerow([pwy_rate_id, metabolic_network, pwy_id, rate])
 
 def rxn_pwy_file(data, output):
     fieldnames = ["rxn_pwy","concerns@reaction","is_included_in@pathway"]
