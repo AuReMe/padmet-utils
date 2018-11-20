@@ -31,8 +31,12 @@ option:
 
 
 """
-from Bio import SeqIO
 import docopt
+
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet.IUPAC import protein
 
 def main():
     args = docopt.docopt(__doc__)
@@ -40,13 +44,13 @@ def main():
     faa_file = args["--output"]
     qualifier = args["--qualifier"]
     verbose = args["-v"]
-    dict_faa = {}
+    fasta_records = []
     with open(gbk_file, "rU") as gbk:
         for seq_record in SeqIO.parse(gbk, "genbank"):
             seq_feature_cds = (seq_feature for seq_feature in seq_record.features if seq_feature.type == "CDS")
             for seq_feature in seq_feature_cds:
                 try:
-                    dict_faa[seq_feature.qualifiers[qualifier][0]] = seq_feature.qualifiers['translation'][0]
+                    fasta_records.append(SeqRecord(Seq(seq_feature.qualifiers['translation'][0], protein), id=seq_feature.qualifiers[qualifier][0], description=""))
                 except KeyError:
                     if verbose:
                         try:
@@ -54,9 +58,7 @@ def main():
                         except KeyError:
                             print("locus without Translation: "+seq_feature.qualifiers.get('gene',["Unknown"])[0])
 
-    with open(faa_file,'w') as f:
-        for locus_tag, seq in dict_faa.items():
-            f.write(">%s\n%s\n" % (locus_tag,seq))
+    SeqIO.write(fasta_records, faa_file, "fasta")
 
 if __name__ == "__main__":
     main()
