@@ -328,22 +328,14 @@ def intern_mapping(id_to_map, db_out, _type):
             all_rxn_id = []
             [all_rxn_id.extend(i) for i in list(mapp_dict.values())]
             if id_to_map in all_rxn_id:
-                return mapp_dict[db_out][0]
+                return mapp_dict.get(db_out, [None])[0]
 
     elif _type == "compound":
         for mapp_dict in list(intern_cpd_dict.values()):
             all_cpd_id = []
             [all_cpd_id.extend(i) for i in list(mapp_dict.values())]
             if id_to_map in all_cpd_id:
-                return mapp_dict[db_out][0]
-
-        if db_out == "METACYC":
-            for mapp_dict in list(intern_cpd_dict.values()):
-                all_cpd_id = []
-                [all_cpd_id.extend(i) for i in list(mapp_dict.values())]
-                if id_to_map.upper() in all_cpd_id:
-                    return mapp_dict[db_out][0]
-
+                return mapp_dict.get(db_out, [None])[0]
 
     return None
 
