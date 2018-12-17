@@ -88,7 +88,7 @@ def main():
         create_biological_page("Metabolite", cpd_node, wiki_folder+"metabolites/")
 
     create_navigation_page(wiki_folder+"/navigation/")
-    create_venn()
+    #create_venn()
     create_main(model_id, model_name)
     if log_file:
         create_log_page(log_file, wiki_folder+"/navigation/")
@@ -119,12 +119,18 @@ def create_venn():
     if verbose: print("Venn Diagramm")
     #'ARGSUCCINSYN-RXN'
     categories_dict ={}
-    all_categories = ["orthology","annotation","gap-filling","manual"]
+    """
+    all_categories = ["orthology","annotation","gap-filling","manual","microbiont"]
     for category in all_categories:
         categories_dict[category] = set()
+    """
     for rxn_id, rxn_src_dict in list(full_sources_dict.items()):
         for category in list(rxn_src_dict.keys()):
-            categories_dict[category].add(rxn_id)
+            try:
+                categories_dict[category].add(rxn_id)
+            except KeyError:
+                categories_dict[category] = set(rxn_id)
+                
     
     labels = get_labels(list(categories_dict.values()))
     fig, ax = venn4(labels, names=list(categories_dict.keys()))
@@ -142,7 +148,7 @@ def create_main(model_id, model_name):
         main_template[main_template.index(line)] = line.replace("MODEL_ID",model_id).replace("MODEL_NAME",model_name)
     final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
     main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
-    reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0}
+    reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0,"MICROBIONT":0,"HOST":0}
     for rec_node in [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reconstructionData"]:
         cat = rec_node.misc["CATEGORY"][0]
         if cat == "ORTHOLOGY":
@@ -599,7 +605,7 @@ def create_biological_page(category, page_node, output_folder):
         pass
     
     dataInArray.extend(properties)
-    with open(fileName,'w') as f:
+    with open(fileName,'w', encoding="utf8") as f:
         for line in dataInArray:
             f.write(line+"\n")
     """                
