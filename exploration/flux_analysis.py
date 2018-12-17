@@ -135,6 +135,10 @@ def fba_on_targets(allspecies, model):
     for species in allspecies:
         #lets create a copy of the initial model
         model2 = model.copy()
+        #remove all obj coef
+        for rxn in model2.reactions:
+            if rxn.objective_coefficient == 1.0:
+                rxn.objective_coefficient = 0.0
         #Create a new reaction that consume the given species
         FBA_rxn = Reaction("FBA_TEST")
         FBA_rxn.lower_bound = 0
