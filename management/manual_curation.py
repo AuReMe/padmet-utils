@@ -145,19 +145,19 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
         else:
             print("Please choose a value in ['true','false'] for the reversibility of the reaction: %s" %reaction_id)
             continue
-        comment = reaction_data["comment"][0]
+        comment = reaction_data["comment"]
         node_misc = {"DIRECTION":[reaction_rev]}
         padmetSpec.createNode("reaction", reaction_id, node_misc)
 
         #reconstructionData:
         if tool:
             reconstructionData_id = reaction_id+"_reconstructionData_"+tool
-            reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":[comment]}
+            reconstructionData =  {"SOURCE": [source], "CATEGORY":[category], "TOOL":[tool], "COMMENT":comment}
             if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source %s" %(reaction_id,tool))
         else:
             reconstructionData_id = reaction_id+"_reconstructionData_MANUAL"
-            reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":[comment]}
+            reconstructionData =  {"SOURCE": [source], "CATEGORY":["MANUAL"], "COMMENT":comment}
             if reconstructionData_id in list(padmetSpec.dicOfNode.keys()) and verbose:
                 print("Warning: The reaction %s seems to be already added from the same source 'MANUAL'" %reaction_id)
 
@@ -257,7 +257,22 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
                 padmetSpec._addRelation(rlt)
         except KeyError:
             if verbose: print("No products defined")
-
+        if "pathway" in reaction_data.keys():
+            pathways = reaction_data["pathway"][0].split(";")
+            for pwy_id in pathways:
+                try:
+                    padmetSpec.dicOfNode[pwy_id]
+                except KeyError:
+                    if verbose: print("%s not in the network" %pwy_id)
+                    if padmetRef is not None:
+                        if verbose: print("Check if new pathway %s is in dbref" %pwy_id)
+                        if pwy_id in padmetRef.dicOfNode.keys():
+                            print("Warning the new pathway %s exist in the dbref, risk of overwritting data, change pwy id" %pwy_id)
+                            continue
+                    padmetSpec.createNode("pathway", pwy_id)
+                    if verbose: print(("new pathway created: id = %s" %pwy_id))
+                rlt = Relation(reaction_id,"is_in_pathway",pwy_id)
+                padmetSpec._addRelation(rlt)
     if verbose: print("Creating output: %s" % output)
     padmetSpec.generateFile(output)
 
