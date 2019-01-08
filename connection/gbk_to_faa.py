@@ -45,7 +45,7 @@ def main():
     qualifier = args["--qualifier"]
     verbose = args["-v"]
     fasta_records = []
-    with open(gbk_file, "rU") as gbk:
+    with open(gbk_file, "r") as gbk:
         for seq_record in SeqIO.parse(gbk, "genbank"):
             seq_feature_cds = (seq_feature for seq_feature in seq_record.features if seq_feature.type == "CDS")
             for seq_feature in seq_feature_cds:
