@@ -71,7 +71,7 @@ def main():
         if wiki_id in os.walk(wiki_folders).next()[1]:
             raise ValueError("A wiki with the id %s already exist, remove it or change the new wiki id" %wiki_id)
         print("Checking wiki id %s: OK" %wiki_id)
-        print("Checking the if the prefix %s_ is already used in the database..." %wiki_id)
+        print("Checking if the prefix %s_ is already used in the database..." %wiki_id)
         try:
             out = subprocess.check_output(["/bin/bash", "-i", "-c", 'DB -D '+db_name+' -e "show tables" -s | egrep "^'+wiki_id+'"'])
             raise ValueError("%s tables found with prefix %s_, a wiki is already using this prefix." %(out.count("\n"), wiki_id))
@@ -140,7 +140,6 @@ def main():
                 all_tables = all_tables[:-1]
                 print("%s tables to drop" %len(all_tables))
                 cmd = 'DB -D '+db_name+' -e "DROP TABLE '+",".join(all_tables)+'"'
-                print cmd
                 subprocess.call(["/bin/bash", "-i", "-c",cmd])
             except subprocess.CalledProcessError:
                 print("No tables with prefix %s_ found" %wiki_id)

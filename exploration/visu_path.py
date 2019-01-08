@@ -35,6 +35,7 @@ options:
 """
 from padmet.classes import PadmetRef, PadmetSpec
 import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout
 import matplotlib.pylab as plt
 import docopt
 
@@ -92,7 +93,7 @@ def main():
     # pip install pygraphviz
     
     nx.draw_networkx(DG,
-                     pos=nx.graphviz_layout(DG, prog='neato'), # Layout from graphviz
+                     pos=graphviz_layout(DG, prog='neato'), # Layout from graphviz
                      node_size=1600,
                      arrows=True,
                      font_size=11,      # font-size for labels

@@ -95,10 +95,10 @@ END_OF_EXPECT\
 # Informs Docker that the container listens on the specified network ports at runtime. 
 # EXPOSE does not make the ports of the container accessible to the host
 EXPOSE 80 3306
+RUN find /var/lib/mysql -type f -exec touch {} \; && service mysql start
 
 # Command for an 'executing container'
 # Think to Python supervisord because the following line is disgusting
 #CMD service nginx start & service mysql start & service php5-fpm start && tail -F /var/log/nginx/error.log
 COPY supervisord.conf /etc/supervisor/conf.d/
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
-RUN find /var/lib/mysql -type f -exec touch {} \; && service mysql start

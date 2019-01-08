@@ -38,7 +38,7 @@ option:
     --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
     --model_faa=FILE    pathname to the proteom of the model (faa)
     --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70]. 
-    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = 
+    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = gene_id_in_metabolic_network\tgene_id_in_faa
     --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
     -v   print info
 """
