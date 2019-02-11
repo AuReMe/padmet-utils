@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -182,7 +187,7 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">docopt</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.visu_path.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.exploration.html#scripts.exploration.visu_path.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
     
     <span class="n">padmet_ref</span> <span class="o">=</span> <span class="n">PadmetRef</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">])</span>
@@ -250,7 +255,7 @@
     <span class="c1">#save_plot(plt, &#39;pathway_&#39; + pathway_id)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
     
-<div class="viewcode-block" id="save_plot"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.visu_path.save_plot">[docs]</a><span class="k">def</span> <span class="nf">save_plot</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="save_plot"><a class="viewcode-back" href="../../../api_docs/scripts.exploration.html#scripts.exploration.visu_path.save_plot">[docs]</a><span class="k">def</span> <span class="nf">save_plot</span><span class="p">(</span><span class="n">plot</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Saves plot in multiple formats</span>
 
 <span class="sd">    :param arg1: plot object</span>

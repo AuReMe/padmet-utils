@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -172,7 +177,7 @@
 <span class="kn">from</span> <span class="nn">libsbml</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">docopt</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbml_to_gene_assoc.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbml_to_gene_assoc.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
     <span class="n">sbml_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--sbml&quot;</span><span class="p">]</span>
     <span class="c1">#using libSbml to read sbml_file</span>
@@ -202,7 +207,7 @@
 
 
 
-<div class="viewcode-block" id="parseNotes"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbml_to_gene_assoc.parseNotes">[docs]</a><span class="k">def</span> <span class="nf">parseNotes</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+<div class="viewcode-block" id="parseNotes"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbml_to_gene_assoc.parseNotes">[docs]</a><span class="k">def</span> <span class="nf">parseNotes</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    From an SBML element (ex: species or reaction) will return all the section</span>
 <span class="sd">    note in a dictionnary.</span>
@@ -242,7 +247,7 @@
             <span class="k">continue</span>
     <span class="k">return</span> <span class="n">notesDict</span></div>
 
-<div class="viewcode-block" id="parseGeneAssoc"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbml_to_gene_assoc.parseGeneAssoc">[docs]</a><span class="k">def</span> <span class="nf">parseGeneAssoc</span><span class="p">(</span><span class="n">GeneAssocStr</span><span class="p">):</span>
+<div class="viewcode-block" id="parseGeneAssoc"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbml_to_gene_assoc.parseGeneAssoc">[docs]</a><span class="k">def</span> <span class="nf">parseGeneAssoc</span><span class="p">(</span><span class="n">GeneAssocStr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a grammar of &#39;and&#39;, &#39;or&#39; and &#39;(&#39; &#39;)&#39;. Extracts genes ids to a list.</span>
 <span class="sd">    (geneX and geneY) or geneW&#39; =&gt; [geneX,geneY,geneW]</span>

@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -192,7 +197,7 @@
 <span class="kn">import</span> <span class="nn">docopt</span>
 <span class="kn">from</span> <span class="nn">padmet.utils</span> <span class="k">import</span> <span class="n">sbmlPlugin</span> <span class="k">as</span> <span class="n">sp</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pre_pantograph.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
     <span class="n">model_metabolic</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_metabolic&quot;</span><span class="p">]</span>
     <span class="n">model_faa</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_faa&quot;</span><span class="p">]</span>
@@ -222,7 +227,7 @@
         <span class="n">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="check_ids"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.check_ids">[docs]</a><span class="k">def</span> <span class="nf">check_ids</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">,</span> <span class="n">model_faa</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="check_ids"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pre_pantograph.check_ids">[docs]</a><span class="k">def</span> <span class="nf">check_ids</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">,</span> <span class="n">model_faa</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    check if genes ids of model_metabolic = model_faa for a given cutoff</span>
 <span class="sd">    faa genes ids are in the first line of each sequence: &gt;GENE_ID ....</span>
@@ -262,7 +267,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">diff_genes</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="get_valid_faa"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.get_valid_faa">[docs]</a><span class="k">def</span> <span class="nf">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_faa"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pre_pantograph.get_valid_faa">[docs]</a><span class="k">def</span> <span class="nf">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    create a new faa from the model_faa by converting the gene id with the dict_ids</span>
 <span class="sd">    dict_ids: line = origin_id new_gene_id, sep = \t</span>

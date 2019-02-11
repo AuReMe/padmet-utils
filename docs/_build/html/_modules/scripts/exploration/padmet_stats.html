@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -177,7 +182,7 @@
 
 <span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetSpec</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.exploration.html#scripts.exploration.padmet_stats.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="s2">&quot;python padmet_stats.py -p padmet_file_folder&quot;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--padmet&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">=</span> <span class="s2">&quot;padmet_file_folder&quot;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s2">&quot;Padmet file or folder containing padmet.&quot;</span><span class="p">)</span>
@@ -220,7 +225,7 @@
 
     <span class="n">output_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="padmet_stat"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.padmet_stat">[docs]</a><span class="k">def</span> <span class="nf">padmet_stat</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">):</span>
+<div class="viewcode-block" id="padmet_stat"><a class="viewcode-back" href="../../../api_docs/scripts.exploration.html#scripts.exploration.padmet_stats.padmet_stat">[docs]</a><span class="k">def</span> <span class="nf">padmet_stat</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">):</span>
     <span class="n">padmetSpec</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">)</span>
 
     <span class="n">total_pwy_id</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -239,7 +244,7 @@
 
     <span class="k">return</span> <span class="p">[</span><span class="n">padmet_file</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_pwys</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_rxns</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_genes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cpds</span><span class="p">)]</span> </div>
 
-<div class="viewcode-block" id="orthology_result"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.orthology_result">[docs]</a><span class="k">def</span> <span class="nf">orthology_result</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">padmet_names</span><span class="p">,</span> <span class="n">padmet_name</span><span class="p">):</span>
+<div class="viewcode-block" id="orthology_result"><a class="viewcode-back" href="../../../api_docs/scripts.exploration.html#scripts.exploration.padmet_stats.orthology_result">[docs]</a><span class="k">def</span> <span class="nf">orthology_result</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">padmet_names</span><span class="p">,</span> <span class="n">padmet_name</span><span class="p">):</span>
     <span class="n">ortholog_species_counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">padmet_names</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ortholog_species_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

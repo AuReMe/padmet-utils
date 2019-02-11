@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -202,7 +207,7 @@
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">docopt</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
     <span class="n">padmetSpec_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetSpec&quot;</span><span class="p">]</span>
     <span class="n">padmetRef_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">]</span>
@@ -438,7 +443,7 @@
 
 
 
-<div class="viewcode-block" id="extract_nodes"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_nodes">[docs]</a><span class="k">def</span> <span class="nf">extract_nodes</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">opt_col</span> <span class="o">=</span> <span class="p">{}):</span>
+<div class="viewcode-block" id="extract_nodes"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_nodes">[docs]</a><span class="k">def</span> <span class="nf">extract_nodes</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">opt_col</span> <span class="o">=</span> <span class="p">{}):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    for n nodes in nodes. for each node.misc = {A:[&#39;x&#39;],B:[&#39;y&#39;,&#39;z&#39;]}</span>
 <span class="sd">    create a file with line = [node.id,A[0],B[0]],[node.id,&quot;&quot;,B[1]]</span>
@@ -476,7 +481,7 @@
                 <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span>
                 <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="extract_rxn_cpd"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_cpd">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_cpd</span><span class="p">(</span><span class="n">rxn_cpd_rlt</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_rxn_cpd"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_cpd">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_cpd</span><span class="p">(</span><span class="n">rxn_cpd_rlt</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    for rlt in rxn_cpd_rlt, append in data: [rxn_id,cpd_id(consumed),&#39;&#39;,stoich,compartment]</span>
 <span class="sd">    and/or [rxn_id,&#39;&#39;,cpd_id(produced),stoich,compartment]. The value in index 0</span>
@@ -497,7 +502,7 @@
         <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="rxn_cpd_file"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.rxn_cpd_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_cpd_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="rxn_cpd_file"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.rxn_cpd_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_cpd_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    from data obtained with extract_rxn_cpd(), create file rxn_cpd</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -507,7 +512,7 @@
         <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">fieldnames</span><span class="p">)</span>
         <span class="p">[</span><span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="extract_rxn_pwy"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_pwy">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_pwy</span><span class="p">(</span><span class="n">rxn_pwy_rlt</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_rxn_pwy"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_pwy">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_pwy</span><span class="p">(</span><span class="n">rxn_pwy_rlt</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    for rlt in rxn_pwy_rlt, append in data: [rxn_id,pwy_id]. The value in index 0</span>
 <span class="sd">    is a merge of all data to create a unique relation id</span>
@@ -521,7 +526,7 @@
         <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="extract_pwy"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_pwy">[docs]</a><span class="k">def</span> <span class="nf">extract_pwy</span><span class="p">(</span><span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_pwy"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_pwy">[docs]</a><span class="k">def</span> <span class="nf">extract_pwy</span><span class="p">(</span><span class="n">padmet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    from padmet return a dict, k = pwy_id, v = set of rxn_id in pwy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -533,7 +538,7 @@
     <span class="p">[</span><span class="n">pathways_rxn_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">pathways_rxn_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">pathways_rxn_dict</span></div>
 
-<div class="viewcode-block" id="pwy_rate"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.pwy_rate">[docs]</a><span class="k">def</span> <span class="nf">pwy_rate</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">metabolic_network</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="pwy_rate"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.pwy_rate">[docs]</a><span class="k">def</span> <span class="nf">pwy_rate</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">metabolic_network</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    pwy rate in padmetSpec is calculated based on padmetRef</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -556,7 +561,7 @@
             <span class="n">pwy_rate_id</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">pwy_id</span><span class="p">,</span> <span class="n">metabolic_network</span><span class="p">,</span> <span class="n">rate</span><span class="p">])</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">pwy_rate_id</span><span class="p">,</span> <span class="n">metabolic_network</span><span class="p">,</span> <span class="n">pwy_id</span><span class="p">,</span> <span class="n">rate</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="rxn_pwy_file"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.rxn_pwy_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_pwy_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="rxn_pwy_file"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.rxn_pwy_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_pwy_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rxn_pwy&quot;</span><span class="p">,</span><span class="s2">&quot;concerns@reaction&quot;</span><span class="p">,</span><span class="s2">&quot;is_included_in@pathway&quot;</span><span class="p">]</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -564,7 +569,7 @@
         <span class="p">[</span><span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="extract_entity_xref"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_entity_xref">[docs]</a><span class="k">def</span> <span class="nf">extract_entity_xref</span><span class="p">(</span><span class="n">entity_xref_rlt</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_entity_xref"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_entity_xref">[docs]</a><span class="k">def</span> <span class="nf">extract_entity_xref</span><span class="p">(</span><span class="n">entity_xref_rlt</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">entity_xref_rlt</span><span class="p">:</span>
         <span class="n">entity_id</span> <span class="o">=</span> <span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span>
@@ -581,14 +586,14 @@
         <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="entity_xref_file"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.entity_xref_file">[docs]</a><span class="k">def</span> <span class="nf">entity_xref_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="entity_xref_file"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.entity_xref_file">[docs]</a><span class="k">def</span> <span class="nf">entity_xref_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;entity_xref&quot;</span><span class="p">,</span> <span class="s2">&quot;has_metadata@xref&quot;</span><span class="p">,</span> <span class="s2">&quot;concerns@reaction&quot;</span><span class="p">,</span><span class="s2">&quot;concerns@pathway&quot;</span><span class="p">,</span><span class="s2">&quot;concerns@compound&quot;</span><span class="p">]</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">fieldnames</span><span class="p">)</span>
         <span class="p">[</span><span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="extract_rxn_gene"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_gene">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_gene</span><span class="p">(</span><span class="n">rxn_gene_rlt</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_rxn_gene"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_gene">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_gene</span><span class="p">(</span><span class="n">rxn_gene_rlt</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">rxn_gene_rlt</span><span class="p">:</span>
         <span class="n">rxn_id</span> <span class="o">=</span> <span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span>
@@ -607,14 +612,14 @@
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="rxn_gene_file"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.rxn_gene_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_gene_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="rxn_gene_file"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.rxn_gene_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_gene_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rxn_gene_recData&quot;</span><span class="p">,</span><span class="s2">&quot;concerns@reaction&quot;</span><span class="p">,</span><span class="s2">&quot;is_linked_to@gene&quot;</span><span class="p">,</span><span class="s2">&quot;was_obtained_with@reconstructionData&quot;</span><span class="p">,</span> <span class="s2">&quot;assignment_evidence&quot;</span><span class="p">]</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">fieldnames</span><span class="p">)</span>
         <span class="p">[</span><span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="extract_rxn_rec"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_rec">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_rec</span><span class="p">(</span><span class="n">rxn_rec_rlt</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_rxn_rec"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.extract_rxn_rec">[docs]</a><span class="k">def</span> <span class="nf">extract_rxn_rec</span><span class="p">(</span><span class="n">rxn_rec_rlt</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">rxn_rec_rlt</span><span class="p">:</span>
         <span class="n">rxn_id</span> <span class="o">=</span> <span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span>
@@ -623,7 +628,7 @@
         <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="rxn_rec_file"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.padmet_to_tsv.rxn_rec_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_rec_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="rxn_rec_file"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.padmet_to_tsv.rxn_rec_file">[docs]</a><span class="k">def</span> <span class="nf">rxn_rec_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
     <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">,</span><span class="s2">&quot;has_metadata@reconstructionData&quot;</span><span class="p">]</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>

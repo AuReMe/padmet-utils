@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -192,7 +197,7 @@
 <span class="n">def_max_lower_bound</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1000</span>
 <span class="n">BOUNDARY_ID</span> <span class="o">=</span> <span class="s1">&#39;C-BOUNDARY&#39;</span>
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
     <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
@@ -228,7 +233,7 @@
             <span class="n">species_compart</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
         <span class="n">compound_to_sbml</span><span class="p">(</span><span class="n">species_compart</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="padmet_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.padmet_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obj_fct</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sbml_lvl</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mnx_chem_prop</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mnx_chem_xref</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="padmet_to_sbml"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.padmet_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obj_fct</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sbml_lvl</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mnx_chem_prop</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mnx_chem_xref</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert padmet file to sbml file.</span>
 <span class="sd">    Specificity: </span>
@@ -578,7 +583,7 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done, creating sbml file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">output</span><span class="p">)</span>
     <span class="n">libsbml</span><span class="o">.</span><span class="n">writeSBMLToFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="parse_mnx_chem_xref"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_xref">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_xref</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_mnx_chem_xref"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_xref">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_xref</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">):</span>
     <span class="c1">#k = xref id, v = mnx_id</span>
     <span class="n">dict_mnx_chem_xref</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -587,7 +592,7 @@
             <span class="n">dict_mnx_chem_xref</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
     <span class="k">return</span> <span class="n">dict_mnx_chem_xref</span></div>
 
-<div class="viewcode-block" id="parse_mnx_chem_prop"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_prop">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_prop</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">):</span>
+<div class="viewcode-block" id="parse_mnx_chem_prop"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_prop">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_prop</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">):</span>
     <span class="c1">#k=mnx_id, v = dict of data</span>
     <span class="n">dict_mnx_chem_prop</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -595,14 +600,14 @@
             <span class="n">dict_mnx_chem_prop</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;description&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s2">&quot;charge&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s2">&quot;mass&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="s2">&quot;inchi&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="s2">&quot;smiles&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span><span class="s2">&quot;source&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span><span class="s2">&quot;inchikey&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">8</span><span class="p">]}</span>
     <span class="k">return</span> <span class="n">dict_mnx_chem_prop</span></div>
 
-<div class="viewcode-block" id="create_note"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.create_note">[docs]</a><span class="k">def</span> <span class="nf">create_note</span><span class="p">(</span><span class="n">dict_data</span><span class="p">):</span>
+<div class="viewcode-block" id="create_note"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.create_note">[docs]</a><span class="k">def</span> <span class="nf">create_note</span><span class="p">(</span><span class="n">dict_data</span><span class="p">):</span>
     <span class="n">notes</span> <span class="o">=</span> <span class="s2">&quot;&lt;body xmlns=</span><span class="se">\&quot;</span><span class="s2">http://www.w3.org/1999/xhtml</span><span class="se">\&quot;</span><span class="s2">&gt;&quot;</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_data</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;p&gt;&quot;</span><span class="o">+</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;: &quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;&lt;/p&gt;&quot;</span>
     <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/body&gt;&quot;</span>
     <span class="k">return</span> <span class="n">notes</span></div>
 
-<div class="viewcode-block" id="create_annotation"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.create_annotation">[docs]</a><span class="k">def</span> <span class="nf">create_annotation</span><span class="p">(</span><span class="n">inchi</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">):</span>
+<div class="viewcode-block" id="create_annotation"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.create_annotation">[docs]</a><span class="k">def</span> <span class="nf">create_annotation</span><span class="p">(</span><span class="n">inchi</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    dict_data, k = url, v = id</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -610,7 +615,7 @@
     <span class="n">annot_xml</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">XMLNode</span><span class="o">.</span><span class="n">convertStringToXMLNode</span><span class="p">(</span><span class="n">annotations</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_xml</span></div>
     
-<div class="viewcode-block" id="add_ga"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.add_ga">[docs]</a><span class="k">def</span> <span class="nf">add_ga</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">,</span> <span class="n">all_ga_subsets</span><span class="p">):</span>
+<div class="viewcode-block" id="add_ga"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.add_ga">[docs]</a><span class="k">def</span> <span class="nf">add_ga</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">,</span> <span class="n">all_ga_subsets</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    if list_ga len == 1: only 1 list of gene: if len of this list is 1: just add gene, else create OR structure</span>
 <span class="sd">    else: create OR structure, then for each list of gene</span>
@@ -652,7 +657,7 @@
 
 <span class="c1">#################################</span>
 
-<div class="viewcode-block" id="reaction_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.reaction_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">reaction_to_sbml</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="reaction_to_sbml"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.reaction_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">reaction_to_sbml</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    convert a list of reactions to sbml format based on a given padmet of reference.</span>
 <span class="sd">    - ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id</span>
@@ -683,7 +688,7 @@
     <span class="n">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">sbml_lvl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="compound_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.compound_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">compound_to_sbml</span><span class="p">(</span><span class="n">species_compart</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="compound_to_sbml"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.compound_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">compound_to_sbml</span><span class="p">(</span><span class="n">species_compart</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    convert a list of compounds to sbml format</span>
 <span class="sd">    if compart_name is not None, then the compounds id will by: M_originalID_compart_name</span>
@@ -720,7 +725,7 @@
     
     <span class="n">libsbml</span><span class="o">.</span><span class="n">writeSBMLToFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.check">[docs]</a><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.sbmlGenerator.check">[docs]</a><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;If &#39;value&#39; is None, prints an error message constructed using</span>
 <span class="sd">    &#39;message&#39; and then exits with status code 1.  If &#39;value&#39; is an integer,</span>
 <span class="sd">    it assumes it is a libSBML return status code.  If the code value is</span>

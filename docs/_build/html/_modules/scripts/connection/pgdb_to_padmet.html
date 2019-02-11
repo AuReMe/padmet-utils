@@ -77,6 +77,11 @@
             
             
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.connection.html">Scripts: Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.exploration.html">Scripts: Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/scripts.management.html">Scripts: Management</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
 </ul>
 
@@ -269,7 +274,7 @@
 
 <span class="c1">#1 Parsing .dat</span>
 <span class="c1">#2 creating nodes and relations</span>
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">chronoDepart</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
 
     <span class="k">global</span> <span class="n">regex_purge</span><span class="p">,</span> <span class="n">regex_xref</span><span class="p">,</span> <span class="n">list_of_relation</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">def_compart_in</span><span class="p">,</span> <span class="n">def_compart_out</span><span class="p">,</span> <span class="n">with_genes</span><span class="p">,</span> <span class="n">source</span>
@@ -428,7 +433,7 @@
     <span class="n">chrono</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">partie_entiere</span><span class="p">,</span> <span class="n">partie_decimale</span><span class="p">[:</span><span class="mi">3</span><span class="p">]])</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;done in: &quot;</span><span class="p">,</span> <span class="n">chrono</span><span class="p">,</span> <span class="s2">&quot;s !&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="classes_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.classes_parser">[docs]</a><span class="k">def</span> <span class="nf">classes_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="classes_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.classes_parser">[docs]</a><span class="k">def</span> <span class="nf">classes_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    from class.dat: get for each class, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS</span>
 <span class="sd">    Create a class node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}</span>
@@ -495,7 +500,7 @@
             <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="reactions_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.reactions_parser">[docs]</a><span class="k">def</span> <span class="nf">reactions_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="reactions_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.reactions_parser">[docs]</a><span class="k">def</span> <span class="nf">reactions_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    from reaction.dat: get for each reaction, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS</span>
 <span class="sd">    Create a reaction node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}</span>
@@ -676,7 +681,7 @@
             <span class="k">if</span> <span class="n">rxn_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;RIGHT-TO-LEFT&quot;</span><span class="p">:</span>
                 <span class="n">rxn_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LEFT-TO-RIGHT&quot;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="pathways_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.pathways_parser">[docs]</a><span class="k">def</span> <span class="nf">pathways_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="pathways_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.pathways_parser">[docs]</a><span class="k">def</span> <span class="nf">pathways_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;windows-1252&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;//&quot;</span><span class="p">)</span>
@@ -745,7 +750,7 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="compounds_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.compounds_parser">[docs]</a><span class="k">def</span> <span class="nf">compounds_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="compounds_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.compounds_parser">[docs]</a><span class="k">def</span> <span class="nf">compounds_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;windows-1252&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;//&quot;</span><span class="p">)</span>
@@ -806,7 +811,7 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="genes_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.genes_parser">[docs]</a><span class="k">def</span> <span class="nf">genes_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
+<div class="viewcode-block" id="genes_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.genes_parser">[docs]</a><span class="k">def</span> <span class="nf">genes_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">):</span>
     <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c1">#k=&#39;ACCESSION-1&#39;, v =&#39;PRODUCT&#39;</span>
     <span class="n">dict_protein_gene_id</span> <span class="o">=</span> <span class="p">{}</span>
@@ -877,7 +882,7 @@
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="se">\t</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">nb_genes</span><span class="p">,</span> <span class="n">current_id</span><span class="p">,</span> <span class="n">gene_id</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">dict_protein_gene_id</span></div>
 
-<div class="viewcode-block" id="proteins_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.proteins_parser">[docs]</a><span class="k">def</span> <span class="nf">proteins_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">dict_gene_unique_id_real_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="proteins_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.proteins_parser">[docs]</a><span class="k">def</span> <span class="nf">proteins_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">dict_gene_unique_id_real_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dict_id_protein_gene_real</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;windows-1252&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -970,7 +975,7 @@
                 <span class="k">pass</span>
     <span class="k">return</span> <span class="n">dict_id_protein_gene_real</span></div>
 
-<div class="viewcode-block" id="enzrxns_parser"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.enzrxns_parser">[docs]</a><span class="k">def</span> <span class="nf">enzrxns_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">dict_protein_gene_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="enzrxns_parser"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.enzrxns_parser">[docs]</a><span class="k">def</span> <span class="nf">enzrxns_parser</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">dict_protein_gene_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;windows-1252&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;//&quot;</span><span class="p">)</span>
@@ -1083,7 +1088,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">xref_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="n">db</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_id</span><span class="p">]</span>
 
-<div class="viewcode-block" id="enhance_db"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pgdb_to_padmet.enhance_db">[docs]</a><span class="k">def</span> <span class="nf">enhance_db</span><span class="p">(</span><span class="n">metabolic_reactions</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">with_genes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="enhance_db"><a class="viewcode-back" href="../../../api_docs/scripts.connection.html#scripts.connection.pgdb_to_padmet.enhance_db">[docs]</a><span class="k">def</span> <span class="nf">enhance_db</span><span class="p">(</span><span class="n">metabolic_reactions</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">with_genes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;loading sbml file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">metabolic_reactions</span><span class="p">)</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
     <span class="n">document</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">metabolic_reactions</span><span class="p">)</span>
