@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.connection.post_pantograph_gbr &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.connection.post_pantograph_gbr</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.connection.post_pantograph_gbr</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    post_pantograph.py    --ptg_run=DIR --output=FILE [-v]</span>
+<span class="sd">    post_pantograph.py    --model_metabolic=FILE    --study_metabolic=FILE    --inp=FILE --omcl=FILE --output=FILE [-v]</span>
+
+<span class="sd">option:</span>
+<span class="sd">    -h --help    Show help.</span>
+<span class="sd">    --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).</span>
+<span class="sd">    --model_faa=FILE    pathname to the proteom of the model (faa)</span>
+<span class="sd">    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70].</span>
+<span class="sd">    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line =</span>
+<span class="sd">    --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)</span>
+<span class="sd">    -v   print info</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">padmet.utils.sbmlPlugin</span> <span class="k">import</span> <span class="n">parseNotes</span><span class="p">,</span> <span class="n">parseGeneAssoc</span>
+<span class="kn">import</span> <span class="nn">libsbml</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.post_pantograph_gbr.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="n">fold</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--ptg_run&quot;</span><span class="p">]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fold</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fold</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">dir_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">fold</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dir_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">fold</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">fold</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+        <span class="n">model_metabolic</span> <span class="o">=</span> <span class="n">fold</span><span class="o">+</span><span class="s2">&quot;metabolic_model.sbml&quot;</span>
+        <span class="n">study_metabolic</span> <span class="o">=</span> <span class="n">fold</span><span class="o">+</span><span class="s2">&quot;original_output_pantograph_&quot;</span><span class="o">+</span><span class="n">dir_name</span><span class="o">+</span><span class="s2">&quot;.sbml&quot;</span>
+        <span class="n">omcl_rez</span> <span class="o">=</span> <span class="n">fold</span><span class="o">+</span><span class="s2">&quot;all_orthomcl.out&quot;</span>
+        <span class="n">inp_rez</span> <span class="o">=</span> <span class="n">fold</span><span class="o">+</span><span class="s2">&quot;table.FAA_model.faa-FAA_study.faa&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">model_metabolic</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_metabolic&quot;</span><span class="p">]</span>
+        <span class="n">study_metabolic</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--study_metabolic&quot;</span><span class="p">]</span>
+        <span class="n">omcl_rez</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--omcl&quot;</span><span class="p">]</span>
+        <span class="n">inp_rez</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--inp&quot;</span><span class="p">]</span>
+
+    <span class="n">dir_path_gbr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;/grammar-boolean-rapsody.py&quot;</span>
+
+    <span class="c1">#create dict, k = OrtoA gene_id, v = set of OrtoB orthologus</span>
+    <span class="n">inp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inp_rez</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1">#line[2] or [3] contains genes id with score, delete score and blank</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">OrtoA</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;OrtoA&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">float</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">OrtoA</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+            <span class="n">OrtoB</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;OrtoB&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">float</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">OrtoB</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">OrtoA</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">gene</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">inp_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span> <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> multiple /!</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">gene</span><span class="p">))</span>
+                <span class="n">inp_dict</span><span class="p">[</span><span class="n">gene</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrtoB</span>
+
+    <span class="c1">#create a dict K = FAA_model gene id, V = set of FAA_study gene ortho</span>
+    <span class="n">omcl_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">omcl_rez</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">omcl_raw_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
+    <span class="n">ortho</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">omcl_raw_data</span><span class="p">:</span>
+        <span class="n">all_genes</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([(</span><span class="s2">&quot;FAA_model&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([(</span><span class="s2">&quot;FAA_study&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">]):</span>
+            <span class="n">ortho</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_genes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">genes</span> <span class="ow">in</span> <span class="n">ortho</span><span class="p">:</span>
+        <span class="n">study_genes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">g</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;(FAA_study)&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">genes</span> <span class="k">if</span> <span class="s2">&quot;FAA_study&quot;</span> <span class="ow">in</span> <span class="n">g</span><span class="p">])</span>
+        <span class="n">model_genes</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;(FAA_model)&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">genes</span> <span class="k">if</span> <span class="s2">&quot;FAA_model&quot;</span> <span class="ow">in</span> <span class="n">g</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">model_genes</span><span class="p">:</span>
+            <span class="n">omcl_dict</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">study_genes</span>
+
+    <span class="n">ortho_in_omcl</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">omcl_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">ortho_in_inp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">inp_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">ortho_in_omcl_and_inp</span> <span class="o">=</span> <span class="n">ortho_in_omcl</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ortho_in_inp</span><span class="p">)</span>
+
+    <span class="c1">#read in model metabolic reactions with or &amp; and in gene assoc&#39;</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">getError</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">getMessage</span><span class="p">())</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+    <span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getListOfReactions</span><span class="p">()</span>
+    <span class="n">TU_reactions</span> <span class="o">=</span> <span class="p">[</span><span class="n">rxn</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">listOfReactions</span> <span class="k">if</span> <span class="s2">&quot;or&quot;</span> <span class="ow">in</span> <span class="n">parseNotes</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">,[</span><span class="s2">&quot;&quot;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="ow">and</span> <span class="s2">&quot;and&quot;</span> <span class="ow">in</span> <span class="n">parseNotes</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">,[</span><span class="s2">&quot;&quot;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nb TU reactions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">TU_reactions</span><span class="p">))</span>
+
+    <span class="n">reader_study</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
+    <span class="n">document_study</span> <span class="o">=</span> <span class="n">reader_study</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">study_metabolic</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">document_study</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">document_study</span><span class="o">.</span><span class="n">getError</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">getMessage</span><span class="p">())</span>
+    <span class="n">model_study</span> <span class="o">=</span> <span class="n">document_study</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">TU_reactions</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">rxn_to_add</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">TU_reactions</span><span class="p">:</span>
+            <span class="n">match_subsets</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;reaction </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">TU_reactions</span><span class="p">),</span> <span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+            <span class="c1">#rxn = TU_reactions[0]</span>
+            <span class="n">ga</span> <span class="o">=</span> <span class="n">parseNotes</span><span class="p">(</span><span class="n">rxn</span><span class="p">)[</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">all_genes</span> <span class="o">=</span> <span class="n">parseGeneAssoc</span><span class="p">(</span><span class="n">ga</span><span class="p">)</span>
+            <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; or &quot;</span> <span class="p">,</span> <span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="n">ga</span><span class="p">)</span>
+            <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; and &quot;</span> <span class="p">,</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">,</span> <span class="n">ga_for_gbr</span><span class="p">)</span>
+            <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s&quot;</span> <span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ga_for_gbr</span><span class="p">)</span>
+            <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">ga_for_gbr</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+            <span class="c1">#for edi test only</span>
+            <span class="c1">#ga_subsets = eval(subprocess.check_output(&quot;python3 grammar-boolean-rapsody.py &quot;+ga_for_gbr, shell=True))</span>
+            <span class="n">ga_subsets</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s2">&quot;python3 &quot;</span><span class="o">+</span><span class="n">dir_path_gbr</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">ga_for_gbr</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="p">[</span><span class="n">match_subsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">ga_subsets</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">ortho_in_omcl_and_inp</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">match_subsets</span><span class="p">:</span>
+                <span class="n">new_ga</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">To add, OMCL &amp; INPA valide&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">match_subsets</span><span class="p">:</span>
+                    <span class="n">correspondance</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot; or &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span><span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">inp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span><span class="nb">set</span><span class="p">())))</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">subset</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;)&quot;</span>
+                    <span class="n">new_ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">correspondance</span><span class="p">)</span>
+                <span class="n">new_ga</span> <span class="o">=</span> <span class="s2">&quot; or &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_ga</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">new_ga</span><span class="p">)</span>
+                <span class="n">rxn_to_add</span><span class="p">[</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_ga</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> reactions to add&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rxn_to_add</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">TU_reactions</span><span class="p">)))</span>
+
+        <span class="n">reader_study</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
+        <span class="n">document_study</span> <span class="o">=</span> <span class="n">reader_study</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">study_metabolic</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">document_study</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">document_study</span><span class="o">.</span><span class="n">getError</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">getMessage</span><span class="p">())</span>
+        <span class="n">model_study</span> <span class="o">=</span> <span class="n">document_study</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">rxn_id</span><span class="p">,</span> <span class="n">new_ga</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">rxn_to_add</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">rxn</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getReaction</span><span class="p">(</span><span class="n">rxn_id</span><span class="p">)</span>
+            <span class="n">notes</span> <span class="o">=</span> <span class="s2">&quot;&lt;body xmlns=</span><span class="se">\&quot;</span><span class="s2">http://www.w3.org/1999/xhtml</span><span class="se">\&quot;</span><span class="s2">&gt;&quot;</span>
+            <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;p&gt;&quot;</span><span class="o">+</span><span class="s2">&quot;GENE_ASSOCIATION:&quot;</span> <span class="o">+</span> <span class="n">new_ga</span> <span class="o">+</span> <span class="s2">&quot;&lt;/p&gt;&quot;</span>
+            <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/body&gt;&quot;</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">setNotes</span><span class="p">(</span><span class="n">notes</span><span class="p">),</span> <span class="s1">&#39;set notes </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">notes</span><span class="p">)</span>
+            <span class="n">allSpecies</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">getListOfProducts</span><span class="p">()])</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">getListOfReactants</span><span class="p">()]))</span>
+            <span class="k">for</span> <span class="n">species_id</span> <span class="ow">in</span> <span class="n">allSpecies</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">model_study</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">(</span><span class="n">species_id</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in study model&quot;</span> <span class="o">%</span><span class="n">species_id</span><span class="p">)</span>
+                    <span class="n">species_sbml</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">(</span><span class="n">species_id</span><span class="p">)</span>
+                    <span class="n">model_study</span><span class="o">.</span><span class="n">addSpecies</span><span class="p">(</span><span class="n">species_sbml</span><span class="p">)</span>
+            <span class="n">model_study</span><span class="o">.</span><span class="n">addReaction</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+
+    <span class="n">reactions_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">model_study</span><span class="o">.</span><span class="n">getListOfReactions</span><span class="p">()</span>
+    <span class="n">listOfSpecies</span> <span class="o">=</span> <span class="n">model_study</span><span class="o">.</span><span class="n">getListOfSpecies</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">listOfReactions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;GENE_ASSOCIATION&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">parseNotes</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">reactions_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">getId</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">rId</span> <span class="ow">in</span> <span class="n">reactions_to_remove</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Removing </span><span class="si">%s</span><span class="s2"> without gene association&quot;</span> <span class="o">%</span><span class="n">rId</span><span class="p">)</span>
+        <span class="n">listOfReactions</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rId</span><span class="p">)</span>
+
+    <span class="n">species_in_rxn_temp</span> <span class="o">=</span> <span class="p">[[</span><span class="n">r</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">getListOfReactants</span><span class="p">()]</span><span class="o">+</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">getListOfProducts</span><span class="p">()]</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">listOfReactions</span><span class="p">]</span>
+    <span class="n">species_in_rxn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="p">[</span><span class="n">species_in_rxn</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">species_in_rxn_temp</span><span class="p">]</span>
+    <span class="p">[</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">sId</span><span class="p">)</span> <span class="k">for</span> <span class="n">sId</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listOfSpecies</span><span class="p">])</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">species_in_rxn</span><span class="p">)]</span>    
+
+    <span class="n">libsbml</span><span class="o">.</span><span class="n">writeSBMLToFile</span><span class="p">(</span><span class="n">document_study</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.post_pantograph_gbr.check">[docs]</a><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;If &#39;value&#39; is None, prints an error message constructed using</span>
+<span class="sd">    &#39;message&#39; and then exits with status code 1.  If &#39;value&#39; is an integer,</span>
+<span class="sd">    it assumes it is a libSBML return status code.  If the code value is</span>
+<span class="sd">    LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,</span>
+<span class="sd">    prints an error message constructed using &#39;message&#39; along with text from</span>
+<span class="sd">    libSBML explaining the meaning of the code, and exits with status code 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s1">&#39;LibSBML returned a null value trying to &#39;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">LIBSBML_OPERATION_SUCCESS</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;Error encountered trying to &#39;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> \
+                 <span class="o">+</span> <span class="s1">&#39;LibSBML returned error code &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &quot;&#39;</span> \
+                 <span class="o">+</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">OperationReturnValue_toString</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

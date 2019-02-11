@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.connection.aspGenerator &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.connection.aspGenerator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.connection.aspGenerator</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet.</span>
+
+<span class="sd">padmet is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+<span class="sd">This module contains functions to convert a padmet file to predicats for ASP</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetSpec</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;asp_synt&#39;</span><span class="p">,</span> <span class="s1">&#39;padmet_to_asp&#39;</span><span class="p">]</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="n">padmet_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmet&quot;</span><span class="p">]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+
+    <span class="n">padmet_to_asp</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+<div class="viewcode-block" id="asp_synt"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.aspGenerator.asp_synt">[docs]</a><span class="k">def</span> <span class="nf">asp_synt</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">list_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    create a predicat for asp</span>
+
+<span class="sd">    @example: asp_synt(&quot;direction&quot;,[&quot;R1&quot;,&quot;REVERSIBLE&quot;]) =&gt; &quot;direction(&#39;R1&#39;,&#39;reversible&#39;).&quot;</span>
+<span class="sd">    @param pred: the predicat</span>
+<span class="sd">    @param list_args: list of atoms to put in the predicat</span>
+<span class="sd">    @type pred: str</span>
+<span class="sd">    @type list_args: list</span>
+<span class="sd">    @return: the predicat &#39;pred(&#39;&#39;list_args[0]&#39;&#39;,&#39;&#39;list_args[1]&#39;&#39;,...,&#39;&#39;list_args[n]&#39;&#39;).&#39;</span>
+<span class="sd">    @rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">list_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_args</span><span class="p">]</span>
+    <span class="n">rez</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_args</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;).&quot;</span>
+    <span class="k">return</span> <span class="n">rez</span></div>
+
+
+<div class="viewcode-block" id="padmet_to_asp"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.aspGenerator.padmet_to_asp">[docs]</a><span class="k">def</span> <span class="nf">padmet_to_asp</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert PADMet to ASP following these predicats:</span>
+<span class="sd">    common_name({reaction_id or enzyme_id or pathway_id or compound_id} , common_name)</span>
+<span class="sd">    direction(reaction_id, reaction_direction). reaction_direction in[LEFT-TO-RIGHT,REVERSIBLE]</span>
+<span class="sd">    ec_number(reaction_id, ec(x,x,x)).</span>
+<span class="sd">    catalysed_by(reaction_id, enzyme_id).</span>
+<span class="sd">    uniprotID(enzyme_id, uniprot_id). #if has has_xref and db = &quot;UNIPROT&quot;</span>
+<span class="sd">    in_pathway(reaction_id, pathway_id).</span>
+<span class="sd">    reactant(reaction_id, compound_id, stoechio_value).</span>
+<span class="sd">    product(reaction_id, compound_id, stoechio_value).</span>
+<span class="sd">    is_a(compound_id, class_id).</span>
+<span class="sd">    is_a(pathway_id, pathway_id).</span>
+
+<span class="sd">    @param padmet_file: the path to padmet file to convert</span>
+<span class="sd">    @param output: the path to the output to create</span>
+<span class="sd">    @param verbose: print informations</span>
+<span class="sd">    @type padmet_file: str</span>
+<span class="sd">    @type output: str</span>
+<span class="sd">    @type verbose: bool</span>
+<span class="sd">    @return: _</span>
+<span class="sd">    @rtype: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">padmet</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1">#recover all reactions&#39;s data</span>
+        <span class="n">reactions</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">]</span>
+        <span class="n">nb_reactions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+
+        <span class="c1">#set where to store compounds and enzymes already recovered</span>
+        <span class="n">allCompounds_enzymes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">reaction_node</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">reaction_id</span> <span class="o">=</span> <span class="n">reaction_node</span><span class="o">.</span><span class="n">id</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reaction &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nb_reactions</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">reaction_id</span><span class="p">)</span>
+            
+            <span class="c1">#common_name</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reaction_name</span> <span class="o">=</span> <span class="n">reaction_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;common_name&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">reaction_name</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="c1">#direction</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reaction_direction</span> <span class="o">=</span> <span class="n">reaction_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">reaction_direction</span> <span class="o">=</span> <span class="s2">&quot;REVERSIBLE&quot;</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;direction&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">reaction_direction</span><span class="p">])</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            
+            <span class="c1">#EC-Number</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ECs</span> <span class="o">=</span> <span class="n">reaction_node</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;EC_NUMBER&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">ec_number</span> <span class="ow">in</span> <span class="n">ECs</span><span class="p">:</span>
+                    <span class="n">ec_number</span> <span class="o">=</span> <span class="n">ec_number</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;EC-&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;ec_number&quot;</span><span class="o">+</span><span class="s2">&quot;(</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">reaction_id</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">, ec(&quot;</span><span class="o">+</span><span class="n">ec_number</span><span class="o">+</span><span class="s2">&quot;)).&quot;</span>
+                    <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">pass</span>
+            
+            <span class="c1">#Enzymes</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">enzymes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationOut</span><span class="p">[</span><span class="n">reaction_id</span><span class="p">]</span>            
+                <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;catalyses&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">enzyme_id</span> <span class="ow">in</span> <span class="n">enzymes</span><span class="p">:</span>
+                    <span class="c1">#check if enzyme has uniprot_id</span>
+                    <span class="k">if</span> <span class="n">enzyme_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allCompounds_enzymes</span><span class="p">:</span>
+                        <span class="n">allCompounds_enzymes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">enzyme_id</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">uniprot_ref</span> <span class="o">=</span> <span class="p">[</span><span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">enzyme_id</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;has_xref&quot;</span>
+                            <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;UNIPROT&quot;</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;DB&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> 
+                            
+                            <span class="k">for</span> <span class="n">uniprot_id</span> <span class="ow">in</span> <span class="n">uniprot_ref</span><span class="p">:</span>
+                                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;uniprotID&quot;</span><span class="p">,[</span><span class="n">enzyme_id</span><span class="p">,</span> <span class="n">uniprot_id</span><span class="p">])</span>
+                                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">pass</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">enzyme_name</span> <span class="o">=</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">enzyme_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;common_name&quot;</span><span class="p">,[</span><span class="n">enzyme_id</span><span class="p">,</span> <span class="n">enzyme_name</span><span class="p">])</span>
+                            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;catalysed_by&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">enzyme_id</span><span class="p">])</span>
+                    <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">pass</span>
+            
+            <span class="c1">#pathways</span>
+            <span class="n">pathways</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">reaction_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_in_pathway&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">pathway_id</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;in_pathway&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">pathway_id</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        
+            <span class="c1">#reactants</span>
+            <span class="n">reactants_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">,</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> 
+            <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">reaction_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;consumes&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">reactant_id</span><span class="p">,</span> <span class="n">stoechio</span> <span class="ow">in</span> <span class="n">reactants_data</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">stoechio</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">stoechio</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;reactant&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">reactant_id</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;,&quot;</span><span class="o">+</span><span class="n">stoechio</span><span class="o">+</span><span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="c1">#class of reactant*</span>
+                <span class="k">if</span> <span class="n">reactant_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allCompounds_enzymes</span><span class="p">:</span>
+                    <span class="n">allCompounds_enzymes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reactant_id</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">reactant_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">reactant_id</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_a_class&quot;</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">class_id</span> <span class="ow">in</span> <span class="n">reactant_classes</span><span class="p">:</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;is_a&quot;</span><span class="p">,[</span><span class="n">reactant_id</span><span class="p">,</span> <span class="n">class_id</span><span class="p">])</span>
+                            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">pass</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">reactant_name</span> <span class="o">=</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">reactant_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;common_name&quot;</span><span class="p">,[</span><span class="n">reactant_id</span><span class="p">,</span> <span class="n">reactant_name</span><span class="p">])</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+            <span class="c1">#products</span>
+            <span class="n">products_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">,</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> 
+            <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">reaction_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;produces&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">stoechio</span> <span class="ow">in</span> <span class="n">products_data</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">stoechio</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">stoechio</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;product&quot;</span><span class="p">,[</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">product_id</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;,&quot;</span><span class="o">+</span><span class="n">stoechio</span><span class="o">+</span><span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="c1">#class of product</span>
+                <span class="k">if</span> <span class="n">product_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allCompounds_enzymes</span><span class="p">:</span>
+                    <span class="n">allCompounds_enzymes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">product_id</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">product_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">product_id</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_a_class&quot;</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">class_id</span> <span class="ow">in</span> <span class="n">product_classes</span><span class="p">:</span>
+                            <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;is_a&quot;</span><span class="p">,[</span><span class="n">product_id</span><span class="p">,</span> <span class="n">class_id</span><span class="p">])</span>
+                            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">pass</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">product_name</span> <span class="o">=</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">product_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;common_name&quot;</span><span class="p">,[</span><span class="n">product_id</span><span class="p">,</span> <span class="n">product_name</span><span class="p">])</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+        <span class="c1">#recover all pathway&#39;s data</span>
+        <span class="n">pathways</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;pathway&quot;</span><span class="p">]</span>
+        <span class="n">nb_pathways</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pathways</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">pathway_node</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">pathway_id</span> <span class="o">=</span> <span class="n">pathway_node</span><span class="o">.</span><span class="n">id</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pathway &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">nb_pathways</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">pathway_id</span><span class="p">)</span>
+            
+            <span class="c1">#common_name</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pathway_name</span> <span class="o">=</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">pathway_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;common_name&quot;</span><span class="p">,[</span><span class="n">pathway_id</span><span class="p">,</span> <span class="n">pathway_name</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">is_in_pathway</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">pathway_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_in_pathway&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">sub_pathway_id</span> <span class="ow">in</span> <span class="n">is_in_pathway</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">asp_synt</span><span class="p">(</span><span class="s2">&quot;is_a&quot;</span><span class="p">,[</span><span class="n">pathway_id</span><span class="p">,</span> <span class="n">sub_pathway_id</span><span class="p">])</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">padmet_to_aspDE</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert PADMet to ASP following these predicats:</span>
+<span class="sd">    reversible(reaction_id, reaction_direction). reaction_direction in[LEFT-TO-RIGHT,REVERSIBLE]</span>
+<span class="sd">    ec_number(reaction_id, ec(x,x,x)).</span>
+<span class="sd">    catalysed_by(reaction_id, enzyme_id).</span>
+<span class="sd">    uniprotID(enzyme_id, uniprot_id). #if has has_xref and db = &quot;UNIPROT&quot;</span>
+<span class="sd">    in_pathway(reaction_id, pathway_id).</span>
+<span class="sd">    reactant(reaction_id, compound_id, stoechio_value).</span>
+<span class="sd">    product(reaction_id, compound_id, stoechio_value).</span>
+
+<span class="sd">    @param padmet_file: the path to padmet file to convert</span>
+<span class="sd">    @param output: the path to the output to create</span>
+<span class="sd">    @param verbose: print informations</span>
+<span class="sd">    @type padmet_file: str</span>
+<span class="sd">    @type output: str</span>
+<span class="sd">    @type verbose: bool</span>
+<span class="sd">    @return: _</span>
+<span class="sd">    @rtype: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">padmet</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

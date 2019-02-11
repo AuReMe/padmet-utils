@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.exploration.padmet_stats &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.exploration.padmet_stats</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.exploration.padmet_stats</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">Description:</span>
+<span class="sd">Create a padmet stats file containing the number of pathways, reactions,</span>
+<span class="sd">genes and compounds inside the padmet.</span>
+
+<span class="sd">The input is a padmet file or a folder containing multiple padmets.</span>
+
+<span class="sd">Create a tsv file named padmet_stats.tsv where the script have been</span>
+<span class="sd">launched.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pa</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetSpec</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="s2">&quot;python padmet_stats.py -p padmet_file_folder&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--padmet&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">=</span> <span class="s2">&quot;padmet_file_folder&quot;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s2">&quot;Padmet file or folder containing padmet.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">padmet_file_folder</span> <span class="o">=</span> <span class="n">parser_args</span><span class="o">.</span><span class="n">padmet_file_folder</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">):</span>
+        <span class="n">padmet_type</span> <span class="o">=</span> <span class="s2">&quot;dir&quot;</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">):</span>
+        <span class="n">padmet_type</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a dir or a file&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">))</span>
+
+    <span class="n">output_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;padmet_stats.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">output_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">output_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;padmet_file&#39;</span><span class="p">,</span> <span class="s1">&#39;pathways&#39;</span><span class="p">,</span> <span class="s1">&#39;reactions&#39;</span><span class="p">,</span> <span class="s1">&#39;genes&#39;</span><span class="p">,</span> <span class="s1">&#39;compounds&#39;</span><span class="p">])</span>
+
+    <span class="n">df_orthologs</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">padmet_type</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
+        <span class="n">padmet_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">padmet_file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.padmet&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">padmet_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">padmet_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">):</span>
+            <span class="n">padmet_path</span> <span class="o">=</span> <span class="n">padmet_file_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">padmet_file</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="n">padmet_stat</span><span class="p">(</span><span class="n">padmet_path</span><span class="p">)</span>
+            <span class="n">output_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+            <span class="n">padmet_name</span> <span class="o">=</span> <span class="n">padmet_file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.padmet&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">df_temp</span> <span class="o">=</span> <span class="n">orthology_result</span><span class="p">(</span><span class="n">padmet_path</span><span class="p">,</span> <span class="n">padmet_names</span><span class="p">,</span> <span class="n">padmet_name</span><span class="p">)</span>
+            <span class="n">df_orthologs</span> <span class="o">=</span> <span class="n">df_orthologs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_temp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">padmet_type</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">padmet_stat</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">)</span>
+        <span class="n">output_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+        <span class="n">padmet_name</span> <span class="o">=</span> <span class="n">padmet_file_folder</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.padmet&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">padmet_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">padmet_name</span><span class="p">]</span>
+        <span class="n">df_temp</span> <span class="o">=</span> <span class="n">orthology_result</span><span class="p">(</span><span class="n">padmet_file_folder</span><span class="p">,</span> <span class="n">padmet_names</span><span class="p">,</span> <span class="n">padmet_name</span><span class="p">)</span>
+        <span class="n">df_orthologs</span> <span class="o">=</span> <span class="n">df_orthologs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_temp</span><span class="p">)</span>
+
+    <span class="n">df_orthologs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;padmet_orthologs_stats.tsv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">output_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="padmet_stat"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.padmet_stat">[docs]</a><span class="k">def</span> <span class="nf">padmet_stat</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">):</span>
+    <span class="n">padmetSpec</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">)</span>
+
+    <span class="n">total_pwy_id</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">total_cpd_id</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="n">all_rxns</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">]</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;gene&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">rxn_node</span> <span class="ow">in</span> <span class="n">all_rxns</span><span class="p">:</span>
+        <span class="n">total_cpd_id</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">rxn_node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;consumes&quot;</span><span class="p">,</span><span class="s2">&quot;produces&quot;</span><span class="p">]])</span>
+        <span class="n">pathways_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">rxn_node</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_in_pathway&quot;</span><span class="p">])</span>
+        <span class="n">total_pwy_id</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pathways_ids</span><span class="p">)</span>
+
+    <span class="n">all_pwys</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">total_pwy_id</span><span class="p">]</span>
+    <span class="n">all_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">total_cpd_id</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">padmet_file</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_pwys</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_rxns</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_genes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cpds</span><span class="p">)]</span> </div>
+
+<div class="viewcode-block" id="orthology_result"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.padmet_stats.orthology_result">[docs]</a><span class="k">def</span> <span class="nf">orthology_result</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">,</span> <span class="n">padmet_names</span><span class="p">,</span> <span class="n">padmet_name</span><span class="p">):</span>
+    <span class="n">ortholog_species_counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">padmet_names</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ortholog_species_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ortholog_species_counts</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">padmetSpec</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">padmet_file</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;suppData&#39;</span><span class="p">:</span>
+            <span class="n">ortholog_species</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;FROM_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ortholog_species_counts</span><span class="p">[</span><span class="n">ortholog_species</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pa</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">ortholog_species_counts</span><span class="p">],</span><span class="n">columns</span><span class="o">=</span><span class="n">ortholog_species_counts</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">padmet_name</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

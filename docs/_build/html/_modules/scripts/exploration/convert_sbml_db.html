@@ -1,0 +1,540 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.exploration.convert_sbml_db &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.exploration.convert_sbml_db</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.exploration.convert_sbml_db</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+
+<span class="sd">Description:</span>
+<span class="sd">For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen</span>
+<span class="sd">the output is a file with line = reaction_id in origin database, reaction_id in db_out database</span>
+<span class="sd">if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in</span>
+<span class="sd">the output file the mapping of those compounds</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]</span>
+<span class="sd">    convert_sbml_db.py --mnx_rxn=FILE --sbml=FILE</span>
+
+<span class="sd">options:</span>
+<span class="sd">    -h --help     Show help.</span>
+<span class="sd">    --mnx_rxn=FILE     path to the MetaNetX file for reactions</span>
+<span class="sd">    --mnx_cpd=FILE     path to the MetaNetX file for compounds</span>
+<span class="sd">    --sbml=FILE     path to the sbml file to convert</span>
+<span class="sd">    --output=FILE     path to the file containing the mapping, sep = &quot;\t&quot;</span>
+<span class="sd">    --db_out=FILE     id of the output database in [&quot;BIGG&quot;,&quot;METACYC&quot;,&quot;KEGG&quot;]</span>
+<span class="sd">    -v     verbose.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">libsbml</span>
+<span class="c1">#from padmet.padmetRef import PadmetRef</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.convert_sbml_db.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="n">mnx_rxn_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--mnx_rxn&quot;</span><span class="p">]</span>
+    <span class="n">mnx_cpd_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--mnx_cpd&quot;</span><span class="p">]</span>
+    <span class="n">sbml_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--sbml&quot;</span><span class="p">]</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">sbml_file</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">getError</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">getMessage</span><span class="p">())</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+    <span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getListOfReactions</span><span class="p">()</span>
+    <span class="n">listOfSpecies</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getListOfSpecies</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--db_out&quot;</span><span class="p">]:</span>
+        <span class="n">db_out</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--db_out&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check from which database is this sbml:&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_rxn_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dict_id_db</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>  <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">db_found</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;total_rxn&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">listOfReactions</span><span class="p">:</span>
+            <span class="n">db_found</span><span class="p">[</span><span class="s1">&#39;total_rxn&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">rxn_id_decoded</span> <span class="o">=</span> <span class="n">convert_from_coded_id</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">dict_id_db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rxn_id_decoded</span><span class="p">,</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">db_found</span><span class="p">[</span><span class="n">db</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">db_found</span><span class="p">[</span><span class="n">db</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">db_select</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_found</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+                     <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="nb">max</span><span class="p">([</span><span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_found</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;total_rxn&#39;</span><span class="p">])][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;Database ref:</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">db_select</span><span class="p">,</span> <span class="n">db_found</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+                
+    <span class="k">if</span> <span class="n">db_out</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;BIGG&quot;</span><span class="p">,</span><span class="s2">&quot;METACYC&quot;</span><span class="p">,</span><span class="s2">&quot;KEGG&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please choose a database id in [&quot;BIGG&quot;,&quot;METACYC&quot;,&quot;KEGG&quot;]&#39;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">()</span>
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nb reactions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">listOfReactions</span><span class="p">))</span>
+
+    <span class="c1">#For reactions: k = MNXid, v = {k=db_id,v=[list of ids]}</span>
+    <span class="n">mnx_rxn_dict</span> <span class="o">=</span> <span class="n">mnx_reader</span><span class="p">(</span><span class="n">mnx_rxn_file</span><span class="p">,</span> <span class="n">db_out</span><span class="p">)</span>
+
+    <span class="c1">#For species: k = MNXid, v = {k=db_id,v=[list of ids]} </span>
+    <span class="n">mnx_cpd_dict</span> <span class="o">=</span> <span class="n">mnx_reader</span><span class="p">(</span><span class="n">mnx_cpd_file</span><span class="p">,</span> <span class="n">db_out</span><span class="p">)</span>
+
+    <span class="c1">#k: orignial id, v = ref id</span>
+    <span class="n">mapped_rxn</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">mapped_cpd</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">rxn_with_more_one_mapping</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cpd_with_more_one_mapping</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">rxn_mapped_with_cpds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sbml_rxn</span> <span class="ow">in</span> <span class="n">listOfReactions</span><span class="p">:</span>
+        <span class="n">rxn_id</span> <span class="o">=</span> <span class="n">sbml_rxn</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">uncoded_rxn_id</span> <span class="o">=</span> <span class="n">convert_from_coded_id</span><span class="p">(</span><span class="n">rxn_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1">#first check in intern dict mapping</span>
+        <span class="n">match_id</span> <span class="o">=</span> <span class="n">intern_mapping</span><span class="p">(</span><span class="n">uncoded_rxn_id</span><span class="p">,</span> <span class="n">db_out</span><span class="p">,</span> <span class="s2">&quot;reaction&quot;</span><span class="p">)</span>
+        
+        <span class="c1">#check if in mnx_rxn_dict</span>
+        <span class="k">if</span> <span class="n">match_id</span><span class="p">:</span>
+            <span class="n">mapped_rxn</span><span class="p">[</span><span class="n">rxn_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">match_id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">map_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mnx_rxn_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="c1">#print(mapp_dict)</span>
+                <span class="n">all_rxn_id</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="p">[</span><span class="n">all_rxn_id</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">map_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+                <span class="k">if</span> <span class="n">uncoded_rxn_id</span> <span class="ow">in</span> <span class="n">all_rxn_id</span><span class="p">:</span>
+                    <span class="n">matchs_rxns</span> <span class="o">=</span> <span class="n">map_dict</span><span class="p">[</span><span class="n">db_out</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matchs_rxns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> 
+                        <span class="n">rxn_with_more_one_mapping</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;More than one mapping for reaction </span><span class="si">%s</span><span class="s2">:</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">rxn_id</span><span class="p">,</span><span class="n">matchs_rxns</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">mapped_rxn</span><span class="p">[</span><span class="n">rxn_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">matchs_rxns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">break</span>
+    <span class="c1">#for all non mapped rxn, check if able to map all speices</span>
+    <span class="k">for</span> <span class="n">sbml_cpd</span> <span class="ow">in</span> <span class="n">listOfSpecies</span><span class="p">:</span>
+        <span class="n">cpd_id</span> <span class="o">=</span> <span class="n">sbml_cpd</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">uncoded_cpd_id</span> <span class="o">=</span> <span class="n">convert_from_coded_id</span><span class="p">(</span><span class="n">cpd_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">match_id</span> <span class="o">=</span> <span class="n">intern_mapping</span><span class="p">(</span><span class="n">uncoded_cpd_id</span><span class="p">,</span> <span class="n">db_out</span><span class="p">,</span> <span class="s2">&quot;compound&quot;</span><span class="p">)</span>
+
+        <span class="c1">#check if in mnx_rxn_dict</span>
+        <span class="k">if</span> <span class="n">match_id</span><span class="p">:</span>
+            <span class="n">mapped_cpd</span><span class="p">[</span><span class="n">cpd_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">match_id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">map_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mnx_cpd_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="c1">#print(mapp_dict)</span>
+                <span class="n">all_cpd_id</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="p">[</span><span class="n">all_cpd_id</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">map_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+                <span class="k">if</span> <span class="n">uncoded_cpd_id</span> <span class="ow">in</span> <span class="n">all_cpd_id</span><span class="p">:</span>
+                    <span class="n">matchs_cpds</span> <span class="o">=</span> <span class="n">map_dict</span><span class="p">[</span><span class="n">db_out</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matchs_cpds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">db_out</span> <span class="o">==</span> <span class="s2">&quot;METACYC&quot;</span> <span class="ow">and</span> <span class="n">uncoded_cpd_id</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">matchs_cpds</span><span class="p">:</span>
+                            <span class="n">mapped_cpd</span><span class="p">[</span><span class="n">cpd_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">uncoded_cpd_id</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span> 
+                            <span class="n">cpd_with_more_one_mapping</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;More than one mapping for compound </span><span class="si">%s</span><span class="s2">:</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">cpd_id</span><span class="p">,</span><span class="n">matchs_cpds</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">mapped_cpd</span><span class="p">[</span><span class="n">cpd_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">matchs_cpds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">break</span>
+
+    <span class="k">for</span> <span class="n">sbml_rxn</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listOfReactions</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapped_rxn</span><span class="o">.</span><span class="n">keys</span><span class="p">())]:</span>
+        <span class="n">all_cpds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sbml_rxn</span><span class="o">.</span><span class="n">getListOfReactants</span><span class="p">()]</span> <span class="o">+</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sbml_rxn</span><span class="o">.</span><span class="n">getListOfProducts</span><span class="p">()])</span>
+        <span class="n">match_cpd_in_rxn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">cpd_id</span> <span class="k">for</span> <span class="n">cpd_id</span> <span class="ow">in</span> <span class="n">all_cpds</span> <span class="k">if</span> <span class="n">cpd_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapped_cpd</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_cpd_in_rxn</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_cpds</span><span class="p">):</span>
+            <span class="n">rxn_mapped_with_cpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sbml_rxn</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#######&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mapped reactions: </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mapped_rxn</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span><span class="nb">len</span><span class="p">(</span><span class="n">listOfReactions</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reactions with more than one mapping: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">rxn_with_more_one_mapping</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mapped species: </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mapped_cpd</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span><span class="nb">len</span><span class="p">(</span><span class="n">listOfSpecies</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Species with more than one mapping: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">cpd_with_more_one_mapping</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mapped reactions from species: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rxn_mapped_with_cpds</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rxn_mapped_with_cpds</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total reactions mapped:</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mapped_rxn</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">rxn_mapped_with_cpds</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">listOfReactions</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#######&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_dict</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapped_rxn</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapped_cpd</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="convert_from_coded_id"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.convert_sbml_db.convert_from_coded_id">[docs]</a><span class="k">def</span> <span class="nf">convert_from_coded_id</span><span class="p">(</span><span class="n">coded</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    convert an id from sbml format to the original id. try to extract the type of</span>
+<span class="sd">    the id and the compart using strong regular expression</span>
+<span class="sd">    @param coded: the encoded id</span>
+<span class="sd">    @type coded: str</span>
+<span class="sd">    @return: (the uncoded id, type=None, compart=None)</span>
+<span class="sd">    @rtype: tuple</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#replace DASH from very old sbmls</span>
+    <span class="n">coded</span> <span class="o">=</span> <span class="n">coded</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_DASH_&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="c1">#an original id starting with int will start with &#39;_&#39; in sbml</span>
+    <span class="k">if</span> <span class="n">coded</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+        <span class="n">coded</span> <span class="o">=</span> <span class="n">coded</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="c1">#reg ex to find the ascii used to replace not allowed char</span>
+    <span class="n">codepat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;__(\d+)__&#39;</span><span class="p">)</span>
+    <span class="c1">#replac ascii by the not allowed char of sbml</span>
+    <span class="n">coded</span> <span class="o">=</span> <span class="n">codepat</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">ascii_replace</span><span class="p">,</span> <span class="n">coded</span><span class="p">)</span>
+    
+    <span class="n">reg_expr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(?P&lt;_type&gt;^[MRS]_)(?P&lt;_id&gt;.*)(?P&lt;compart&gt;_.*)&#39;</span><span class="p">)</span>
+    <span class="n">search_result</span> <span class="o">=</span> <span class="n">reg_expr</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">coded</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">search_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">compart</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;compart&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>    
+        <span class="n">_type</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;_type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">uncoded</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reg_expr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(?P&lt;_type&gt;^[MRS]_)(?P&lt;_id&gt;.*)&#39;</span><span class="p">)</span>
+        <span class="n">search_result</span> <span class="o">=</span> <span class="n">reg_expr</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">coded</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">search_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">compart</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">_type</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;_type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">uncoded</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reg_expr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(?P&lt;_id&gt;.*)(?P&lt;compart&gt;_.*)&#39;</span><span class="p">)</span>
+            <span class="n">search_result</span> <span class="o">=</span> <span class="n">reg_expr</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">coded</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">search_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_type</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">compart</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;compart&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>    
+                <span class="n">uncoded</span> <span class="o">=</span> <span class="n">search_result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">uncoded</span> <span class="o">=</span> <span class="n">coded</span>
+                <span class="n">_type</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">compart</span> <span class="o">=</span> <span class="kc">None</span>
+            
+    <span class="k">return</span> <span class="p">(</span><span class="n">uncoded</span><span class="p">,</span> <span class="n">_type</span><span class="p">,</span> <span class="n">compart</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ascii_replace"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.convert_sbml_db.ascii_replace">[docs]</a><span class="k">def</span> <span class="nf">ascii_replace</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    recover banned char from the integer ordinal in the reg.match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="mnx_reader"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.convert_sbml_db.mnx_reader">[docs]</a><span class="k">def</span> <span class="nf">mnx_reader</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">db_out</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">dataInArray</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)]</span>
+
+    <span class="c1">#print list_data[:10]</span>
+    <span class="n">mnx_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">all_mnxs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="n">dataInArray</span><span class="p">])</span>
+    <span class="n">mnx_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_mnxs</span><span class="p">])</span>
+    <span class="c1">#print a[:10]</span>
+    <span class="c1">#print mnx_dict.items()[:10]</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="n">dataInArray</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">_id</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">_id</span> <span class="o">=</span> <span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mnx_dict</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">db</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">mnx_dict</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">db</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_id</span><span class="p">]</span>
+    <span class="c1">#clean ids not in db_out</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mnx_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">db_out</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">mnx_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    for v in mnx_dict.values():</span>
+<span class="sd">        try:</span>
+<span class="sd">            rxn_db_out = v[db_out]</span>
+<span class="sd">            all_mapp_rxn = []</span>
+<span class="sd">            [all_mapp_rxn.extend(i) for i in v.values()]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">mnx_dict</span></div>
+
+
+<div class="viewcode-block" id="intern_mapping"><a class="viewcode-back" href="../../../api_docs/script.exploration.html#scripts.exploration.convert_sbml_db.intern_mapping">[docs]</a><span class="k">def</span> <span class="nf">intern_mapping</span><span class="p">(</span><span class="n">id_to_map</span><span class="p">,</span> <span class="n">db_out</span><span class="p">,</span> <span class="n">_type</span><span class="p">):</span>
+    
+    <span class="n">intern_rxn_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;UNIQ_ID_1&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;RXN-6382&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R00904&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;APor&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_2&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CARNOSINE-SYNTHASE-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;HAL&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_3&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ALANINE-AMINOTRANSFERASE-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R00258&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_4&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ASPAMINOTRANS-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R00355&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;ASPATh&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_5&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;PHEAMINOTRANS-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R00694&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;POAT&quot;</span><span class="p">,</span><span class="s2">&quot;POATh&quot;</span><span class="p">,</span><span class="s2">&quot;POATm&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_6&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ORNCARBAMTRANSFER-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R01398&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;OCT&quot;</span><span class="p">,</span><span class="s2">&quot;OCTh&quot;</span><span class="p">,</span><span class="s2">&quot;OCTm&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_7&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;3PGAREARR-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R01518&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;PGM&quot;</span><span class="p">,</span><span class="s2">&quot;PGMf&quot;</span><span class="p">,</span><span class="s2">&quot;PGMm&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_8&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;6PGLUCONDEHYDROG-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R01528&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;PGDHh&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_9&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;4-HYDROXY-2-KETOPIMELATE-LYSIS-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R01645&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_10&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;AMINEPHEN-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R02613&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_11&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;SHIKIMATE-5-DEHYDROGENASE-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;R02413&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_12&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CARBODEHYDRAT-RXN&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;HCO3E&quot;</span><span class="p">,</span><span class="s2">&quot;HCO3Em&quot;</span><span class="p">,</span><span class="s2">&quot;HCO3Ehi&quot;</span><span class="p">]}</span>
+    <span class="p">}</span>
+    
+    <span class="n">intern_cpd_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;UNIQ_ID_1&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;WATER&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00001&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;h2o&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;H2O&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_2&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;2-KETOGLUTARATE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;akg&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00026&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_3&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;Pi&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;pi&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00009&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_4&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;OXALACETIC_ACID&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;oaa&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00036&quot;</span><span class="p">]},</span>
+
+    <span class="s2">&quot;UNIQ_ID_5&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;HS&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;h2s&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_6&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;NITRATE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;no3&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_7&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;HEME_O&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;heme0&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_8&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;FORMATE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;for&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_9&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;GLN-tRNAs&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;trnagln&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_10&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CO-A&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;coa&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_11&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ADENOSINE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;adn&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_12&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ADENINE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;ade&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_13&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CYTIDINE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;cytd&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_14&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CYTIDINE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;dtdp&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_15&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;DIHYDRO-NEO-PTERIN&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;dhnpt&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_16&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;SUCROSE-6P&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;suc6p&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_17&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ALKYL-SN-GLYCERO-PHOSPHOETHANOLAMINE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;g3pe&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_18&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;Retinols&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;retinol&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_19&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;PHENYL-PYRUVATE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;phpyr&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_20&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CPD-6082&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;bamppald&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_21&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;S-3-HYDROXYBUTANOYL-COA&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;3hbcoa&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_22&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;Thiopurines&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;6mpur&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_23&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;N-ACETYL-D-GLUCOSAMINE-6-P&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;acgam6p&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_24&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;CHLOROPHYLL-B&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;chlb&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_25&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;FORMALDEHYDE&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;fald&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_26&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;GLC-1-P&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;g1p&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_27&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;NA+&quot;</span><span class="p">],</span><span class="s2">&quot;BIGG&quot;</span><span class="p">:[</span><span class="s2">&quot;na1&quot;</span><span class="p">]},</span>
+
+    <span class="s2">&quot;UNIQ_ID_28&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;ADP&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00008&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_29&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;L-DELTA1-PYRROLINE_5-CARBOXYLATE&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C03912&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_30&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;AMMONIA&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00014&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_31&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;PPI&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00013&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_32&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;NADP&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00006&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_33&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;NADPH&quot;</span><span class="p">],</span><span class="s2">&quot;KEGG&quot;</span><span class="p">:[</span><span class="s2">&quot;C00005&quot;</span><span class="p">]},</span>
+
+    <span class="s2">&quot;UNIQ_ID_34&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;GLY&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;Glycine&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_35&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;METOH&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;Methanol&quot;</span><span class="p">]},</span>
+    <span class="s2">&quot;UNIQ_ID_36&quot;</span><span class="p">:{</span><span class="s2">&quot;METACYC&quot;</span><span class="p">:[</span><span class="s2">&quot;PPI&quot;</span><span class="p">],</span><span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:[</span><span class="s2">&quot;Pyrophosphate&quot;</span><span class="p">]},</span>
+    <span class="p">}</span>
+
+
+    <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">mapp_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">intern_rxn_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">all_rxn_id</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="p">[</span><span class="n">all_rxn_id</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapp_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+            <span class="k">if</span> <span class="n">id_to_map</span> <span class="ow">in</span> <span class="n">all_rxn_id</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">mapp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">db_out</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;compound&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">mapp_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">intern_cpd_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">all_cpd_id</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="p">[</span><span class="n">all_cpd_id</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapp_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+            <span class="k">if</span> <span class="n">id_to_map</span> <span class="ow">in</span> <span class="n">all_cpd_id</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">mapp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">db_out</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

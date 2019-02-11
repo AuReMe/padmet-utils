@@ -1,0 +1,798 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.connection.sbmlGenerator &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.connection.sbmlGenerator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.connection.sbmlGenerator</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet.</span>
+
+<span class="sd">padmet is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+<span class="sd">The module sbmlGenerator contains functions to generate sbml files from padmet and txt</span>
+<span class="sd">usign the libsbml package</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    sbmlGenerator.py --padmet=FILE --output=FILE --sbml_lvl=STR [--model_id=STR] [--obj_fct=STR] [--mnx_chem_prop=FILE] [--mnx_chem_xref=FILE] [-v]</span>
+<span class="sd">    sbmlGenerator.py --padmet=FILE --output=FILE [--init_source=STR] [-v]</span>
+<span class="sd">    sbmlGenerator.py --compound=FILE --output=FILE [--padmetRef=FILE] [-v]</span>
+<span class="sd">    sbmlGenerator.py --reaction=FILE --output=FILE --padmetRef=FILE [-v]</span>
+
+<span class="sd">option:</span>
+<span class="sd">    -h --help    Show help.</span>
+<span class="sd">    --padmet=FILE    pathname of the padmet file to convert into sbml</span>
+<span class="sd">    --output=FILE    pathanme of the sbml file to generate.</span>
+<span class="sd">    --obj_fct=STR    id of the reaction objective.</span>
+<span class="sd">    --sbml_lvl=STR    sbml level 2 is sufficient for FBA.</span>
+<span class="sd">    -v   print info.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetSpec</span>
+<span class="kn">import</span> <span class="nn">padmet.utils.sbmlPlugin</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+<span class="kn">import</span> <span class="nn">libsbml</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="c1">#default variables</span>
+<span class="k">global</span> <span class="n">def_max_lower_bound</span><span class="p">,</span> <span class="n">def_max_upper_bound</span><span class="p">,</span> <span class="n">BOUNDARY_ID</span>
+<span class="n">def_max_upper_bound</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">def_max_lower_bound</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1000</span>
+<span class="n">BOUNDARY_ID</span> <span class="o">=</span> <span class="s1">&#39;C-BOUNDARY&#39;</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmet&quot;</span><span class="p">]:</span>
+        <span class="n">padmet</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmet&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--init_source&quot;</span><span class="p">]:</span>
+            <span class="n">rxn_to_del</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">init_source</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--init_source&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">rec_rlts</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">getAllRelation</span><span class="p">()</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;has_reconstructionData&quot;</span><span class="p">]</span>
+            <span class="p">[</span><span class="n">rxn_to_del</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span><span class="p">)</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">rec_rlts</span> <span class="k">if</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SOURCE&quot;</span><span class="p">,[</span><span class="s2">&quot;&quot;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">init_source</span><span class="p">]</span>            
+            <span class="n">reactions_to_add</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">rxn_to_del</span><span class="p">)</span>
+            <span class="n">reaction_to_sbml</span><span class="p">(</span><span class="n">reactions_to_add</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">padmet</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_id&quot;</span><span class="p">]:</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_id&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--sbml_lvl&quot;</span><span class="p">]:</span>
+            <span class="n">sbml_lvl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--sbml_lvl&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sbml_lvl</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">obj_fct</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--obj_fct&quot;</span><span class="p">]</span>
+        <span class="n">mnx_chem_xref</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--mnx_chem_xref&quot;</span><span class="p">]</span>
+        <span class="n">mnx_chem_prop</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--mnx_chem_prop&quot;</span><span class="p">]</span>
+        <span class="n">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">model_id</span><span class="p">,</span> <span class="n">obj_fct</span><span class="p">,</span> <span class="n">sbml_lvl</span><span class="p">,</span> <span class="n">mnx_chem_prop</span><span class="p">,</span> <span class="n">mnx_chem_xref</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--reaction&quot;</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--reaction&quot;</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">reactions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
+        <span class="n">padmetRef</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">])</span>
+        <span class="n">reaction_to_sbml</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--compound&quot;</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--compound&quot;</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">species_compart</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
+        <span class="n">compound_to_sbml</span><span class="p">(</span><span class="n">species_compart</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="padmet_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.padmet_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">model_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obj_fct</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sbml_lvl</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mnx_chem_prop</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mnx_chem_xref</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert padmet file to sbml file.</span>
+<span class="sd">    Specificity: </span>
+<span class="sd">    - ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id</span>
+<span class="sd">    @param padmet_file: the pathname to the padmet file to convert</span>
+<span class="sd">    @param output: the pathname to the sbml file to create</span>
+<span class="sd">    @param obj_fct: the identifier of the objection function, the reaction to test in FBA</span>
+<span class="sd">    @param sbml_lvl: the sbml level</span>
+<span class="sd">    @param sbml_version: the sbml version</span>
+<span class="sd">    @param verbose: print informations</span>
+<span class="sd">    @type padmet_file, output, verbose: str</span>
+<span class="sd">    @type sbml_lvl, sbml_version: int</span>
+<span class="sd">    @return: check return of writeSBMLToFile</span>
+<span class="sd">    @rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">all_ga</span>
+    <span class="n">dir_path_gbr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;/grammar-boolean-rapsody.py&quot;</span>
+    <span class="n">all_ga</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#create an empty sbml model</span>
+    <span class="n">with_mnx</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">mnx_chem_prop</span> <span class="ow">and</span> <span class="n">mnx_chem_xref</span><span class="p">:</span>
+        <span class="n">with_mnx</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">dict_mnx_chem_xref</span> <span class="o">=</span> <span class="n">parse_mnx_chem_xref</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">)</span>
+        <span class="n">dict_mnx_chem_prop</span> <span class="o">=</span> <span class="n">parse_mnx_chem_prop</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">sbmlns</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLNamespaces</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">document</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLDocument</span><span class="p">(</span><span class="n">sbmlns</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">createModel</span><span class="p">()</span>
+        <span class="n">association</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Create a unit definition</span>
+        <span class="n">mmol_per_gDW_per_hr</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">createUnitDefinition</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">mmol_per_gDW_per_hr</span><span class="p">,</span> <span class="s1">&#39;create unit definition&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">mmol_per_gDW_per_hr</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;mmol_per_gDW_per_hr&#39;</span><span class="p">),</span> <span class="s1">&#39;set unit definition id&#39;</span><span class="p">)</span>
+        
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">mmol_per_gDW_per_hr</span><span class="o">.</span><span class="n">createUnit</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;create mole unit&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setKind</span><span class="p">(</span><span class="n">libsbml</span><span class="o">.</span><span class="n">UNIT_KIND_MOLE</span><span class="p">),</span> <span class="s1">&#39;set unit kind&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setScale</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;set unit scale&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setMultiplier</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;set unit multiplier&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set unit offset&#39;</span><span class="p">)</span>
+        
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">mmol_per_gDW_per_hr</span><span class="o">.</span><span class="n">createUnit</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;create gram unit&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setKind</span><span class="p">(</span><span class="n">libsbml</span><span class="o">.</span><span class="n">UNIT_KIND_GRAM</span><span class="p">),</span> <span class="s1">&#39;set unit kind&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setExponent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;set unit exponent&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setMultiplier</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;set unit multiplier&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set unit offset&#39;</span><span class="p">)</span>
+        
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">mmol_per_gDW_per_hr</span><span class="o">.</span><span class="n">createUnit</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;create second unit&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setKind</span><span class="p">(</span><span class="n">libsbml</span><span class="o">.</span><span class="n">UNIT_KIND_SECOND</span><span class="p">),</span> <span class="s1">&#39;set unit kind&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setExponent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;set unit exponent&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setMultiplier</span><span class="p">(</span><span class="mf">0.00027777</span><span class="p">),</span> <span class="s1">&#39;set unit multiplier&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">setOffset</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set unit offset&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">sbmlns</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLNamespaces</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;fbc&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">document</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLDocument</span><span class="p">(</span><span class="n">sbmlns</span><span class="p">)</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">setPackageRequired</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">createModel</span><span class="p">()</span>
+        <span class="n">mplugin</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">)</span>
+        <span class="n">association</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;annotation&gt;&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;&lt;listOfGeneAssociations xmlns=&quot;http://www.sbml.org/sbml/level3/version1/fbc/version1&quot;&gt;&#39;</span><span class="p">]</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>                              <span class="s1">&#39;create model&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">setTimeUnits</span><span class="p">(</span><span class="s2">&quot;second&quot;</span><span class="p">),</span>       <span class="s1">&#39;set model-wide time units&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">setExtentUnits</span><span class="p">(</span><span class="s2">&quot;mole&quot;</span><span class="p">),</span>       <span class="s1">&#39;set model units of extent&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">setSubstanceUnits</span><span class="p">(</span><span class="s1">&#39;mole&#39;</span><span class="p">),</span>    <span class="s1">&#39;set model substance units&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_id</span><span class="p">:</span> <span class="n">model_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+    <span class="n">math_ast</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">parseL3Formula</span><span class="p">(</span><span class="s1">&#39;FLUX_VALUE&#39;</span><span class="p">)</span>
+    <span class="n">check</span><span class="p">(</span><span class="n">math_ast</span><span class="p">,</span> <span class="s1">&#39;create AST for rate expression&#39;</span><span class="p">)</span>
+
+    <span class="c1">#generator of tuple: (x,y) x=species id,y=value of compart, if not defined=&quot;&quot;</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="p">[(</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">,</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COMPARTMENT&quot;</span><span class="p">,[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">getAllRelation</span><span class="p">()</span> 
+    <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;consumes&quot;</span><span class="p">,</span><span class="s2">&quot;produces&quot;</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> species&quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">))</span>
+    <span class="c1">#compart_dict: k = id_encoded, v = original id</span>
+    <span class="n">compart_dict</span> <span class="o">=</span> <span class="p">{}</span>    
+    <span class="c1">#species_dict: k = species_id_encoded, v = dict: k&#39; = {species_id, compart, name}, v&#39; = value or None </span>
+    <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">species_id</span><span class="p">,</span> <span class="n">compart</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+        <span class="c1">#encode id for sbml</span>
+        <span class="n">species_id_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">species_id</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="n">compart</span><span class="p">)</span>
+        <span class="c1">#encode compart id for sbml</span>
+        <span class="c1">#try to get the common_name, if non value return None</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">species_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COMMON-NAME&quot;</span><span class="p">,[</span><span class="n">species_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1">#update dicts</span>
+        <span class="n">species_dict</span><span class="p">[</span><span class="n">species_id_encoded</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;species_id&quot;</span><span class="p">:</span><span class="n">species_id</span><span class="p">,</span> <span class="s2">&quot;compart&quot;</span><span class="p">:</span><span class="n">compart</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">}</span>
+        
+    <span class="k">for</span> <span class="n">species_id_encoded</span><span class="p">,</span> <span class="n">s_dict</span> <span class="ow">in</span> <span class="n">species_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">compart</span> <span class="o">=</span> <span class="n">s_dict</span><span class="p">[</span><span class="s2">&quot;compart&quot;</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">s_dict</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">original_id</span> <span class="o">=</span> <span class="n">s_dict</span><span class="p">[</span><span class="s2">&quot;species_id&quot;</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">createSpecies</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;create species&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="n">species_id_encoded</span><span class="p">),</span> <span class="s1">&#39;set species id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">species_id_encoded</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setMetaId</span><span class="p">(</span><span class="n">species_id_encoded</span><span class="p">),</span> <span class="s1">&#39;set species meta id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">species_id_encoded</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setBoundaryCondition</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set boundaryCondition to False&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setHasOnlySubstanceUnits</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set setHasOnlySubstanceUnits to False&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setConstant</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set setConstant to False&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setInitialAmount</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="s1">&#39;set initAmount&#39;</span><span class="p">)</span>
+        <span class="c1">#check(s.setMetaId(metaId), &#39;set species MetaId %s&#39; %metaId)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="s1">&#39;set species Name </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="s1">&#39;set species Name </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">species_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">compart_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">compart</span><span class="p">)</span>
+            <span class="n">compart_dict</span><span class="p">[</span><span class="n">compart_encoded</span><span class="p">]</span> <span class="o">=</span> <span class="n">compart</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setCompartment</span><span class="p">(</span><span class="n">compart_encoded</span><span class="p">),</span> <span class="s1">&#39;set species compartment </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">compart_encoded</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">compart</span> <span class="o">==</span> <span class="n">BOUNDARY_ID</span><span class="p">:</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setBoundaryCondition</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;set boundaryCondition to True&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_mnx</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mnx_id</span> <span class="o">=</span> <span class="n">dict_mnx_chem_xref</span><span class="p">[</span><span class="n">original_id</span><span class="p">]</span>
+                <span class="n">species_prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dict_mnx_chem_prop</span><span class="p">[</span><span class="n">mnx_id</span><span class="p">])</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1">#print(species_id)</span>
+                <span class="n">species_prop</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">species_prop</span><span class="p">:</span>
+                <span class="p">[</span><span class="n">species_prop</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_prop</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">v</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;NA&quot;</span><span class="p">)]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">species_prop</span><span class="p">[</span><span class="s2">&quot;charge&quot;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">charge</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="n">species_prop</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;\(|\)|\.&quot;</span><span class="p">,</span><span class="n">formula</span><span class="p">):</span> <span class="n">formula</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">inchi</span> <span class="o">=</span> <span class="n">species_prop</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;inchi&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">splugin</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">)</span>
+                    <span class="n">check</span><span class="p">(</span><span class="n">splugin</span><span class="o">.</span><span class="n">setCharge</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span> <span class="s1">&#39;set charge&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">formula</span><span class="p">:</span>
+                        <span class="n">check</span><span class="p">(</span><span class="n">splugin</span><span class="o">.</span><span class="n">setChemicalFormula</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="s1">&#39;set Formula&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">inchi</span><span class="p">:</span>
+                        <span class="n">annot_xml</span> <span class="o">=</span> <span class="n">create_annotation</span><span class="p">(</span><span class="n">inchi</span><span class="p">,</span> <span class="n">species_id_encoded</span><span class="p">)</span>
+                        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setAnnotation</span><span class="p">(</span><span class="n">annot_xml</span><span class="p">),</span> <span class="s1">&#39;set Annotations&#39;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">prop_v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_prop</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;charge&quot;</span><span class="p">,</span> <span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span><span class="s2">&quot;inchi&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">prop_v</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NA&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">]:</span>
+                            <span class="n">species_prop</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+                <span class="n">notes</span> <span class="o">=</span> <span class="n">create_note</span><span class="p">(</span><span class="n">species_prop</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setNotes</span><span class="p">(</span><span class="n">notes</span><span class="p">),</span> <span class="s1">&#39;set Notes&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">compart_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">compart</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">createCompartment</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="p">,</span><span class="s1">&#39;create compartment&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="n">k</span><span class="p">),</span><span class="s1">&#39;set compartment id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setSize</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="s1">&#39;set size for compartment id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setConstant</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="s1">&#39;set constant for compartment id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s2">&quot;cytosol&quot;</span><span class="p">),</span><span class="s1">&#39;set compartment name cytosol&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;e&quot;</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s2">&quot;extracellular&quot;</span><span class="p">),</span><span class="s1">&#39;set compartment name extracellular&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s2">&quot;periplasm&quot;</span><span class="p">),</span><span class="s1">&#39;set compartment name periplasm&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">k</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">compart</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="n">v</span><span class="p">),</span><span class="s1">&#39;set compartment id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">obj_fct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">obj_fct_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">obj_fct</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;the objectif reaction is: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">obj_fct_encoded</span><span class="p">))</span>
+    <span class="n">reactions</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">]</span>
+    <span class="n">nb_reactions</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">))</span>    
+    <span class="c1"># Create reactions</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reactions&quot;</span> <span class="o">%</span><span class="n">nb_reactions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rNode</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+        <span class="n">rId</span> <span class="o">=</span> <span class="n">rNode</span><span class="o">.</span><span class="n">id</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">rId</span><span class="p">)</span>
+        <span class="n">rId_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
+        <span class="n">rName</span> <span class="o">=</span> <span class="n">rNode</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COMMON-NAME&quot;</span><span class="p">,[</span><span class="n">rId</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">reaction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">createReaction</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="s1">&#39;create reaction&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">),</span> <span class="s1">&#39;set reaction id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">rId_encoded</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rName</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="n">rName</span><span class="p">),</span> <span class="s1">&#39;set reaction name </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">rName</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">setFast</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set fast&#39;</span><span class="p">)</span>
+
+        <span class="c1">#generator of tuple (reactant_id,stoichiometry,compart)</span>
+        <span class="n">consumed</span> <span class="o">=</span> <span class="p">((</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">,</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COMPARTMENT&quot;</span><span class="p">,[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span> 
+        <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;consumes&quot;</span><span class="p">)</span>
+        <span class="c1">#generator of tuple (product_id,stoichiometry,compart)        </span>
+        <span class="n">produced</span> <span class="o">=</span> <span class="p">((</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">,</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COMPARTMENT&quot;</span><span class="p">,[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span> 
+        <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;produces&quot;</span><span class="p">)</span>
+        <span class="c1">#set reversibility</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">rNode</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;LEFT-TO-RIGHT&quot;</span><span class="p">:</span>
+            <span class="n">reversible</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reversible</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">setReversible</span><span class="p">(</span><span class="n">reversible</span><span class="p">),</span> <span class="s1">&#39;set reaction reversibility flag </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">reversible</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">bound</span><span class="o">=</span> <span class="n">mplugin</span><span class="o">.</span><span class="n">createFluxBound</span><span class="p">()</span>
+            <span class="n">bound</span><span class="o">.</span><span class="n">setReaction</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">)</span>
+            <span class="n">bound</span><span class="o">.</span><span class="n">setOperation</span><span class="p">(</span><span class="s2">&quot;lessEqual&quot;</span><span class="p">)</span>
+            <span class="n">bound</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">def_max_upper_bound</span><span class="p">)</span>
+
+            <span class="n">bound</span><span class="o">=</span> <span class="n">mplugin</span><span class="o">.</span><span class="n">createFluxBound</span><span class="p">()</span>
+            <span class="n">bound</span><span class="o">.</span><span class="n">setReaction</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">)</span>
+            <span class="n">bound</span><span class="o">.</span><span class="n">setOperation</span><span class="p">(</span><span class="s2">&quot;greaterEqual&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">reversible</span><span class="p">:</span>
+                <span class="n">bound</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">def_max_lower_bound</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bound</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rId</span> <span class="o">==</span> <span class="n">obj_fct</span><span class="p">:</span>
+                 <span class="n">objective</span> <span class="o">=</span> <span class="n">mplugin</span><span class="o">.</span><span class="n">createObjective</span><span class="p">()</span>
+                 <span class="n">objective</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s2">&quot;obj1&quot;</span><span class="p">)</span>
+                 <span class="n">objective</span><span class="o">.</span><span class="n">setType</span><span class="p">(</span><span class="s2">&quot;maximize&quot;</span><span class="p">)</span>
+                 <span class="n">mplugin</span><span class="o">.</span><span class="n">setActiveObjectiveId</span><span class="p">(</span><span class="s2">&quot;obj1&quot;</span><span class="p">)</span>
+                 <span class="n">fluxObjective</span> <span class="o">=</span> <span class="n">objective</span><span class="o">.</span><span class="n">createFluxObjective</span><span class="p">()</span>
+                 <span class="n">fluxObjective</span><span class="o">.</span><span class="n">setReaction</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">)</span>
+                 <span class="n">fluxObjective</span><span class="o">.</span><span class="n">setCoefficient</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">kinetic_law</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">createKineticLaw</span><span class="p">()</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">kinetic_law</span><span class="p">,</span> <span class="s1">&#39;create kinetic law&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">kinetic_law</span><span class="o">.</span><span class="n">setMath</span><span class="p">(</span><span class="n">math_ast</span><span class="p">),</span> <span class="s1">&#39;set math on kinetic law&#39;</span><span class="p">)</span>
+            <span class="c1">#add parameter flux_value</span>
+            <span class="n">flux_value_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">flux_value_k</span><span class="p">,</span> <span class="s1">&#39;create parameter flux_value_k&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">flux_value_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;FLUX_VALUE&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter flux_value_k id&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">flux_value_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set parameter flux_value_k value&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">flux_value_k</span><span class="o">.</span><span class="n">setUnits</span><span class="p">(</span><span class="s1">&#39;mmol_per_gDW_per_hr&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter flux_value_k units&#39;</span><span class="p">)</span>
+            <span class="c1">#add parameter upper/lower_bound, lower value depend on reversibility</span>
+            <span class="n">upper_bound_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">upper_bound_k</span><span class="p">,</span> <span class="s1">&#39;create parameter upper_bound_k&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">upper_bound_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;UPPER_BOUND&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter upper_bound_k&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">upper_bound_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">def_max_upper_bound</span><span class="p">),</span><span class="s1">&#39;set parameter upper_bounp_k value&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">upper_bound_k</span><span class="o">.</span><span class="n">setUnits</span><span class="p">(</span><span class="s1">&#39;mmol_per_gDW_per_hr&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter uppper_bound_k units&#39;</span><span class="p">)</span>
+    
+            <span class="k">if</span> <span class="n">reversible</span><span class="p">:</span>
+                <span class="n">lower_bound_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="p">,</span> <span class="s1">&#39;create parameter lower_bound_k&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;LOWER_BOUND&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k id&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">def_max_lower_bound</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k value&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setUnits</span><span class="p">(</span><span class="s1">&#39;mmol_per_gDW_per_hr&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k units&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower_bound_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="p">,</span> <span class="s1">&#39;create parameter lower_bound_k&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;LOWER_BOUND&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k id&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k value&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">lower_bound_k</span><span class="o">.</span><span class="n">setUnits</span><span class="p">(</span><span class="s1">&#39;mmol_per_gDW_per_hr&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter lower_bound_k units&#39;</span><span class="p">)</span>
+            <span class="c1">#objective_coeeficient</span>
+            <span class="k">if</span> <span class="n">rId</span> <span class="o">==</span> <span class="n">obj_fct</span><span class="p">:</span>
+                <span class="n">obj_fct_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="p">,</span> <span class="s1">&#39;create parameter obj_fct_k&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;OBJECTIVE_COEFFICIENT&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter obj_fct_k id&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;set parameter obj_fct_k value&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obj_fct_k</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">createParameter</span><span class="p">()</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="p">,</span> <span class="s1">&#39;create parameter obj_fct_k&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;OBJECTIVE_COEFFICIENT&#39;</span><span class="p">),</span> <span class="s1">&#39;set parameter obj_fct_k id&#39;</span><span class="p">)</span>
+                <span class="n">check</span><span class="p">(</span><span class="n">obj_fct_k</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;set parameter obj_fct_k value&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cId</span><span class="p">,</span> <span class="n">stoich</span><span class="p">,</span> <span class="n">compart</span> <span class="ow">in</span> <span class="n">consumed</span><span class="p">:</span>
+            <span class="n">cId_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">cId</span><span class="p">,</span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="n">compart</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">stoich</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span>
+            <span class="c1">#for case stoich = n</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">stoich</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">species_ref</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">createReactant</span><span class="p">()</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="p">,</span> <span class="s1">&#39;create reactant&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setSpecies</span><span class="p">(</span><span class="n">cId_encoded</span><span class="p">),</span> <span class="s1">&#39;assign reactant species </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">cId_encoded</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setStoichiometry</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="s1">&#39;set stoichiometry </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">stoich</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setStoichiometry</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="s1">&#39;set stoichiometry </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">stoich</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setConstant</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set constant </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">pId</span><span class="p">,</span> <span class="n">stoich</span><span class="p">,</span> <span class="n">compart</span> <span class="ow">in</span> <span class="n">produced</span><span class="p">:</span>
+            <span class="n">pId_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">pId</span><span class="p">,</span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="n">compart</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">stoich</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">stoich</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">species_ref</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">createProduct</span><span class="p">()</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="p">,</span> <span class="s1">&#39;create product&#39;</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setSpecies</span><span class="p">(</span><span class="n">pId_encoded</span><span class="p">),</span> <span class="s1">&#39;assign product species </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">pId_encoded</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setStoichiometry</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="s1">&#39;set stoichiometry </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">stoich</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sbml_lvl</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="n">check</span><span class="p">(</span><span class="n">species_ref</span><span class="o">.</span><span class="n">setConstant</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="s1">&#39;set constant </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">linked_genes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_linked_to&quot;</span><span class="p">])</span>
+        <span class="n">all_suppData</span> <span class="o">=</span> <span class="p">[</span><span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">]</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">rId</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;has_suppData&quot;</span><span class="p">]</span>
+        <span class="c1">#if rxn has suppdata, check in each suppData, if GENE_ASSOCIATION in misc</span>
+        <span class="c1">#if run gbr.py to convert the gene assoc to a list of tuple representing the assoc</span>
+        <span class="c1">#ex: #orignia_la: (a or b) and c =&gt; #ga_subsets: [(a,b),(c)]</span>
+        <span class="c1">#add each ga in ga_subsets in all_ga_subsets</span>
+        <span class="c1">#for each ga in all_ga_subsets: if len == 1: if the only ga len == 1: just add gene, else create OR structure</span>
+        <span class="c1">#elif len &gt; 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure</span>
+        <span class="c1">#if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure</span>
+        <span class="n">all_ga_subsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">all_suppData</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">suppData</span> <span class="ow">in</span> <span class="n">all_suppData</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">original_ga</span> <span class="o">=</span> <span class="n">suppData</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; or &quot;</span> <span class="p">,</span> <span class="s2">&quot;|&quot;</span><span class="p">,</span> <span class="n">original_ga</span><span class="p">)</span>
+                    <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; and &quot;</span> <span class="p">,</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">,</span> <span class="n">ga_for_gbr</span><span class="p">)</span>
+                    <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s&quot;</span> <span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ga_for_gbr</span><span class="p">)</span>
+                    <span class="n">ga_for_gbr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">ga_for_gbr</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;\||\&amp;&quot;</span><span class="p">,</span><span class="n">ga_for_gbr</span><span class="p">):</span>
+                        <span class="n">ga_subsets</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="p">[</span><span class="n">ga_subsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">eval</span><span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s2">&quot;python3 &quot;</span><span class="o">+</span><span class="n">dir_path_gbr</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">ga_for_gbr</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">))]</span>
+                        <span class="k">for</span> <span class="n">ga</span> <span class="ow">in</span> <span class="n">ga_subsets</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">ga</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_ga_subsets</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="n">ga</span><span class="p">)</span>
+                                <span class="n">all_ga_subsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ga</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">all_ga_subsets</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">linked_genes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">gene_id</span> <span class="ow">in</span> <span class="n">ga</span> <span class="k">for</span> <span class="n">ga</span> <span class="ow">in</span> <span class="n">all_ga_subsets</span><span class="p">]):</span>
+                    <span class="n">all_ga_subsets</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene_id</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">linked_genes</span><span class="p">:</span>
+                <span class="n">all_ga_subsets</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gene_id</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">association</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">all_ga_subsets</span><span class="p">:</span>
+                <span class="n">add_ga</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">,</span> <span class="n">all_ga_subsets</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">linked_genes</span><span class="p">:</span>
+                <span class="n">add_ga</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">,</span> <span class="n">all_ga_subsets</span><span class="p">)</span>
+        <span class="c1">#set notes</span>
+        <span class="n">notes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">linked_genes</span><span class="p">:</span>
+            <span class="n">notes_dict</span><span class="p">[</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; or &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">g</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;)&quot;</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">all_ga_subsets</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">categories</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">padmet</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;CATEGORY&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rId</span><span class="p">,[])</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;has_reconstructionData&quot;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">categories</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">notes_dict</span><span class="p">[</span><span class="s2">&quot;CATEGORIES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span>
+        <span class="n">pathways</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmet</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rId</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_in_pathway&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pathways</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">notes_dict</span><span class="p">[</span><span class="s2">&quot;SUBSYSTEM&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; , &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathways</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">notes_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">notes</span> <span class="o">=</span> <span class="n">create_note</span><span class="p">(</span><span class="n">notes_dict</span><span class="p">)</span>            
+            <span class="n">check</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">setNotes</span><span class="p">(</span><span class="n">notes</span><span class="p">),</span> <span class="s1">&#39;set notes </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">notes</span><span class="p">)</span>
+
+
+
+    <span class="k">if</span> <span class="n">all_ga</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ga</span> <span class="ow">in</span> <span class="n">all_ga</span><span class="p">:</span>
+            <span class="n">association</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ga</span><span class="p">)</span>
+        <span class="n">association</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;&lt;/listOfGeneAssociations&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;/annotation&gt;&#39;</span><span class="p">])</span>
+        <span class="n">association</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">association</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setAnnotation</span><span class="p">(</span><span class="n">association</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done, creating sbml file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">output</span><span class="p">)</span>
+    <span class="n">libsbml</span><span class="o">.</span><span class="n">writeSBMLToFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parse_mnx_chem_xref"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_xref">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_xref</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">):</span>
+    <span class="c1">#k = xref id, v = mnx_id</span>
+    <span class="n">dict_mnx_chem_xref</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_chem_xref</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;MNX&quot;</span><span class="p">)]:</span>
+            <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dict_mnx_chem_xref</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">dict_mnx_chem_xref</span></div>
+
+<div class="viewcode-block" id="parse_mnx_chem_prop"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.parse_mnx_chem_prop">[docs]</a><span class="k">def</span> <span class="nf">parse_mnx_chem_prop</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">):</span>
+    <span class="c1">#k=mnx_id, v = dict of data</span>
+    <span class="n">dict_mnx_chem_prop</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_chem_prop</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)):</span>
+            <span class="n">dict_mnx_chem_prop</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;description&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;formula&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s2">&quot;charge&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s2">&quot;mass&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="s2">&quot;inchi&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="s2">&quot;smiles&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span><span class="s2">&quot;source&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span><span class="s2">&quot;inchikey&quot;</span><span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">8</span><span class="p">]}</span>
+    <span class="k">return</span> <span class="n">dict_mnx_chem_prop</span></div>
+
+<div class="viewcode-block" id="create_note"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.create_note">[docs]</a><span class="k">def</span> <span class="nf">create_note</span><span class="p">(</span><span class="n">dict_data</span><span class="p">):</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="s2">&quot;&lt;body xmlns=</span><span class="se">\&quot;</span><span class="s2">http://www.w3.org/1999/xhtml</span><span class="se">\&quot;</span><span class="s2">&gt;&quot;</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_data</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;p&gt;&quot;</span><span class="o">+</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;: &quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;&lt;/p&gt;&quot;</span>
+    <span class="n">notes</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/body&gt;&quot;</span>
+    <span class="k">return</span> <span class="n">notes</span></div>
+
+<div class="viewcode-block" id="create_annotation"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.create_annotation">[docs]</a><span class="k">def</span> <span class="nf">create_annotation</span><span class="p">(</span><span class="n">inchi</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    dict_data, k = url, v = id</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">annotations</span> <span class="o">=</span> <span class="s1">&#39;&lt;annotation&gt;</span><span class="se">\n</span><span class="s1">  &lt;rdf:RDF xmlns:rdf=&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot; xmlns:bqbiol=&quot;http://biomodels.net/biology-qualifiers/&quot;&gt;</span><span class="se">\n</span><span class="s1">    &lt;rdf:Description rdf:about=&quot;&#39;</span><span class="o">+</span><span class="n">ref_id</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;</span><span class="se">\n</span><span class="s1">      &lt;bqbiol:isVersionOf&gt;</span><span class="se">\n</span><span class="s1">        &lt;rdf:Bag&gt;</span><span class="se">\n</span><span class="s1">          &lt;rdf:li rdf:resource=&quot;http://identifiers.org/inchi/&#39;</span><span class="o">+</span><span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;&quot;/&gt;</span><span class="se">\n</span><span class="s1">        &lt;/rdf:Bag&gt;</span><span class="se">\n</span><span class="s1">      &lt;/bqbiol:isVersionOf&gt;</span><span class="se">\n</span><span class="s1">    &lt;/rdf:Description&gt;</span><span class="se">\n</span><span class="s1">  &lt;/rdf:RDF&gt;</span><span class="se">\n</span><span class="s1">&lt;/annotation&gt;&#39;</span>
+    <span class="n">annot_xml</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">XMLNode</span><span class="o">.</span><span class="n">convertStringToXMLNode</span><span class="p">(</span><span class="n">annotations</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annot_xml</span></div>
+    
+<div class="viewcode-block" id="add_ga"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.add_ga">[docs]</a><span class="k">def</span> <span class="nf">add_ga</span><span class="p">(</span><span class="n">rId_encoded</span><span class="p">,</span> <span class="n">all_ga_subsets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    if list_ga len == 1: only 1 list of gene: if len of this list is 1: just add gene, else create OR structure</span>
+<span class="sd">    else: create OR structure, then for each list of gene</span>
+<span class="sd">    for each ga in list_ga: if len == 1: if the only ga len == 1: just add gene, else create OR structure</span>
+<span class="sd">    elif len &gt; 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure</span>
+<span class="sd">    if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">global</span> <span class="n">all_ga</span>
+    <span class="n">ga_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_ga</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">ga</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; &lt;geneAssociation id=&quot;ga_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ga_count</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot; reaction=&quot;&#39;</span><span class="o">+</span><span class="n">rId_encoded</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_ga_subsets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">uniqu_ga_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_ga_subsets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniqu_ga_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">gene_id</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">uniqu_ga_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;gene reference=&quot;&#39;</span><span class="o">+</span><span class="n">gene_id</span><span class="o">+</span><span class="s1">&#39;&quot;/&gt;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;or&gt;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">uniqu_ga_list</span><span class="p">:</span>
+                <span class="n">gene_id</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+                <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;gene reference=&quot;&#39;</span><span class="o">+</span><span class="n">gene_id</span><span class="o">+</span><span class="s1">&#39;&quot;/&gt;&#39;</span><span class="p">)</span>
+            <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;/or&gt;&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;or&gt;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ga_list</span> <span class="ow">in</span> <span class="n">all_ga_subsets</span><span class="p">:</span>
+            <span class="n">ga_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ga_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ga_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_id</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">ga_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;gene reference=&quot;&#39;</span><span class="o">+</span><span class="n">gene_id</span><span class="o">+</span><span class="s1">&#39;&quot;/&gt;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;and&gt;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">ga_list</span><span class="p">:</span>
+                    <span class="n">gene_id</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">gene_id</span><span class="p">)</span>
+                    <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;gene reference=&quot;&#39;</span><span class="o">+</span><span class="n">gene_id</span><span class="o">+</span><span class="s1">&#39;&quot;/&gt;&#39;</span><span class="p">)</span>
+                <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;/and&gt;&#39;</span><span class="p">)</span>
+        <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;/or&gt;&#39;</span><span class="p">)</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;/geneAssociation&gt;&#39;</span><span class="p">)</span>
+    <span class="n">all_ga</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ga</span><span class="p">)</span>        </div>
+    
+
+<span class="c1">#################################</span>
+
+<div class="viewcode-block" id="reaction_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.reaction_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">reaction_to_sbml</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    convert a list of reactions to sbml format based on a given padmet of reference.</span>
+<span class="sd">    - ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id</span>
+<span class="sd">    @param reactions: list of reactions ids</span>
+<span class="sd">    @param padmetRef: padmet of reference</span>
+<span class="sd">    @param output: the pathname to the sbml file to create</span>
+<span class="sd">    @param sbml_lvl: the sbml level</span>
+<span class="sd">    @param sbml_version: the sbml version</span>
+<span class="sd">    @param verbose: print informations</span>
+<span class="sd">    @type reactions: set</span>
+<span class="sd">    @type output, verbose: str</span>
+<span class="sd">    @type padmetRef: &lt;Padmet&gt;</span>
+<span class="sd">    @type sbml_lvl, sbml_version: int</span>
+<span class="sd">    @return: check return of writeSBMLToFile</span>
+<span class="sd">    @rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#check if all rxn id are in padmetRef.</span>
+    <span class="n">all_rxn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">])</span>
+    <span class="n">rxn_not_in_ref</span> <span class="o">=</span> <span class="n">reactions</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">all_rxn</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_not_in_ref</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;None of the reactions is in padmetRef&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">rxn_id</span> <span class="ow">in</span> <span class="n">rxn_not_in_ref</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in padmetRef&quot;</span> <span class="o">%</span> <span class="n">rxn_id</span><span class="p">)</span>
+            <span class="n">reactions</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rxn_id</span><span class="p">)</span>
+    <span class="n">padmet</span> <span class="o">=</span> <span class="n">PadmetSpec</span><span class="p">()</span>
+    <span class="p">[</span><span class="n">padmet</span><span class="o">.</span><span class="n">copyNode</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">rxn_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">rxn_id</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">]</span>
+    <span class="n">padmet_to_sbml</span><span class="p">(</span><span class="n">padmet</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">sbml_lvl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compound_to_sbml"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.compound_to_sbml">[docs]</a><span class="k">def</span> <span class="nf">compound_to_sbml</span><span class="p">(</span><span class="n">species_compart</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    convert a list of compounds to sbml format</span>
+<span class="sd">    if compart_name is not None, then the compounds id will by: M_originalID_compart_name</span>
+<span class="sd">    if verbose and specified padmetRef and/or padmetSpec: will check if compounds are in one of the padmet files</span>
+<span class="sd">    Ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id</span>
+<span class="sd">    @param compounds_file: the pathname to the file containing the compounds ids and the compart, line = cpd-id\tcompart.</span>
+<span class="sd">    @param output: the pathname to the sbml file to create</span>
+<span class="sd">    @param padmetRef_file: the pathname to the file padmet of reference</span>
+<span class="sd">    @param padmetRef_file: the pathname to the file padmet of a species</span>
+<span class="sd">    @param compart_name: the default compart to concatenate</span>
+<span class="sd">    @param sbml_version: the sbml version</span>
+<span class="sd">    @param verbose: print informations</span>
+<span class="sd">    @type compounds_file, output, padmetRef_file, padmetSpec_file, verbose: str</span>
+<span class="sd">    @type sbml_lvl, sbml_version: int</span>
+<span class="sd">    @return: check return of writeSBMLToFile</span>
+<span class="sd">    @rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLDocument</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">createModel</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> species&quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">species_compart</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">species_compart</span><span class="p">:</span>
+        <span class="n">species_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">compart</span> <span class="o">=</span> <span class="s2">&quot;c&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">compart</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sId_encoded</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">species_id</span><span class="p">,</span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="n">compart</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">createSpecies</span><span class="p">()</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;create species&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="n">sId_encoded</span><span class="p">),</span> <span class="s1">&#39;set species id&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="n">species_id</span><span class="p">),</span> <span class="s1">&#39;set species name&#39;</span><span class="p">)</span>
+        <span class="n">check</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">setCompartment</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">convert_to_coded_id</span><span class="p">(</span><span class="n">compart</span><span class="p">)),</span> <span class="s1">&#39;set species compartment&#39;</span><span class="p">)</span>
+    
+    <span class="n">libsbml</span><span class="o">.</span><span class="n">writeSBMLToFile</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.sbmlGenerator.check">[docs]</a><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;If &#39;value&#39; is None, prints an error message constructed using</span>
+<span class="sd">    &#39;message&#39; and then exits with status code 1.  If &#39;value&#39; is an integer,</span>
+<span class="sd">    it assumes it is a libSBML return status code.  If the code value is</span>
+<span class="sd">    LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,</span>
+<span class="sd">    prints an error message constructed using &#39;message&#39; along with text from</span>
+<span class="sd">    libSBML explaining the meaning of the code, and exits with status code 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s1">&#39;LibSBML returned a null value trying to &#39;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">LIBSBML_OPERATION_SUCCESS</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;Error encountered trying to &#39;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> \
+                 <span class="o">+</span> <span class="s1">&#39;LibSBML returned error code &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &quot;&#39;</span> \
+                 <span class="o">+</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">OperationReturnValue_toString</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

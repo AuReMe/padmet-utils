@@ -1,0 +1,1520 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Scripts: Connection &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Scripts: Connection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api_docs/script.connection.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="scripts-connection">
+<h1>Scripts: Connection<a class="headerlink" href="#scripts-connection" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>#TODO</p>
+<div class="section" id="module-scripts.connection.aspGenerator">
+<span id="aspgenerator"></span><h3>aspGenerator<a class="headerlink" href="#module-scripts.connection.aspGenerator" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet.</p>
+<p>padmet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+This module contains functions to convert a padmet file to predicats for ASP</p>
+<dl class="function">
+<dt id="scripts.connection.aspGenerator.asp_synt">
+<code class="descclassname">scripts.connection.aspGenerator.</code><code class="descname">asp_synt</code><span class="sig-paren">(</span><em>pred</em>, <em>list_args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/aspGenerator.html#asp_synt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.aspGenerator.asp_synt" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a predicat for asp</p>
+<p>&#64;example: asp_synt(“direction”,[“R1”,”REVERSIBLE”]) =&gt; “direction(‘R1’,’reversible’).”
+&#64;param pred: the predicat
+&#64;param list_args: list of atoms to put in the predicat
+&#64;type pred: str
+&#64;type list_args: list
+&#64;return: the predicat ‘pred(‘’list_args[0]’‘,’‘list_args[1]’‘,…,’‘list_args[n]’‘).’
+&#64;rtype: str</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.aspGenerator.padmet_to_asp">
+<code class="descclassname">scripts.connection.aspGenerator.</code><code class="descname">padmet_to_asp</code><span class="sig-paren">(</span><em>padmet_file</em>, <em>output</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/aspGenerator.html#padmet_to_asp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.aspGenerator.padmet_to_asp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert PADMet to ASP following these predicats:
+common_name({reaction_id or enzyme_id or pathway_id or compound_id} , common_name)
+direction(reaction_id, reaction_direction). reaction_direction in[LEFT-TO-RIGHT,REVERSIBLE]
+ec_number(reaction_id, ec(x,x,x)).
+catalysed_by(reaction_id, enzyme_id).
+uniprotID(enzyme_id, uniprot_id). #if has has_xref and db = “UNIPROT”
+in_pathway(reaction_id, pathway_id).
+reactant(reaction_id, compound_id, stoechio_value).
+product(reaction_id, compound_id, stoechio_value).
+is_a(compound_id, class_id).
+is_a(pathway_id, pathway_id).</p>
+<p>&#64;param padmet_file: the path to padmet file to convert
+&#64;param output: the path to the output to create
+&#64;param verbose: print informations
+&#64;type padmet_file: str
+&#64;type output: str
+&#64;type verbose: bool
+&#64;return: _
+&#64;rtype: None</p>
+</dd></dl>
+
+</div>
+<div class="section" id="biggapi-temp">
+<h3>biggAPI_temp<a class="headerlink" href="#biggapi-temp" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="biggapi-to-padmet">
+<h3>biggAPI_to_padmet<a class="headerlink" href="#biggapi-to-padmet" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-scripts.connection.enhanced_meneco_output">
+<span id="enhanced-meneco-output"></span><h3>enhanced_meneco_output<a class="headerlink" href="#module-scripts.connection.enhanced_meneco_output" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+The standard output of meneco return ids of reactions corresponding to the solution for gapfilling.
+The ids are those from the sbml and so they are encoded.
+This script extract the solution corresponding to the union of reactions
+“Computing union of reactions from all completion”
+Based on padmetRef return a file with more information for each reaction.
+ex: RXN__45__5
+RXN-5, common_name, ec-number, Formula (with id),Formula (with cname),Action,Comment
+Also, the output can be used as input of the script update_padmetSpec.py
+In the column Action: ‘add’ =&gt; To add the reaction, ‘’ =&gt; to do nothing
+Comment: the reason of adding the reaction (ex: added for gap-filling by meneco)</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>enhanced_meneco_output.py –meneco_output=FILE –padmetRef=FILE –output=FILE [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–meneco_output=FILE    pathname of a meneco run’ result
+–padmetRef=FILE    pathanme to padmet file corresponding to the database of reference (the repair network)
+–output=FILE    pathname to tsv output file</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.enhanced_meneco_output.main">
+<code class="descclassname">scripts.connection.enhanced_meneco_output.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/enhanced_meneco_output.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.enhanced_meneco_output.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.enhanced_sgs_output">
+<span id="enhanced-sgs-output"></span><h3>enhanced_sgs_output<a class="headerlink" href="#module-scripts.connection.enhanced_sgs_output" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+1./ extract all data from sgs output
+2./ If needed, convert reaction id to metacyc id</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>enhanced_sgs_output.py –sgs_output=FILE –padmetRef=FILE –output=FILE [–db=ID] [–mnx=FILE] [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–sgs_output=FILE    pathname of a sgs run’ result
+–db=ID    database origin of the reactions. will be converted to metacyc
+–padmetRef=FILE    pathanme to padmet file corresponding to the database of reference (the repair network)
+–mnx=FILE    pathanme to metanetx file for reactions (reac_xref.tsv)
+–output=FILE    pathname to tsv output file</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.enhanced_sgs_output.main">
+<code class="descclassname">scripts.connection.enhanced_sgs_output.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/enhanced_sgs_output.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.enhanced_sgs_output.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="extract-rxn-sbml">
+<h3>extract_rxn_sbml<a class="headerlink" href="#extract-rxn-sbml" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-scripts.connection.extract_rxn_with_gene_assoc">
+<span id="extract-rxn-with-gene-assoc"></span><h3>extract_rxn_with_gene_assoc<a class="headerlink" href="#module-scripts.connection.extract_rxn_with_gene_assoc" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+From a given sbml file, create a sbml with only the reactions associated to a gene.
+Need for a reaction, in section ‘note’, ‘GENE_ASSOCIATION’: ….</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>extract_rxn_with_gene_assoc.py –sbml=FILE –output=FILE [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–sbml=FILE    pathname to the sbml file
+–output=FILE    pathname to the sbml output (with only rxn with genes assoc)
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.extract_rxn_with_gene_assoc.main">
+<code class="descclassname">scripts.connection.extract_rxn_with_gene_assoc.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/extract_rxn_with_gene_assoc.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.extract_rxn_with_gene_assoc.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.gbk_to_faa">
+<span id="gbk-to-faa"></span><h3>gbk_to_faa<a class="headerlink" href="#module-scripts.connection.gbk_to_faa" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+convert GBK to FAA with Bio package</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>gbk_to_faa.py    –gbk=FILE –output=FILE [–qualifier=STR] [-v]</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–gbk=FILE    pathname to the gbk file.
+–output=FILE    pathename to the output, a FAA file.
+–qualifier=STR    the qualifier of the gene id [default: locus_tag].
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.gbk_to_faa.main">
+<code class="descclassname">scripts.connection.gbk_to_faa.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/gbk_to_faa.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.gbk_to_faa.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.gene_to_targets">
+<span id="gene-to-targets"></span><h3>gene_to_targets<a class="headerlink" href="#module-scripts.connection.gene_to_targets" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+From a list of genes, recovere from the linked reactions the list of products.
+R1 is linked to G1, R1 produces M1 and M2.  output: M1,M2. Takes into account reversibility</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>gene_to_targets.py –padmetSpec=FILE –genes=FILE –output=FILE [-v]</dd>
+<dt>option:</dt>
+<dd>-h –help     Show help
+–padmetSpec=FILE    pathanme to the padmet file
+–genes=FILE   pathname to the file containing gene ids, one id by line
+–output=FILE    pathname to the output file containing all tagerts which can by produced by all reactions associated to the given genes
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.gene_to_targets.main">
+<code class="descclassname">scripts.connection.gene_to_targets.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/gene_to_targets.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.gene_to_targets.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.genesfba3">
+<span id="genesfba3"></span><h3>genesfba3<a class="headerlink" href="#module-scripts.connection.genesfba3" title="Permalink to this headline">¶</a></h3>
+<p>Created on Thu Oct  4 16:40:04 2018</p>
+<p>&#64;author: maite</p>
+</div>
+<div class="section" id="grammar-boolean-rapsody">
+<h3>grammar-boolean-rapsody<a class="headerlink" href="#grammar-boolean-rapsody" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="modelseed-to-padmet">
+<h3>modelSeed_to_padmet<a class="headerlink" href="#modelseed-to-padmet" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-scripts.connection.padmet_to_asp">
+<span id="padmet-to-asp"></span><h3>padmet_to_asp<a class="headerlink" href="#module-scripts.connection.padmet_to_asp" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Convert PADMet to ASP following this predicats:
+direction(reaction_id, reaction_direction). #LEFT-TO-RIGHT or REVERSIBLE
+ec_number(reaction_id, ec(x,x,x)).
+catalysed_by(reaction_id, enzyme_id).
+uniprotID(enzyme_id, uniprot_id). #if has has_xref and db = “UNIPROT”
+common_name({reaction_id or enzyme_id or pathway_id or compound_id} , common_name)</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>padmet_to_ASP.py –padmet=FILE –output=FILE [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–padmet=FILE    pathname of the padmet file to convert
+–output=FILE    pathname of the lp file
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.padmet_to_asp.main">
+<code class="descclassname">scripts.connection.padmet_to_asp.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_asp.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_asp.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.padmet_to_matrix">
+<span id="padmet-to-matrix"></span><h3>padmet_to_matrix<a class="headerlink" href="#module-scripts.connection.padmet_to_matrix" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Create a stoichiometry matrix from a padmet file.
+The columns represent the reactions and rows represent metabolites.
+S[i,j] contains the quantity of metabolite ‘i’ produced (negative for consumed)
+by reaction ‘j’.</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>padmet_to_matrix.py –padmet=FILE –output=FILE</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–padmet=FILE    pathname to the padmet file to convert.
+–output=FILE    pathname to the output file, col: rxn, row: metabo, sep = ”        “.</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.padmet_to_matrix.main">
+<code class="descclassname">scripts.connection.padmet_to_matrix.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_matrix.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_matrix.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.padmet_to_padmet">
+<span id="padmet-to-padmet"></span><h3>padmet_to_padmet<a class="headerlink" href="#module-scripts.connection.padmet_to_padmet" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Allows to merge two padmet. update the ‘init_padmet’ with the ‘to_add’ padmet.
+usage:</p>
+<blockquote>
+<div>padmet_to_padmet.py –init_padmet=FILE –padmetRef=FILE –to_add=FILE [–output=FILE] [-v]</div></blockquote>
+<dl class="docutils">
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–init_padmet=FILE    pathname to the padmet file to update.
+–padmetRef=FILE    pathanme to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
+–to_add=FILE    pathname to the padmet file to add.
+–output=FILE   pathanme to the new padmet file, if none overwritte init_padmet
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.padmet_to_padmet.main">
+<code class="descclassname">scripts.connection.padmet_to_padmet.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_padmet.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_padmet.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.padmet_to_tsv">
+<span id="padmet-to-tsv"></span><h3>padmet_to_tsv<a class="headerlink" href="#module-scripts.connection.padmet_to_tsv" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+convert a padmet representing a database (padmetRef) and/or a padmet representing a model (padmetSpec)
+to tsv files for askomics.</p>
+<p>1./ Folder creation
+given the output directory. Create this directory if required and create a folder
+padmetRef filename and/or padmetSpec filename</p>
+<p>2./
+2.1/ For padmetRef:
+2.1.a/ Nodes
+get all reactions nodes =&gt; extract data from misc with extract_nodes(rxn_nodes, “reaction”, “../rxn.tsv”)
+get all compounds nodes =&gt; extract data from misc with extract_nodes(cpd_nodes, “compounds”, “../cpd.tsv”)
+get all pathways nodes =&gt; extract data from misc with extract_nodes(pwy_nodes, “pathway”, “../pwy.tsv”)
+get all xrefs nodes =&gt; extract data from misc with extract_nodes(xref_nodes, “xref”, “../xref.tsv”)
+2.1.b/ Relations
+for each rxn in rxn nodes:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>get all rlt consumes/produces =&gt; create list of data with extract_rxn_cpd(rxn_cpd_rlt)</dt>
+<dd>fieldnames = “rxn_cpd”,”<a class="reference external" href="mailto:concerns&#37;&#52;&#48;reaction">concerns<span>&#64;</span>reaction</a>”,”<a class="reference external" href="mailto:consumes&#37;&#52;&#48;compound">consumes<span>&#64;</span>compound</a>”,”<a class="reference external" href="mailto:produces&#37;&#52;&#48;compound">produces<span>&#64;</span>compound</a>”,”stoichiometry”,”compartment”</dd>
+<dt>get all rlt is_in_pathway =&gt; create list of data with extract_rxn_pwy(rxn_pwy_rlt)</dt>
+<dd>fieldnames = “rxn_pwy”,”<a class="reference external" href="mailto:concerns&#37;&#52;&#48;reaction">concerns<span>&#64;</span>reaction</a>”,”<a class="reference external" href="mailto:in_pwy&#37;&#52;&#48;pathway">in_pwy<span>&#64;</span>pathway</a>”</dd>
+</dl>
+<p>get all rlt has_xref =&gt; create list of data with extract_entity_xref(rxn_xref_rlt)</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>for each cpd in cpd nodes:</dt>
+<dd><dl class="first last docutils">
+<dt>get all rlt has_xref =&gt; update previous list of data with extract_entity_xref(cpd_xref_rlt)</dt>
+<dd>fieldnames = “entity_xref”,”<a class="reference external" href="mailto:concerns&#37;&#52;&#48;reaction">concerns<span>&#64;</span>reaction</a>”,”<a class="reference external" href="mailto:concerns&#37;&#52;&#48;compound">concerns<span>&#64;</span>compound</a>”,”<a class="reference external" href="mailto:has_xref&#37;&#52;&#48;xref">has_xref<span>&#64;</span>xref</a>”</dd>
+</dl>
+</dd>
+<dt>usage:</dt>
+<dd>padmet_to_tsv.py –padmetSpec=FILE [–padmetRef=FILE] –output_dir=DIR [-v]
+padmet_to_tsv.py –padmetRef=FILE [–padmetSpec=FILE] –output_dir=DIR [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–padmetSpec=FILE    pathname of the padmet representing the network to convert
+–padmetRef=FILE    pathname of the padmet representing the database
+–output_dir=DIR
+-v</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.entity_xref_file">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">entity_xref_file</code><span class="sig-paren">(</span><em>data</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#entity_xref_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.entity_xref_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_entity_xref">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_entity_xref</code><span class="sig-paren">(</span><em>entity_xref_rlt</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_entity_xref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_entity_xref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_nodes">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_nodes</code><span class="sig-paren">(</span><em>padmet</em>, <em>nodes</em>, <em>entity_id</em>, <em>output</em>, <em>opt_col={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>for n nodes in nodes. for each node.misc = {A:[‘x’],B:[‘y’,’z’]}
+create a file with line = [node.id,A[0],B[0]],[node.id,”“,B[1]]
+the order is defined in fieldnames.
+merge common name and synonyms in ‘name’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_pwy">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_pwy</code><span class="sig-paren">(</span><em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_pwy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_pwy" title="Permalink to this definition">¶</a></dt>
+<dd><p>from padmet return a dict, k = pwy_id, v = set of rxn_id in pwy</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_rxn_cpd">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_rxn_cpd</code><span class="sig-paren">(</span><em>rxn_cpd_rlt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_rxn_cpd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_rxn_cpd" title="Permalink to this definition">¶</a></dt>
+<dd><p>for rlt in rxn_cpd_rlt, append in data: [rxn_id,cpd_id(consumed),’‘,stoich,compartment]
+and/or [rxn_id,’‘,cpd_id(produced),stoich,compartment]. The value in index 0
+is a merge of all data to create a unique relation id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_rxn_gene">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_rxn_gene</code><span class="sig-paren">(</span><em>rxn_gene_rlt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_rxn_gene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_rxn_gene" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_rxn_pwy">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_rxn_pwy</code><span class="sig-paren">(</span><em>rxn_pwy_rlt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_rxn_pwy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_rxn_pwy" title="Permalink to this definition">¶</a></dt>
+<dd><p>for rlt in rxn_pwy_rlt, append in data: [rxn_id,pwy_id]. The value in index 0
+is a merge of all data to create a unique relation id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.extract_rxn_rec">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">extract_rxn_rec</code><span class="sig-paren">(</span><em>rxn_rec_rlt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#extract_rxn_rec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.extract_rxn_rec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.main">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.pwy_rate">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">pwy_rate</code><span class="sig-paren">(</span><em>padmetRef</em>, <em>padmetSpec</em>, <em>metabolic_network</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#pwy_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.pwy_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>pwy rate in padmetSpec is calculated based on padmetRef</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.rxn_cpd_file">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">rxn_cpd_file</code><span class="sig-paren">(</span><em>data</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#rxn_cpd_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.rxn_cpd_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>from data obtained with extract_rxn_cpd(), create file rxn_cpd</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.rxn_gene_file">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">rxn_gene_file</code><span class="sig-paren">(</span><em>data</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#rxn_gene_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.rxn_gene_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.rxn_pwy_file">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">rxn_pwy_file</code><span class="sig-paren">(</span><em>data</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#rxn_pwy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.rxn_pwy_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.padmet_to_tsv.rxn_rec_file">
+<code class="descclassname">scripts.connection.padmet_to_tsv.</code><code class="descname">rxn_rec_file</code><span class="sig-paren">(</span><em>data</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/padmet_to_tsv.html#rxn_rec_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.padmet_to_tsv.rxn_rec_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.pgdb_to_padmet">
+<span id="pgdb-to-padmet"></span><h3>pgdb_to_padmet<a class="headerlink" href="#module-scripts.connection.pgdb_to_padmet" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:</p>
+<p>classes.dat:
+For each class:
+create new node / class = class
+UNIQUE-ID (1) =&gt; node._id = UNIQUE-ID
+COMMON-NAME (0-n) =&gt; node.Misc[‘COMMON-NAME’] = COMMON-NAME
+TYPES (0-n) =&gt; for each, check or create new node class, create rlt (node is_a_class types)
+SYNONYMS (0-n) =&gt; for each, create new node name, create rlt (node has_name synonyms)</p>
+<p>compounds.dat:
+for each compound:
+create new node / class = compound
+UNIQUE-ID (1) =&gt; node._id = UNIQUE-ID
+COMMON-NAME (0-n) =&gt; node.Misc[‘COMMON-NAME’] = COMMON-NAME
+INCHI-KEY (0-1) {InChIKey=XXX} =&gt; node.misc[‘INCHI_KEY’: XXX]
+MOLECULAR-WEIGHT (0-1) =&gt; node.misc()[‘MOLECULAR_WEIGHT’] = MOLECULAR-WEIGHT
+SMILES (0-1) =&gt; node.misc()[‘SMILES’] = SMILES
+TYPES (0-n) =&gt; for each, check or create new node class, create rlt (node is_a_class types)
+SYNONYMS (0-n) =&gt; for each, create new node name, create rlt (node has_name name)
+DBLINKS (0-n) {(db “id” …)} =&gt; for each, create new node xref, create rlt (node has_xref xref)</p>
+<p>proteins.dat:
+for each protein:
+create new node / class = protein
+UNIQUE-ID (1) =&gt; node._id = UNIQUE-ID
+COMMON-NAME (0-n) =&gt; node.Misc[‘COMMON-NAME’] = COMMON-NAME
+INCHI-KEY (0-1) {InChIKey=XXX} =&gt; node.misc[‘INCHI_KEY’: XXX]
+MOLECULAR-WEIGHT (0-1) =&gt; node.misc()[‘MOLECULAR_WEIGHT’] = MOLECULAR-WEIGHT
+SMILES (0-1) =&gt; node.misc()[‘SMILES’] = SMILES
+TYPES (0-n) =&gt; for each, check or create new node class, create rlt (node is_a_class types)
+SYNONYMS (0-n) =&gt; for each, create new node name, create rlt (node has_name name)
+DBLINKS (0-n) {(db “id” …)} =&gt; for each, create new node xref, create rlt (node has_xref xref)
+SPECIES (0-1) =&gt; for each, check or create new node class, create rlt (node is_in_species class)</p>
+<p>reactions.dat:
+for each reaction:
+create new node / class = reaction + node.misc()[“DIRECTION”] = “UNKNOWN” by default
+UNIQUE-ID (1) =&gt; node._id = UNIQUE-ID
+COMMON-NAME (0-n) =&gt; node.Misc[‘COMMON-NAME’] = COMMON-NAME
+EC-NUMBER (0-n) =&gt; node.Misc[‘EC-NUMBER’] = EC-NUMBER
+REACTION-DIRECTION (0-1) =&gt; node.Misc[‘DIRECTION’] = reaction-direction, if REVERSIBLE, else: LEFT-TO-RIGHT
+RXN-LOCATIONS (0,n) =&gt; node.misc[‘COMPARTMENT’] = rxn-location
+TYPES (0-n) =&gt; check or create new node class, create rlt (node.id is_a_class types’s_node.id)
+DBLINKS (0-n) {(db “id” …)} =&gt; create new node xref, create rlt (node has_xref xref’s_node.id)
+SYNONYMS (0-n) =&gt; create new node name, create rlt (node has_name name’s_node.id)
+–
+for LEFT and RIGHT, also check 2 next lines if info about ‘coefficient’ or ‘compartment’
+defaut value: coefficient/stoichiometry = 1, compartment = unknown
+also check if the direction is ‘RIGHT-TO-LEFT’, if yes, inverse consumes and produces relations
+then change direction to ‘LEFT-TO-RIGHT’
+LEFT (1-n) =&gt; create rlt (node.id consumes left’s_node.id)
+RIGHT (1-n) =&gt; create rlt (node.id produces right’s_node.id)</p>
+<p>enzrxns.dat:
+for each association enzyme/reaction:
+create new rlt / type = catalyses
+ENZYME (1) =&gt; stock enzyme as ‘enzyme catalyses’
+REACTION (1-n) =&gt; for each reaction after, create relation ‘enzyme catalyses reaction’</p>
+<p>pathways.dat:
+for each pathway:
+create new node / class = pathway
+UNIQUE-ID (1) =&gt; node._id = UNIQUE-ID
+TYPES (0-n) =&gt; check or create new node class, create rlt (node is_a_class types)
+COMMON-NAME (0-n) =&gt; node.Misc[‘COMMON-NAME’] = COMMON-NAME
+DBLINKS (0-n) {(db “id” …)} =&gt; create new node xref, create rlt (node has_xref xref)
+SYNONYMS (0-n) =&gt; create new node name, create rlt (node has_name name)
+IN-PATHWAY (0-n) =&gt; check or create new node pathway, create rlt (node is_in_pathway name)
+REACTION-LIST (0-n) =&gt; check or create new node pathway, create rlt (node is_in_pathway name)</p>
+<p>metabolic-reaction.xml: optional
+for each reaction:</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>pgdb_to_padmet.py –output=FILE –directory=DIR [–padmetRef=FILE] [–source=STR] [-v] [-g] [-m] [–version=V] [–db=ID]
+pgdb_to_padmet.py –version=V –db=ID –output=FILE –classes_file=FILE –compounds_file=FILE –proteins_file=FILE –reactions_file=FILE –enzrxns_file=FILE –pathways_file=FILE [–genes_file=FILE] [–metabolic_reactions=FILE] [–source=STR] [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–version=V    Xcyc version
+–db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, …)
+–output=FILE    padmet file corresponding to the DB
+–directory=DIR    directory containg all the .dat files of metacyc (data)
+–padmetRef=FILE    padmet of reference
+–classes_file=FILE
+–compounds_file=FILE
+–proteins_file=FILE
+–reactions_file=FILE
+–enzrxns_file=FILE
+–pathways_file=FILE
+–genes_file=FILE
+–metabolic_reactions=FILE
+–source=STR    Tag associated to the source of the reactions, used to ensure traceability
+-m    use the metabolic-reactions.xml file to enhance the database
+-g    use the genes_file (use if its a specie’s pgdb, if metacyc, do not use)
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.classes_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">classes_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#classes_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.classes_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>from class.dat: get for each class, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS
+Create a class node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}
+- For each types:
+A type is in fact a class. this information is stocked in padmet as: is_a_class relation btw a node and a class_node
+check if the type is already in the padmet
+if not create a new class_node (var: subClass) with subClass_node.id = type
+Create a relation current node is_a_class type
+- For each Synonyms:
+this information is stocked in padmet as: has_name relation btw a node and a name_node
+create a new name_node with name_node.id = class_id+”_names” and name_node.misc = {LABEL:[synonyms]}
+Create a relation current node has_name name_node.id
+- For each DBLINKS:
+DBLINKS is parsed with regex_xref to get the db and the id
+this information is stocked in padmet as: has_xref relation btw a node and a xref_node
+create a new xref_node with xref_node.id = class_id+”_xrefs” and xref_node.misc = {db:[id]}
+Create a relation current node has_xref xref_node.id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.compounds_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">compounds_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#compounds_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.compounds_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.enhance_db">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">enhance_db</code><span class="sig-paren">(</span><em>metabolic_reactions</em>, <em>padmet</em>, <em>with_genes=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#enhance_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.enhance_db" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.enzrxns_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">enzrxns_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em>, <em>dict_protein_gene_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#enzrxns_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.enzrxns_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.genes_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">genes_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#genes_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.genes_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.main">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.pathways_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">pathways_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#pathways_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.pathways_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.proteins_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">proteins_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em>, <em>dict_gene_unique_id_real_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#proteins_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.proteins_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pgdb_to_padmet.reactions_parser">
+<code class="descclassname">scripts.connection.pgdb_to_padmet.</code><code class="descname">reactions_parser</code><span class="sig-paren">(</span><em>filePath</em>, <em>padmet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pgdb_to_padmet.html#reactions_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pgdb_to_padmet.reactions_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>from reaction.dat: get for each reaction, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS
+Create a reaction node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}
+- For each types:
+A type is in fact a class. this information is stocked in padmet as: is_a_class relation btw a node and a class_node
+check if the type is already in the padmet
+if not create a new class_node (var: subClass) with subClass_node.id = type
+Create a relation current node is_a_class type
+- For each Synonyms:
+this information is stocked in padmet as: has_name relation btw a node and a name_node
+create a new name_node with name_node.id = reaction_id+”_names” name_node.misc = {LABEL:[synonyms]}
+Create a relation current node has_name name_node.id
+- For each DBLINKS:
+DBLINKS is parsed with regex_xref to get the db and the id
+this information is stocked in padmet as: has_xref relation btw a node and a xref_node
+create a new xref_node with xref_node.id = reaction_id+”_xrefs” and xref_node.misc = {db:[id]}
+Create a relation current node has_xref xref_node.id</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.post_pantograph_gbr">
+<span id="post-pantograph-gbr"></span><h3>post_pantograph_gbr<a class="headerlink" href="#module-scripts.connection.post_pantograph_gbr" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>post_pantograph.py    –ptg_run=DIR –output=FILE [-v]
+post_pantograph.py    –model_metabolic=FILE    –study_metabolic=FILE    –inp=FILE –omcl=FILE –output=FILE [-v]</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
+–model_faa=FILE    pathname to the proteom of the model (faa)
+–cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70].
+–dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line =
+–output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.post_pantograph_gbr.check">
+<code class="descclassname">scripts.connection.post_pantograph_gbr.</code><code class="descname">check</code><span class="sig-paren">(</span><em>value</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/post_pantograph_gbr.html#check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.post_pantograph_gbr.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>If ‘value’ is None, prints an error message constructed using
+‘message’ and then exits with status code 1.  If ‘value’ is an integer,
+it assumes it is a libSBML return status code.  If the code value is
+LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
+prints an error message constructed using ‘message’ along with text from
+libSBML explaining the meaning of the code, and exits with status code 1.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.post_pantograph_gbr.main">
+<code class="descclassname">scripts.connection.post_pantograph_gbr.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/post_pantograph_gbr.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.post_pantograph_gbr.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.pre_pantograph">
+<span id="pre-pantograph"></span><h3>pre_pantograph<a class="headerlink" href="#module-scripts.connection.pre_pantograph" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Before running pantograph it is necessary to check if the metabolic network
+and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff).
+To only check this. Use the 2nd usage.
+If the genes ids are not the same, it is necessary to use a dictionnary of genes ids associating
+the genes ids from the proteom to the genes ids from the metabolic network.
+To create the correct proteom from the dictionnnary, use the 3nd usage
+Finnaly by using the 1st usage, it is possible to:</p>
+<blockquote>
+<div>1/ Check model_faa and model_metabolic for a given cutoff
+2/ if under the cutoff, convert model_faa to the correct one with dict_ids_file
+3/ if still under, SystemExit()</div></blockquote>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>pre_pantograph.py    –model_metabolic=FILE    –model_faa=FILE    [–cutoff=FLOAT] [–dict_ids_file=FILE] –output=FILE    [-v]
+pre_pantograph.py    –model_metabolic=FILE    –model_faa=FILE    [–cutoff=FLOAT] [-v]
+pre_pantograph.py    –model_faa=FILE    –dict_ids_file=FILE    –output=FILE [-v]</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
+–model_faa=FILE    pathname to the proteom of the model (faa)
+–cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70].
+–dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = gene_id_in_metabolic_network   gene_id_in_faa
+–output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.pre_pantograph.check_ids">
+<code class="descclassname">scripts.connection.pre_pantograph.</code><code class="descname">check_ids</code><span class="sig-paren">(</span><em>model_metabolic</em>, <em>model_faa</em>, <em>cutoff</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pre_pantograph.html#check_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pre_pantograph.check_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if genes ids of model_metabolic = model_faa for a given cutoff
+faa genes ids are in the first line of each sequence: &gt;GENE_ID ….
+metabolic netowkrs genes ids are in note section, GENE_ASSOCIATION: gene_id-1 or gene_id-2
+&#64;return: True if same ids, if verbose, print % of genes under cutoff
+&#64;type: bool</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pre_pantograph.get_valid_faa">
+<code class="descclassname">scripts.connection.pre_pantograph.</code><code class="descname">get_valid_faa</code><span class="sig-paren">(</span><em>model_faa</em>, <em>dict_ids_file</em>, <em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pre_pantograph.html#get_valid_faa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pre_pantograph.get_valid_faa" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a new faa from the model_faa by converting the gene id with the dict_ids
+dict_ids: line = origin_id new_gene_id, sep =</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.pre_pantograph.main">
+<code class="descclassname">scripts.connection.pre_pantograph.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/pre_pantograph.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.pre_pantograph.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.sbmlGenerator">
+<span id="sbmlgenerator"></span><h3>sbmlGenerator<a class="headerlink" href="#module-scripts.connection.sbmlGenerator" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet.</p>
+<p>padmet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+The module sbmlGenerator contains functions to generate sbml files from padmet and txt
+usign the libsbml package</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>sbmlGenerator.py –padmet=FILE –output=FILE –sbml_lvl=STR [–model_id=STR] [–obj_fct=STR] [–mnx_chem_prop=FILE] [–mnx_chem_xref=FILE] [-v]
+sbmlGenerator.py –padmet=FILE –output=FILE [–init_source=STR] [-v]
+sbmlGenerator.py –compound=FILE –output=FILE [–padmetRef=FILE] [-v]
+sbmlGenerator.py –reaction=FILE –output=FILE –padmetRef=FILE [-v]</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–padmet=FILE    pathname of the padmet file to convert into sbml
+–output=FILE    pathanme of the sbml file to generate.
+–obj_fct=STR    id of the reaction objective.
+–sbml_lvl=STR    sbml level 2 is sufficient for FBA.
+-v   print info.</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.add_ga">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">add_ga</code><span class="sig-paren">(</span><em>rId_encoded</em>, <em>all_ga_subsets</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#add_ga"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.add_ga" title="Permalink to this definition">¶</a></dt>
+<dd><p>if list_ga len == 1: only 1 list of gene: if len of this list is 1: just add gene, else create OR structure
+else: create OR structure, then for each list of gene
+for each ga in list_ga: if len == 1: if the only ga len == 1: just add gene, else create OR structure
+elif len &gt; 1: create AND structure, then for each GA if len GA == 1: just add gene, else create OR structure
+if no suppdata, if linked_genes: if len linked_genes == 1: just add gene, else create OR structure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.check">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">check</code><span class="sig-paren">(</span><em>value</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>If ‘value’ is None, prints an error message constructed using
+‘message’ and then exits with status code 1.  If ‘value’ is an integer,
+it assumes it is a libSBML return status code.  If the code value is
+LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
+prints an error message constructed using ‘message’ along with text from
+libSBML explaining the meaning of the code, and exits with status code 1.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.compound_to_sbml">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">compound_to_sbml</code><span class="sig-paren">(</span><em>species_compart</em>, <em>output</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#compound_to_sbml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.compound_to_sbml" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert a list of compounds to sbml format
+if compart_name is not None, then the compounds id will by: M_originalID_compart_name
+if verbose and specified padmetRef and/or padmetSpec: will check if compounds are in one of the padmet files
+Ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id
+&#64;param compounds_file: the pathname to the file containing the compounds ids and the compart, line = cpd-id compart.
+&#64;param output: the pathname to the sbml file to create
+&#64;param padmetRef_file: the pathname to the file padmet of reference
+&#64;param padmetRef_file: the pathname to the file padmet of a species
+&#64;param compart_name: the default compart to concatenate
+&#64;param sbml_version: the sbml version
+&#64;param verbose: print informations
+&#64;type compounds_file, output, padmetRef_file, padmetSpec_file, verbose: str
+&#64;type sbml_lvl, sbml_version: int
+&#64;return: check return of writeSBMLToFile
+&#64;rtype: int</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.create_annotation">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">create_annotation</code><span class="sig-paren">(</span><em>inchi</em>, <em>ref_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#create_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.create_annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict_data, k = url, v = id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.create_note">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">create_note</code><span class="sig-paren">(</span><em>dict_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#create_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.create_note" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.main">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.padmet_to_sbml">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">padmet_to_sbml</code><span class="sig-paren">(</span><em>padmet</em>, <em>output</em>, <em>model_id=None</em>, <em>obj_fct=None</em>, <em>sbml_lvl=3</em>, <em>mnx_chem_prop=None</em>, <em>mnx_chem_xref=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#padmet_to_sbml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.padmet_to_sbml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert padmet file to sbml file.
+Specificity:
+- ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id
+&#64;param padmet_file: the pathname to the padmet file to convert
+&#64;param output: the pathname to the sbml file to create
+&#64;param obj_fct: the identifier of the objection function, the reaction to test in FBA
+&#64;param sbml_lvl: the sbml level
+&#64;param sbml_version: the sbml version
+&#64;param verbose: print informations
+&#64;type padmet_file, output, verbose: str
+&#64;type sbml_lvl, sbml_version: int
+&#64;return: check return of writeSBMLToFile
+&#64;rtype: int</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.parse_mnx_chem_prop">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">parse_mnx_chem_prop</code><span class="sig-paren">(</span><em>mnx_chem_prop</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#parse_mnx_chem_prop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.parse_mnx_chem_prop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.parse_mnx_chem_xref">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">parse_mnx_chem_xref</code><span class="sig-paren">(</span><em>mnx_chem_xref</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#parse_mnx_chem_xref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.parse_mnx_chem_xref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbmlGenerator.reaction_to_sbml">
+<code class="descclassname">scripts.connection.sbmlGenerator.</code><code class="descname">reaction_to_sbml</code><span class="sig-paren">(</span><em>reactions</em>, <em>output</em>, <em>padmetRef</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbmlGenerator.html#reaction_to_sbml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbmlGenerator.reaction_to_sbml" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert a list of reactions to sbml format based on a given padmet of reference.
+- ids are encoded for sbml using functions sbmlPlugin.convert_to_coded_id
+&#64;param reactions: list of reactions ids
+&#64;param padmetRef: padmet of reference
+&#64;param output: the pathname to the sbml file to create
+&#64;param sbml_lvl: the sbml level
+&#64;param sbml_version: the sbml version
+&#64;param verbose: print informations
+&#64;type reactions: set
+&#64;type output, verbose: str
+&#64;type padmetRef: &lt;Padmet&gt;
+&#64;type sbml_lvl, sbml_version: int
+&#64;return: check return of writeSBMLToFile
+&#64;rtype: int</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.sbml_to_gene_assoc">
+<span id="sbml-to-gene-assoc"></span><h3>sbml_to_gene_assoc<a class="headerlink" href="#module-scripts.connection.sbml_to_gene_assoc" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+usage:</p>
+<blockquote>
+<div>sbml_to_gene_assoc.py –sbml=FILE [–output=FILE]</div></blockquote>
+<dl class="docutils">
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–sbml=FILE    pathname to the sbml file
+–output=FILE    pathname to the output containing the gene association, line = reaction id,genes associated, sep =</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.sbml_to_gene_assoc.main">
+<code class="descclassname">scripts.connection.sbml_to_gene_assoc.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbml_to_gene_assoc.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbml_to_gene_assoc.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbml_to_gene_assoc.parseGeneAssoc">
+<code class="descclassname">scripts.connection.sbml_to_gene_assoc.</code><code class="descname">parseGeneAssoc</code><span class="sig-paren">(</span><em>GeneAssocStr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbml_to_gene_assoc.html#parseGeneAssoc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbml_to_gene_assoc.parseGeneAssoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a grammar of ‘and’, ‘or’ and ‘(‘ ‘)’. Extracts genes ids to a list.
+(geneX and geneY) or geneW’ =&gt; [geneX,geneY,geneW]
+&#64;param GeneAssocStr: the string containing genes ids
+&#64;type GeneAssocStr: str
+&#64;return: the list of unique ids
+&#64;rtype: list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.sbml_to_gene_assoc.parseNotes">
+<code class="descclassname">scripts.connection.sbml_to_gene_assoc.</code><code class="descname">parseNotes</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbml_to_gene_assoc.html#parseNotes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbml_to_gene_assoc.parseNotes" title="Permalink to this definition">¶</a></dt>
+<dd><p>From an SBML element (ex: species or reaction) will return all the section
+note in a dictionnary.
+ex:
+&lt;notes&gt;</p>
+<blockquote>
+<div><blockquote>
+<div><dl class="docutils">
+<dt>&lt;html:body&gt;</dt>
+<dd>&lt;html:p&gt;BIOCYC: <a href="#id1"><span class="problematic" id="id2">|</span></a>Alkylphosphonates|&lt;/html:p&gt;
+&lt;html:p&gt;CHEBI: 60983&lt;/html:p&gt;</dd>
+</dl>
+<p>&lt;/html:body&gt;</p>
+</div></blockquote>
+<p>&lt;/notes&gt;</p>
+</div></blockquote>
+<p>output: {‘BIOCYC’: [‘Alkylphosphonates’],’CHEBI’:[‘60983’]}
+value is a list in case diff lines for the same type of info</p>
+<p>&#64;param element: an element from libsbml
+&#64;type element: libsbml.element
+&#64;return: the dictionnary of note
+&#64;rtype: dict</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.sbml_to_padmet">
+<span id="sbml-to-padmet"></span><h3>sbml_to_padmet<a class="headerlink" href="#module-scripts.connection.sbml_to_padmet" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+There are 3 cases of convertion sbml to padmet:</p>
+<p>1./ Creation of a reference database in padmet format from sbml(s) (or updating one with new(s) sbml(s))
+First usage, padmetRef is the padmetRef to create or to update. If it’s an update case, the output
+can be used to create a new padmet, if output None, will overwritte the input padmetRef.</p>
+<p>2./ Creation of a padmet representing an organism in padmet format from sbml(s) (or updating one with new(s) sbml(s))
+2.A/ Without a database of reference:
+Second usage, padmetSpec is the padmetSpec to create or update. If it’s an update case, the output
+can be used to create a new padmet, if output None, will overwritte the input padmetSpec.</p>
+<p>2.B/ With a database of refence:
+Third usage, padmetSpec is the padmetSpec to create or update. If it’s an update case, the output
+can be used to create a new padmet, if output None, will overwritte the input padmetSpec.
+padmetRef is the padmet representing the database of reference.</p>
+<p>It is possible to define a specific policy and info for the padmet. To learn more about
+policy and info check doc of lib.padmetRef/Spec.
+if the ids of reactions/compounds are not the same between padmetRef and the sbml, it is possible to use
+a dictionnary of association (sbml_id padmetRef_id)
+with one line = ‘id_sbml         id_padmetRef’
+Finally if a reaction from sbml is not in padmetRef, it is possible to force the copy and creating
+a new reaction in padmetSpec with the arg -f</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>sbml_to_padmet.py –sbml=FILE –padmetRef=FILE [–output=FILE] [–db=STR] [–version=STR] [-v]
+sbml_to_padmet.py –sbml=FILE –padmetSpec=FILE [–output=FILE] [–db=STR] [–version=STR] [-v]
+sbml_to_padmet.py –sbml=FILE –padmetSpec=FILE [–padmetRef=FILE] [–output=FILE] [–mapping=FILE] [–source_tool=STR] [–source_category=STR] [–source_id=STR] [-v] [-f]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–padmetSpec=FILE    pathname to the padmet file to update with the sbml. If there’s no padmetSpec, just specify the output
+–padmetRef=FILE    pathanme to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
+–sbml=FILE    1 sbml file to convert into padmetSpec (ex: my_network.xml/sbml) OR a directory with n SBML
+–output=FILE   pathanme to the new padmet file
+–mapping=FILE    dictionnary of association id_origin id_ref
+–db=STR    database name
+–version=STR    database version
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.sbml_to_padmet.main">
+<code class="descclassname">scripts.connection.sbml_to_padmet.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/sbml_to_padmet.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.sbml_to_padmet.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.wikiGenerator">
+<span id="wikigenerator"></span><h3>wikiGenerator<a class="headerlink" href="#module-scripts.connection.wikiGenerator" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet.</p>
+<p>padmet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Contains all necessary functions to generate wikiPages from a padmet file and update
+a wiki online. Require WikiManager module (with wikiMate,Vendor)</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>wikiGenerator.py –padmetSpec=FILE –output=DIR –model_id=STR –model_name=STR [–padmetRef=FILE] [–log_file=FILE] [-v]
+wikiGenerator.py –aureme_run=DIR –padmetSpec=ID -v</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.add_property">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">add_property</code><span class="sig-paren">(</span><em>properties</em>, <em>prop_id</em>, <em>prop_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#add_property"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.add_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.copy_io_files">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">copy_io_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#copy_io_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.copy_io_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.createDirectory">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">createDirectory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#createDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.createDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>create the folders genes, reactions, metabolites, pathways in the folder dirPath/
+if already exist, it will replace old folders (and delete old files)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.create_biological_page">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">create_biological_page</code><span class="sig-paren">(</span><em>category</em>, <em>page_node</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#create_biological_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.create_biological_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.create_log_page">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">create_log_page</code><span class="sig-paren">(</span><em>log_file</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#create_log_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.create_log_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.create_main">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">create_main</code><span class="sig-paren">(</span><em>model_id</em>, <em>model_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#create_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.create_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.create_navigation_page">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">create_navigation_page</code><span class="sig-paren">(</span><em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#create_navigation_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.create_navigation_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.create_venn">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">create_venn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#create_venn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.create_venn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.draw_ellipse">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">draw_ellipse</code><span class="sig-paren">(</span><em>fig</em>, <em>ax</em>, <em>x</em>, <em>y</em>, <em>w</em>, <em>h</em>, <em>a</em>, <em>fillcolor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#draw_ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.draw_ellipse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.draw_text">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">draw_text</code><span class="sig-paren">(</span><em>fig, ax, x, y, text, color=[0, 0, 0, 1]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#draw_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.draw_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.get_cmd_label">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">get_cmd_label</code><span class="sig-paren">(</span><em>cmd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#get_cmd_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.get_cmd_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.get_labels">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">get_labels</code><span class="sig-paren">(</span><em>data, fill=['number']</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#get_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.get_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a dict of labels for groups in data</p>
+<p>&#64;type data: list[Iterable]
+&#64;rtype: dict[str, str]
+input</p>
+<blockquote>
+<div>data: data to get label for
+fill: [“number”|”logic”|”percent”]</div></blockquote>
+<dl class="docutils">
+<dt>return</dt>
+<dd>labels: a dict of labels for different sets</dd>
+</dl>
+<p>example:
+In [12]: get_labels([range(10), range(5,15), range(3,8)], fill=[“number”])
+Out[12]:
+{‘001’: ‘0’,</p>
+<blockquote>
+<div>‘010’: ‘5’,
+‘011’: ‘0’,
+‘100’: ‘3’,
+‘101’: ‘2’,
+‘110’: ‘2’,
+‘111’: ‘3’}</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.main">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.venn4">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">venn4</code><span class="sig-paren">(</span><em>labels, names=['A', 'B', 'C', 'D'], **options</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#venn4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.venn4" title="Permalink to this definition">¶</a></dt>
+<dd><p>plots a 4-set Venn diagram</p>
+<p>&#64;type labels: dict[str, str]
+&#64;type names: list[str]
+&#64;rtype: (Figure, AxesSubplot)</p>
+<dl class="docutils">
+<dt>input</dt>
+<dd><dl class="first docutils">
+<dt>labels: a label dict where keys are identified via binary codes (‘0001’, ‘0010’, ‘0100’, …),</dt>
+<dd>hence a valid set could look like: {‘0001’: ‘text 1’, ‘0010’: ‘text 2’, ‘0100’: ‘text 3’, …}.
+unmentioned codes are considered as ‘’.</dd>
+</dl>
+<p class="last">names:  group names
+more:   colors, figsize, dpi</p>
+</dd>
+<dt>return</dt>
+<dd>pyplot Figure and AxesSubplot object</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator.xrefLink">
+<code class="descclassname">scripts.connection.wikiGenerator.</code><code class="descname">xrefLink</code><span class="sig-paren">(</span><em>dataInArray</em>, <em>db</em>, <em>ids</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator.html#xrefLink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator.xrefLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.connection.wikiGenerator_multi">
+<span id="wikigenerator-multi"></span><h3>wikiGenerator_multi<a class="headerlink" href="#module-scripts.connection.wikiGenerator_multi" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet.</p>
+<p>padmet is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+Contains all necessary functions to generate wikiPages from a padmet file and update
+a wiki online. Require WikiManager module (with wikiMate,Vendor)</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>wikiGenerator.py –padmetSpec=FILE –output=DIR –model_id=STR –model_name=STR [–padmetRef=FILE] [–log_file=FILE] [-v]
+wikiGenerator.py –aureme_run=DIR –padmetSpec=ID -v</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.add_property">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">add_property</code><span class="sig-paren">(</span><em>properties</em>, <em>prop_id</em>, <em>prop_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#add_property"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.add_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.copy_io_files">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">copy_io_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#copy_io_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.copy_io_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.createDirectory">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">createDirectory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#createDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.createDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>create the folders genes, reactions, metabolites, pathways in the folder dirPath/
+if already exist, it will replace old folders (and delete old files)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.create_biological_page">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">create_biological_page</code><span class="sig-paren">(</span><em>category</em>, <em>page_node</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#create_biological_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.create_biological_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.create_log_page">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">create_log_page</code><span class="sig-paren">(</span><em>log_file</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#create_log_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.create_log_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.create_main">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">create_main</code><span class="sig-paren">(</span><em>model_id</em>, <em>model_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#create_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.create_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.create_navigation_page">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">create_navigation_page</code><span class="sig-paren">(</span><em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#create_navigation_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.create_navigation_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.create_venn">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">create_venn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#create_venn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.create_venn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.draw_ellipse">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">draw_ellipse</code><span class="sig-paren">(</span><em>fig</em>, <em>ax</em>, <em>x</em>, <em>y</em>, <em>w</em>, <em>h</em>, <em>a</em>, <em>fillcolor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#draw_ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.draw_ellipse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.draw_text">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">draw_text</code><span class="sig-paren">(</span><em>fig, ax, x, y, text, color=[0, 0, 0, 1]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#draw_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.draw_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.get_cmd_label">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">get_cmd_label</code><span class="sig-paren">(</span><em>cmd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#get_cmd_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.get_cmd_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.get_labels">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">get_labels</code><span class="sig-paren">(</span><em>data, fill=['number']</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#get_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.get_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a dict of labels for groups in data</p>
+<p>&#64;type data: list[Iterable]
+&#64;rtype: dict[str, str]
+input</p>
+<blockquote>
+<div>data: data to get label for
+fill: [“number”|”logic”|”percent”]</div></blockquote>
+<dl class="docutils">
+<dt>return</dt>
+<dd>labels: a dict of labels for different sets</dd>
+</dl>
+<p>example:
+In [12]: get_labels([range(10), range(5,15), range(3,8)], fill=[“number”])
+Out[12]:
+{‘001’: ‘0’,</p>
+<blockquote>
+<div>‘010’: ‘5’,
+‘011’: ‘0’,
+‘100’: ‘3’,
+‘101’: ‘2’,
+‘110’: ‘2’,
+‘111’: ‘3’}</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.main">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.venn4">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">venn4</code><span class="sig-paren">(</span><em>labels, names=['A', 'B', 'C', 'D'], **options</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#venn4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.venn4" title="Permalink to this definition">¶</a></dt>
+<dd><p>plots a 4-set Venn diagram</p>
+<p>&#64;type labels: dict[str, str]
+&#64;type names: list[str]
+&#64;rtype: (Figure, AxesSubplot)</p>
+<dl class="docutils">
+<dt>input</dt>
+<dd><dl class="first docutils">
+<dt>labels: a label dict where keys are identified via binary codes (‘0001’, ‘0010’, ‘0100’, …),</dt>
+<dd>hence a valid set could look like: {‘0001’: ‘text 1’, ‘0010’: ‘text 2’, ‘0100’: ‘text 3’, …}.
+unmentioned codes are considered as ‘’.</dd>
+</dl>
+<p class="last">names:  group names
+more:   colors, figsize, dpi</p>
+</dd>
+<dt>return</dt>
+<dd>pyplot Figure and AxesSubplot object</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="scripts.connection.wikiGenerator_multi.xrefLink">
+<code class="descclassname">scripts.connection.wikiGenerator_multi.</code><code class="descname">xrefLink</code><span class="sig-paren">(</span><em>dataInArray</em>, <em>db</em>, <em>ids</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/connection/wikiGenerator_multi.html#xrefLink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.connection.wikiGenerator_multi.xrefLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

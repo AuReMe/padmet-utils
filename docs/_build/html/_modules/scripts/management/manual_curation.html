@@ -1,0 +1,605 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.management.manual_curation &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.management.manual_curation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.management.manual_curation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+<span class="sd">This script allows to combine rxn_creator.py and update_padmetSpec.py.</span>
+<span class="sd">This script was created specially for AuReMe and the default metabolic network</span>
+<span class="sd">reconstruction workflow.</span>
+<span class="sd">If the file reaction_to_add_delete exist: calls update_padmetSpec</span>
+<span class="sd">If the file new_reaction_data exist: calls rxn_creator.py</span>
+<span class="sd">Update padmetSpec and create a new padmet (new_padmet) or overwritte the input</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [--tool=STR] [--category=STR] [-v]</span>
+<span class="sd">    manual_curation.py --template_new_rxn --output=FILE</span>
+<span class="sd">    manual_curation.py --template_add_delete --output=FILE</span>
+
+<span class="sd">option:</span>
+<span class="sd">    -h --help    Show help.</span>
+<span class="sd">    --padmetSpec=FILE    pathname to the padmet to update</span>
+<span class="sd">    --padmetRef=FILE    pathname of the padmet representing the reference database</span>
+<span class="sd">    --data=FILE    pathname to the file used for rxn_creator.py</span>
+<span class="sd">    --output=FILE    pathname to the ouput. if None. Overwritting padmetSpec</span>
+<span class="sd">    -v    print info</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetSpec</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetRef</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">Relation</span>
+<span class="kn">from</span> <span class="nn">padmet.utils.sbmlPlugin</span> <span class="k">import</span> <span class="n">parseGeneAssoc</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.management.html#scripts.management.manual_curation.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="k">global</span> <span class="n">tool</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">source</span>
+    <span class="n">data_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--data&quot;</span><span class="p">]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetSpec&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">data_file</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">data_file</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">filename</span>
+
+    <span class="n">tool</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--tool&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">tool</span><span class="p">:</span>
+        <span class="n">tool</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--category&quot;</span><span class="p">]:</span>
+        <span class="n">category</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--category&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">category</span> <span class="o">=</span> <span class="s2">&quot;MANUAL&quot;</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--template_new_rxn&quot;</span><span class="p">]:</span>
+        <span class="n">template_new_rxn</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--template_add_delete&quot;</span><span class="p">]:</span>
+        <span class="n">template_add_delete</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">()</span>
+
+    <span class="n">padmetSpec</span> <span class="o">=</span>  <span class="n">PadmetSpec</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetSpec&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">]:</span>
+        <span class="n">padmetRef</span> <span class="o">=</span> <span class="n">PadmetRef</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">padmetRef</span> <span class="o">=</span> <span class="kc">None</span>
+
+        
+    <span class="n">chronoDepart</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">dialect</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">Sniffer</span><span class="p">()</span><span class="o">.</span><span class="n">sniff</span><span class="p">(</span><span class="n">csvfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">csvfile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">dialect</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">to_do</span> <span class="o">=</span> <span class="s2">&quot;rxn_creator&quot;</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">to_do</span> <span class="o">=</span> <span class="s2">&quot;add_delete_rxn&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unable to read the file&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">to_do</span> <span class="o">==</span> <span class="s2">&quot;rxn_creator&quot;</span><span class="p">:</span>
+        <span class="n">rxn_creator</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">to_do</span> <span class="o">==</span> <span class="s2">&quot;add_delete_rxn&quot;</span><span class="p">:</span>
+        <span class="n">add_delete_rxn</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">padmetRef</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">chrono</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">chronoDepart</span><span class="p">)</span>
+    <span class="n">partie_entiere</span><span class="p">,</span> <span class="n">partie_decimale</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chrono</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">chrono</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">partie_entiere</span><span class="p">,</span> <span class="n">partie_decimale</span><span class="p">[:</span><span class="mi">3</span><span class="p">]])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;done in: &quot;</span><span class="p">,</span> <span class="n">chrono</span><span class="p">,</span> <span class="s2">&quot;s !&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="rxn_creator"><a class="viewcode-back" href="../../../api_docs/script.management.html#scripts.management.manual_curation.rxn_creator">[docs]</a><span class="k">def</span> <span class="nf">rxn_creator</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">padmetRef</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="n">dict_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">all_read</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">Sniffer</span><span class="p">()</span><span class="o">.</span><span class="n">sniff</span><span class="p">(</span><span class="n">all_read</span><span class="p">)</span><span class="o">.</span><span class="n">delimiter</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">all_read</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="c1">#if len of value is 0 then TypeError raised</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">attrib</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">attrib</span> <span class="o">=</span> <span class="n">attrib</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attrib</span> <span class="o">==</span> <span class="s2">&quot;reaction_id&quot;</span><span class="p">:</span>
+            <span class="n">current_id</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">dict_data</span><span class="p">[</span><span class="n">current_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dict_data</span><span class="p">[</span><span class="n">current_id</span><span class="p">][</span><span class="n">attrib</span><span class="p">]</span> <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">dict_data</span><span class="p">[</span><span class="n">current_id</span><span class="p">][</span><span class="n">attrib</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reactions to add&quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dict_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+    <span class="k">for</span> <span class="n">reaction_id</span><span class="p">,</span> <span class="n">reaction_data</span> <span class="ow">in</span> <span class="n">dict_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;check if the id </span><span class="si">%s</span><span class="s2"> is already used&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reaction_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;the id : </span><span class="si">%s</span><span class="s2"> is already associated to an other reaction in padmetSpec, choose an other&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">reaction_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;the id : </span><span class="si">%s</span><span class="s2"> is already associated to an other reaction in padmetRef, choose an other&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;adding reaction </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+        <span class="n">reaction_rev</span> <span class="o">=</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;reversible&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">reaction_rev</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;TRUE&quot;</span><span class="p">:</span>
+            <span class="n">reaction_rev</span> <span class="o">=</span> <span class="s2">&quot;REVERSIBLE&quot;</span>
+        <span class="k">elif</span> <span class="n">reaction_rev</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;FALSE&quot;</span><span class="p">:</span>
+            <span class="n">reaction_rev</span> <span class="o">=</span> <span class="s2">&quot;LEFT-TO-RIGHT&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please choose a value in [&#39;true&#39;,&#39;false&#39;] for the reversibility of the reaction: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;comment&quot;</span><span class="p">]</span>
+        <span class="n">node_misc</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;DIRECTION&quot;</span><span class="p">:[</span><span class="n">reaction_rev</span><span class="p">]}</span>
+        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;reaction&quot;</span><span class="p">,</span> <span class="n">reaction_id</span><span class="p">,</span> <span class="n">node_misc</span><span class="p">)</span>
+
+        <span class="c1">#reconstructionData:</span>
+        <span class="k">if</span> <span class="n">tool</span><span class="p">:</span>
+            <span class="n">reconstructionData_id</span> <span class="o">=</span> <span class="n">reaction_id</span><span class="o">+</span><span class="s2">&quot;_reconstructionData_&quot;</span><span class="o">+</span><span class="n">tool</span>
+            <span class="n">reconstructionData</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;SOURCE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">source</span><span class="p">],</span> <span class="s2">&quot;CATEGORY&quot;</span><span class="p">:[</span><span class="n">category</span><span class="p">],</span> <span class="s2">&quot;TOOL&quot;</span><span class="p">:[</span><span class="n">tool</span><span class="p">],</span> <span class="s2">&quot;COMMENT&quot;</span><span class="p">:</span><span class="n">comment</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">reconstructionData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="n">tool</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reconstructionData_id</span> <span class="o">=</span> <span class="n">reaction_id</span><span class="o">+</span><span class="s2">&quot;_reconstructionData_MANUAL&quot;</span>
+            <span class="n">reconstructionData</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;SOURCE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">source</span><span class="p">],</span> <span class="s2">&quot;CATEGORY&quot;</span><span class="p">:[</span><span class="s2">&quot;MANUAL&quot;</span><span class="p">],</span> <span class="s2">&quot;COMMENT&quot;</span><span class="p">:</span><span class="n">comment</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">reconstructionData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source &#39;MANUAL&#39;&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+
+        <span class="n">reconstructionData_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="s2">&quot;has_reconstructionData&quot;</span><span class="p">,</span><span class="n">reconstructionData_id</span><span class="p">)</span>
+        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;reconstructionData&quot;</span><span class="p">,</span> <span class="n">reconstructionData_id</span><span class="p">,</span> <span class="n">reconstructionData</span><span class="p">,</span> <span class="p">[</span><span class="n">reconstructionData_rlt</span><span class="p">])</span>
+    
+        <span class="n">genes_assoc</span> <span class="o">=</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;linked_gene&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">genes_assoc</span><span class="p">:</span>
+            <span class="c1">#suppData:</span>
+            <span class="k">if</span> <span class="n">tool</span><span class="p">:</span>
+                <span class="n">suppData_id</span> <span class="o">=</span> <span class="n">reaction_id</span><span class="o">+</span><span class="s2">&quot;_SuppData_&quot;</span><span class="o">+</span><span class="n">tool</span>
+                <span class="k">if</span> <span class="n">suppData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="n">tool</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">suppData_id</span> <span class="o">=</span> <span class="n">reaction_id</span><span class="o">+</span><span class="s2">&quot;_SuppData_MANUAL&quot;</span>
+                <span class="k">if</span> <span class="n">suppData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source &#39;MANUAL&#39;&quot;</span> <span class="o">%</span><span class="n">reaction_id</span><span class="p">)</span>
+            <span class="n">suppData</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">:[</span><span class="n">genes_assoc</span><span class="p">]}</span>
+            <span class="c1">#create the node suppData and the relation has_suppData</span>
+            <span class="n">suppData_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="s2">&quot;has_suppData&quot;</span><span class="p">,</span><span class="n">suppData_id</span><span class="p">)</span>
+            <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;suppData&quot;</span><span class="p">,</span> <span class="n">suppData_id</span><span class="p">,</span> <span class="n">suppData</span><span class="p">,[</span><span class="n">suppData_rlt</span><span class="p">])</span>
+
+            <span class="n">all_genes</span> <span class="o">=</span> <span class="n">parseGeneAssoc</span><span class="p">(</span><span class="n">genes_assoc</span><span class="p">)</span>
+            <span class="n">nbGenes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_genes</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is linked to </span><span class="si">%s</span><span class="s2"> genes&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span> <span class="n">nbGenes</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">:</span>
+               <span class="k">try</span><span class="p">:</span>
+                   <span class="c1">#check if gene already in the padmet</span>
+                   <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">gene_id</span><span class="p">]</span>
+               <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                   <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;gene&quot;</span><span class="p">,</span><span class="n">gene_id</span><span class="p">)</span>
+               <span class="c1">#check if rxn already linked to gene x</span>
+               <span class="k">try</span><span class="p">:</span>
+                   <span class="n">linked_rlt</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">reaction_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_linked_to&quot;</span>
+                   <span class="ow">and</span> <span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="o">==</span> <span class="n">gene_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                   <span class="c1">#rxn already linked to gene x, update misc</span>
+                   <span class="k">try</span><span class="p">:</span>
+                       <span class="n">linked_rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                   <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                       <span class="n">linked_rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source</span><span class="p">]</span>
+               <span class="c1">#rxn not linked to gene x</span>
+               <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                   <span class="n">linked_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span> <span class="s2">&quot;is_linked_to&quot;</span><span class="p">,</span> <span class="n">gene_id</span><span class="p">,{</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">:[</span><span class="n">source</span><span class="p">]})</span>
+               <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_addRelation</span><span class="p">(</span><span class="n">linked_rlt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;check if all metabolites are already in the network&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">reactant_data</span> <span class="ow">in</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;reactant&quot;</span><span class="p">]:</span>
+                <span class="n">stoechio</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">,</span> <span class="n">compart</span> <span class="o">=</span> <span class="n">reactant_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                <span class="n">stoechio</span> <span class="o">=</span> <span class="n">stoechio</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="c1">#in case comma for sep</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">metabo_id</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in the network&quot;</span> <span class="o">%</span><span class="n">metabo_id</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Try to copy from dbref&quot;</span><span class="p">)</span>
+                            <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_copyNodeExtend</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">KeyError</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in the padmetRef&quot;</span> <span class="o">%</span><span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating a new compound&quot;</span><span class="p">)</span>
+                        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;compound&quot;</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;new compound created: id = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">metabo_id</span><span class="p">))</span>
+                <span class="n">rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="s2">&quot;consumes&quot;</span><span class="p">,</span><span class="n">metabo_id</span><span class="p">)</span>
+                <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">:[</span><span class="n">stoechio</span><span class="p">],</span><span class="s2">&quot;COMPARTMENT&quot;</span><span class="p">:[</span><span class="n">compart</span><span class="p">]})</span>
+                <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_addRelation</span><span class="p">(</span><span class="n">rlt</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No reactants defined&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">product_data</span> <span class="ow">in</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;product&quot;</span><span class="p">]:</span>
+                <span class="n">stoechio</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">,</span> <span class="n">compart</span> <span class="o">=</span> <span class="n">product_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                <span class="n">stoechio</span> <span class="o">=</span> <span class="n">stoechio</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="c1">#in case comma for sep</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">metabo_id</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in the network&quot;</span> <span class="o">%</span><span class="n">metabo_id</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Try to copy from dbref&quot;</span><span class="p">)</span>
+                            <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_copyNodeExtend</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">KeyError</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in the padmetRef&quot;</span> <span class="o">%</span><span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating a new compound&quot;</span><span class="p">)</span>
+                        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;compound&quot;</span><span class="p">,</span> <span class="n">metabo_id</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new compound created: id = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">metabo_id</span><span class="p">)</span>
+                <span class="n">rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="s2">&quot;produces&quot;</span><span class="p">,</span><span class="n">metabo_id</span><span class="p">)</span>
+                <span class="n">rlt</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;STOICHIOMETRY&quot;</span><span class="p">:[</span><span class="n">stoechio</span><span class="p">],</span><span class="s2">&quot;COMPARTMENT&quot;</span><span class="p">:[</span><span class="n">compart</span><span class="p">]})</span>
+                <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_addRelation</span><span class="p">(</span><span class="n">rlt</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No products defined&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;pathway&quot;</span> <span class="ow">in</span> <span class="n">reaction_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">pathways</span> <span class="o">=</span> <span class="n">reaction_data</span><span class="p">[</span><span class="s2">&quot;pathway&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pwy_id</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not in the network&quot;</span> <span class="o">%</span><span class="n">pwy_id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check if new pathway </span><span class="si">%s</span><span class="s2"> is in dbref&quot;</span> <span class="o">%</span><span class="n">pwy_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">pwy_id</span> <span class="ow">in</span> <span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning the new pathway </span><span class="si">%s</span><span class="s2"> exist in the dbref, risk of overwritting data, change pwy id&quot;</span> <span class="o">%</span><span class="n">pwy_id</span><span class="p">)</span>
+                            <span class="k">continue</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;pathway&quot;</span><span class="p">,</span> <span class="n">pwy_id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;new pathway created: id = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">pwy_id</span><span class="p">))</span>
+                <span class="n">rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">,</span><span class="s2">&quot;is_in_pathway&quot;</span><span class="p">,</span><span class="n">pwy_id</span><span class="p">)</span>
+                <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_addRelation</span><span class="p">(</span><span class="n">rlt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating output: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span>
+    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">generateFile</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="add_delete_rxn"><a class="viewcode-back" href="../../../api_docs/script.management.html#scripts.management.manual_curation.add_delete_rxn">[docs]</a><span class="k">def</span> <span class="nf">add_delete_rxn</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">padmetSpec</span><span class="p">,</span> <span class="n">padmetRef</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">dialect</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">Sniffer</span><span class="p">()</span><span class="o">.</span><span class="n">sniff</span><span class="p">(</span><span class="n">csvfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">csvfile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">dialect</span><span class="p">)</span>        
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span> <span class="n">dialect</span><span class="o">.</span><span class="n">delimiter</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">element_id</span><span class="p">,</span> <span class="n">comment</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">genes_assoc</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;idRef&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Comment&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Action&quot;</span><span class="p">],</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Genes&quot;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ADD&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">padmetRef</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No given padmetRef, unable to copy </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">element_id</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">))</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">copyNode</span><span class="p">(</span><span class="n">padmetRef</span><span class="p">,</span> <span class="n">element_id</span><span class="p">)</span>
+                    
+                    <span class="c1">#reconstructionData:</span>
+                    <span class="k">if</span> <span class="n">tool</span><span class="p">:</span>
+                        <span class="n">reconstructionData_id</span> <span class="o">=</span> <span class="n">element_id</span><span class="o">+</span><span class="s2">&quot;_reconstructionData_&quot;</span><span class="o">+</span><span class="n">tool</span>
+                        <span class="n">reconstructionData</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;SOURCE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">source</span><span class="p">],</span> <span class="s2">&quot;CATEGORY&quot;</span><span class="p">:[</span><span class="n">category</span><span class="p">],</span> <span class="s2">&quot;TOOL&quot;</span><span class="p">:[</span><span class="n">tool</span><span class="p">],</span> <span class="s2">&quot;COMMENT&quot;</span><span class="p">:[</span><span class="n">comment</span><span class="p">]}</span>
+                        <span class="k">if</span> <span class="n">reconstructionData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span><span class="n">tool</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">reconstructionData_id</span> <span class="o">=</span> <span class="n">element_id</span><span class="o">+</span><span class="s2">&quot;_reconstructionData_MANUAL&quot;</span>
+                        <span class="n">reconstructionData</span> <span class="o">=</span>  <span class="p">{</span><span class="s2">&quot;SOURCE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">source</span><span class="p">],</span> <span class="s2">&quot;CATEGORY&quot;</span><span class="p">:[</span><span class="s2">&quot;MANUAL&quot;</span><span class="p">],</span> <span class="s2">&quot;COMMENT&quot;</span><span class="p">:[</span><span class="n">comment</span><span class="p">]}</span>
+                        <span class="k">if</span> <span class="n">reconstructionData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source &#39;MANUAL&#39;&quot;</span> <span class="o">%</span><span class="n">element_id</span><span class="p">)</span>
+                        
+                    <span class="n">reconstructionData_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span><span class="s2">&quot;has_reconstructionData&quot;</span><span class="p">,</span><span class="n">reconstructionData_id</span><span class="p">)</span>
+                    <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;reconstructionData&quot;</span><span class="p">,</span> <span class="n">reconstructionData_id</span><span class="p">,</span> <span class="n">reconstructionData</span><span class="p">,</span> <span class="p">[</span><span class="n">reconstructionData_rlt</span><span class="p">])</span>
+                    
+                    <span class="k">if</span> <span class="n">genes_assoc</span><span class="p">:</span>
+                        <span class="c1">#suppData:</span>
+                        <span class="k">if</span> <span class="n">tool</span><span class="p">:</span>
+                            <span class="n">suppData_id</span> <span class="o">=</span> <span class="n">element_id</span><span class="o">+</span><span class="s2">&quot;_SuppData_&quot;</span><span class="o">+</span><span class="n">tool</span>
+                            <span class="k">if</span> <span class="n">suppData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span><span class="n">tool</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">suppData_id</span> <span class="o">=</span> <span class="n">element_id</span><span class="o">+</span><span class="s2">&quot;_SuppData_MANUAL&quot;</span>
+                            <span class="k">if</span> <span class="n">suppData_id</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The reaction </span><span class="si">%s</span><span class="s2"> seems to be already added from the same source &#39;MANUAL&#39;&quot;</span> <span class="o">%</span><span class="n">element_id</span><span class="p">)</span>
+                        <span class="n">suppData</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">:[</span><span class="n">genes_assoc</span><span class="p">]}</span>
+                        <span class="c1">#create the node suppData and the relation has_suppData</span>
+                        <span class="n">suppData_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span><span class="s2">&quot;has_suppData&quot;</span><span class="p">,</span><span class="n">suppData_id</span><span class="p">)</span>
+                        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;suppData&quot;</span><span class="p">,</span> <span class="n">suppData_id</span><span class="p">,</span> <span class="n">suppData</span><span class="p">,[</span><span class="n">suppData_rlt</span><span class="p">])</span>
+
+                        <span class="n">all_genes</span> <span class="o">=</span> <span class="n">parseGeneAssoc</span><span class="p">(</span><span class="n">genes_assoc</span><span class="p">)</span>
+                        <span class="n">nbGenes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_genes</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is linked to </span><span class="si">%s</span><span class="s2"> genes&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span> <span class="n">nbGenes</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">gene_id</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">:</span>
+                           <span class="k">try</span><span class="p">:</span>
+                               <span class="c1">#check if gene already in the padmet</span>
+                               <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">gene_id</span><span class="p">]</span>
+                           <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                               <span class="n">padmetSpec</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s2">&quot;gene&quot;</span><span class="p">,</span><span class="n">gene_id</span><span class="p">)</span>
+                           <span class="c1">#check if rxn already linked to gene x</span>
+                           <span class="k">try</span><span class="p">:</span>
+                               <span class="n">linked_rlt</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmetSpec</span><span class="o">.</span><span class="n">dicOfRelationIn</span><span class="p">[</span><span class="n">element_id</span><span class="p">]</span> <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_linked_to&quot;</span>
+                               <span class="ow">and</span> <span class="n">rlt</span><span class="o">.</span><span class="n">id_out</span> <span class="o">==</span> <span class="n">gene_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                               <span class="c1">#rxn already linked to gene x, update misc</span>
+                               <span class="k">try</span><span class="p">:</span>
+                                   <span class="n">linked_rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                               <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                                   <span class="n">linked_rlt</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source</span><span class="p">]</span>
+                           <span class="c1">#rxn not linked to gene x</span>
+                           <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                               <span class="n">linked_rlt</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="n">element_id</span><span class="p">,</span> <span class="s2">&quot;is_linked_to&quot;</span><span class="p">,</span> <span class="n">gene_id</span><span class="p">,{</span><span class="s2">&quot;SOURCE:ASSIGNMENT&quot;</span><span class="p">:[</span><span class="n">source</span><span class="p">]})</span>
+                           <span class="n">padmetSpec</span><span class="o">.</span><span class="n">_addRelation</span><span class="p">(</span><span class="n">linked_rlt</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">action</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;deleting: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">))</span>
+                <span class="n">padmetSpec</span><span class="o">.</span><span class="n">delNode</span><span class="p">(</span><span class="n">element_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Nothing to do for: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_id</span><span class="p">))</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Action: </span><span class="si">%s</span><span class="s2"> unknown for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">element_id</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;action must be = &#39;add&#39; or &#39;delete&#39; or &#39;&#39;&quot;</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+        <span class="n">padmetSpec</span><span class="o">.</span><span class="n">generateFile</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="template_new_rxn"><a class="viewcode-back" href="../../../api_docs/script.management.html#scripts.management.manual_curation.template_new_rxn">[docs]</a><span class="k">def</span> <span class="nf">template_new_rxn</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reaction_id&quot;</span><span class="p">,</span><span class="s2">&quot;my_rxn&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="s2">&quot;reaction added for X reason&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reversible&quot;</span><span class="p">,</span><span class="s2">&quot;false&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;linked_gene&quot;</span><span class="p">,</span><span class="s2">&quot;(gene_a or gene_b) and gene_c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;#reactant/product&quot;</span><span class="p">,</span><span class="s2">&quot;#stoichio:compound_id:compart&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reactant&quot;</span><span class="p">,</span><span class="s2">&quot;1.0:compound_a:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reactant&quot;</span><span class="p">,</span><span class="s2">&quot;2.0:compound_b:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;product&quot;</span><span class="p">,</span><span class="s2">&quot;1.0:compound_c:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reaction_id&quot;</span><span class="p">,</span><span class="s2">&quot;my_rxn_2&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="s2">&quot;reaction added for X reason&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reversible&quot;</span><span class="p">,</span><span class="s2">&quot;true&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;linked_gene&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;#reactant/product&quot;</span><span class="p">,</span><span class="s2">&quot;#stoichio:compound_id:compart&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reactant&quot;</span><span class="p">,</span><span class="s2">&quot;1.0:compound_a:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;reactant&quot;</span><span class="p">,</span><span class="s2">&quot;2.0:compound_d:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;product&quot;</span><span class="p">,</span><span class="s2">&quot;1.0:compound_c:c&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="template_add_delete"><a class="viewcode-back" href="../../../api_docs/script.management.html#scripts.management.manual_curation.template_add_delete">[docs]</a><span class="k">def</span> <span class="nf">template_add_delete</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;idRef&quot;</span><span class="p">,</span><span class="s2">&quot;Comment&quot;</span><span class="p">,</span> <span class="s2">&quot;Action&quot;</span><span class="p">,</span> <span class="s2">&quot;Genes&quot;</span><span class="p">]</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">({</span><span class="s2">&quot;idRef&quot;</span><span class="p">:</span> <span class="s1">&#39;rxn_id_1&#39;</span><span class="p">,</span> <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="s1">&#39;Reaction deleted for x reason&#39;</span><span class="p">,</span> <span class="s2">&quot;Genes&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Action&quot;</span><span class="p">:</span><span class="s2">&quot;delete&quot;</span><span class="p">})</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">({</span><span class="s2">&quot;idRef&quot;</span><span class="p">:</span> <span class="s1">&#39;rxn_id_2&#39;</span><span class="p">,</span> <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="s1">&#39;Reaction added for x reason&#39;</span><span class="p">,</span> <span class="s2">&quot;Genes&quot;</span><span class="p">:</span><span class="s2">&quot;(gene1 and gene2)&quot;</span><span class="p">,</span> <span class="s2">&quot;Action&quot;</span><span class="p">:</span><span class="s2">&quot;add&quot;</span><span class="p">})</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">({</span><span class="s2">&quot;idRef&quot;</span><span class="p">:</span> <span class="s1">&#39;rxn_id_3&#39;</span><span class="p">,</span> <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="s1">&#39;Reaction added for x reason&#39;</span><span class="p">,</span> <span class="s2">&quot;Genes&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Action&quot;</span><span class="p">:</span><span class="s2">&quot;add&quot;</span><span class="p">})</span></div>
+ 
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.connection.enhanced_sgs_output &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.connection.enhanced_sgs_output</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.connection.enhanced_sgs_output</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+<span class="sd">1./ extract all data from sgs output</span>
+<span class="sd">2./ If needed, convert reaction id to metacyc id</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    enhanced_sgs_output.py --sgs_output=FILE --padmetRef=FILE --output=FILE [--db=ID] [--mnx=FILE] [-v]</span>
+
+<span class="sd">options:</span>
+<span class="sd">    -h --help     Show help.</span>
+<span class="sd">    --sgs_output=FILE    pathname of a sgs run&#39; result</span>
+<span class="sd">    --db=ID    database origin of the reactions. will be converted to metacyc</span>
+<span class="sd">    --padmetRef=FILE    pathanme to padmet file corresponding to the database of reference (the repair network)</span>
+<span class="sd">    --mnx=FILE    pathanme to metanetx file for reactions (reac_xref.tsv)</span>
+<span class="sd">    --output=FILE    pathname to tsv output file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">padmet.classes</span> <span class="k">import</span> <span class="n">PadmetRef</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.enhanced_sgs_output.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    
+    <span class="n">sgs_output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--sgs_output&quot;</span><span class="p">]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+    <span class="n">padmetRef</span> <span class="o">=</span> <span class="n">PadmetRef</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--padmetRef&quot;</span><span class="p">])</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">mnx_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--mnx&quot;</span><span class="p">]</span>
+    <span class="n">db_origin</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--db&quot;</span><span class="p">]</span>
+    
+
+    <span class="c1">#k = sgs_id, v = set of genes</span>
+    <span class="n">assoc_sgs_id_genes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#k = sgs_id, v = set of reactions</span>
+    <span class="n">assoc_sgs_id_reactions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#k = pwy_id, v = set of reactions</span>
+    <span class="n">assoc_pathways_reactions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#k = pwy_id, v = {sgs_id:[&quot;x/X; rxn_ids],...}</span>
+    <span class="n">assoc_pathways_sgs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">all_sgs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#1: extract data from shogen output.</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading sgs output&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sgs_output</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">genes</span><span class="p">,</span> <span class="n">reactions</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;gene_set&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;reaction_set&quot;</span><span class="p">]</span>
+            <span class="n">genes</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;ac:|nc:|na:|</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">genes</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">reactions</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;nc:|</span><span class="se">\&quot;</span><span class="s2">|R_&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">reactions</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">sgs_id</span> <span class="o">=</span> <span class="s2">&quot;sgs-&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">))</span>
+            <span class="n">assoc_sgs_id_genes</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+            <span class="n">assoc_sgs_id_reactions</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">all_sgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sgs_id</span><span class="p">)</span>
+    
+    <span class="c1">#2: extract all pathways from database Ref</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;extract all pathways from database Ref&quot;</span><span class="p">)</span>
+    <span class="n">all_pathways_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;pathway&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pwy_id</span> <span class="ow">in</span> <span class="n">all_pathways_id</span><span class="p">:</span>
+        <span class="n">rxns_assoc</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span> <span class="k">for</span> <span class="n">rlt</span> <span class="ow">in</span> <span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfRelationOut</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">]</span> 
+        <span class="k">if</span> <span class="n">rlt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;is_in_pathway&quot;</span> <span class="ow">and</span> <span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">rlt</span><span class="o">.</span><span class="n">id_in</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;reaction&quot;</span><span class="p">]</span>
+        <span class="n">assoc_pathways_reactions</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rxns_assoc</span><span class="p">)</span>
+    
+    <span class="c1">#3:extract db ref from mnxref</span>
+    <span class="k">if</span> <span class="n">mnx_file</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;extract association </span><span class="si">%s</span><span class="s2"> to metacyc from mnxref&quot;</span> <span class="o">%</span><span class="n">db_origin</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mnx_file</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)]</span>
+        <span class="c1">#k = mnxref, v: dict k&#39; in [bigg,metacyc], v = [list]</span>
+        <span class="n">dict_mnxref</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nb">dict</span><span class="p">())</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">xref</span><span class="p">,</span> <span class="n">mnx</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">xref</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">db_origin</span><span class="p">)</span> <span class="ow">or</span> <span class="n">xref</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;metacyc&quot;</span><span class="p">)):</span>
+                <span class="n">db</span><span class="p">,</span> <span class="n">_id</span> <span class="o">=</span> <span class="n">xref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">dict_mnxref</span><span class="p">[</span><span class="n">mnx</span><span class="p">][</span><span class="n">db</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">dict_mnxref</span><span class="p">[</span><span class="n">mnx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">db</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="n">_id</span><span class="p">])})</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_mnxref</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">dict_mnxref</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                
+        
+        <span class="c1">#map reactions id</span>
+        <span class="n">assoc_sgs_id_reactions_mapped</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sgs_id</span><span class="p">,</span> <span class="n">set_rxn</span> <span class="ow">in</span> <span class="n">assoc_sgs_id_reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">assoc_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_mnxref</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">assoc_dict</span><span class="p">[</span><span class="n">db_origin</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">set_rxn</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">assoc_sgs_id_reactions_mapped</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">[</span><span class="s2">&quot;metacyc&quot;</span><span class="p">])</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">assoc_sgs_id_reactions_mapped</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">assoc_dict</span><span class="p">[</span><span class="s2">&quot;metacyc&quot;</span><span class="p">]</span>
+     
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for each set of reactions associated to a sgs, get the intersection of reactions associated to each pathways.</span>
+<span class="sd">        if an intersection length is &gt; 0 ==&gt; the sgs covere a part of this pwy.</span>
+<span class="sd">        Extract which reactions and the ratio on all the reactions in the pathways.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sgs_id</span><span class="p">,</span> <span class="n">rxns_in_sgs</span> <span class="ow">in</span> <span class="n">assoc_sgs_id_reactions_mapped</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">pwy_id</span><span class="p">,</span> <span class="n">rxns_in_pwy</span> <span class="ow">in</span> <span class="n">assoc_pathways_reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">rxns_inter</span> <span class="o">=</span> <span class="n">rxns_in_sgs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">rxns_in_pwy</span><span class="p">)</span>
+                <span class="n">len_rxns_inter</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxns_inter</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">len_rxns_inter</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">len_rxns_inter</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rxns_in_pwy</span><span class="p">))</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">len_rxns_inter</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rxns_in_pwy</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;: &quot;</span>
+                    <span class="n">data</span> <span class="o">+=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">rxn_id</span> <span class="k">for</span> <span class="n">rxn_id</span> <span class="ow">in</span> <span class="n">rxns_inter</span><span class="p">])</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">assoc_pathways_sgs</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">][</span><span class="n">sgs_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">assoc_pathways_sgs</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">sgs_id</span><span class="p">:</span><span class="n">data</span><span class="p">}</span>
+    
+   
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating output </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;SGS ID&quot;</span><span class="p">,</span><span class="s2">&quot;GENES ID&quot;</span><span class="p">,</span><span class="s2">&quot;RXN ID_&quot;</span><span class="o">+</span><span class="n">db_origin</span> <span class="p">,</span><span class="s2">&quot;RXN ID_metacyc&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sgs_id</span> <span class="ow">in</span> <span class="n">all_sgs</span><span class="p">:</span> 
+            <span class="n">genes_id</span> <span class="o">=</span> <span class="n">assoc_sgs_id_genes</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">]</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="n">sgs_id</span><span class="p">,</span><span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">genes_id</span><span class="p">)]</span>
+            <span class="n">rxns_id_bigg</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assoc_sgs_id_reactions</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">])</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxns_id_bigg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mnx_file</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">rxns_id_metacyc</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assoc_sgs_id_reactions_mapped</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">rxns_id_metacyc</span> <span class="o">=</span> <span class="s2">&quot;NA&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rxns_id_metacyc</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assoc_sgs_id_reactions</span><span class="p">[</span><span class="n">sgs_id</span><span class="p">])</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxns_id_metacyc</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PATHWAYS ID\SGS ID&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">all_sgs</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pwy_id</span><span class="p">,</span><span class="n">sgs_dict</span> <span class="ow">in</span> <span class="n">assoc_pathways_sgs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pwy_id</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">padmetRef</span><span class="o">.</span><span class="n">dicOfNode</span><span class="p">[</span><span class="n">pwy_id</span><span class="p">]</span><span class="o">.</span><span class="n">misc</span><span class="p">[</span><span class="s2">&quot;COMMON_NAME&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pwy_id</span>
+            <span class="k">for</span> <span class="n">sgs_id</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">sgs_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">sgs_index</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sgs_id</span><span class="p">)</span>
+                <span class="n">line</span><span class="p">[</span><span class="n">sgs_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+                        
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>                  
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

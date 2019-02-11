@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scripts.connection.pre_pantograph &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_docs/wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>scripts.connection.pre_pantograph</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scripts.connection.pre_pantograph</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file is part of padmet-utils.</span>
+
+<span class="sd">padmet-utils is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">padmet-utils is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with padmet-utils. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">@author: Meziane AITE, meziane.aite@inria.fr</span>
+<span class="sd">Description:</span>
+<span class="sd">Before running pantograph it is necessary to check if the metabolic network </span>
+<span class="sd">and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff). </span>
+<span class="sd">To only check this. Use the 2nd usage.</span>
+<span class="sd">If the genes ids are not the same, it is necessary to use a dictionnary of genes ids associating</span>
+<span class="sd">the genes ids from the proteom to the genes ids from the metabolic network.</span>
+<span class="sd">To create the correct proteom from the dictionnnary, use the 3nd usage</span>
+<span class="sd">Finnaly by using the 1st usage, it is possible to:</span>
+<span class="sd">    1/ Check model_faa and model_metabolic for a given cutoff</span>
+<span class="sd">    2/ if under the cutoff, convert model_faa to the correct one with dict_ids_file</span>
+<span class="sd">    3/ if still under, SystemExit()</span>
+
+<span class="sd">usage:</span>
+<span class="sd">    pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [--dict_ids_file=FILE] --output=FILE    [-v]</span>
+<span class="sd">    pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [-v]</span>
+<span class="sd">    pre_pantograph.py    --model_faa=FILE    --dict_ids_file=FILE    --output=FILE [-v]</span>
+
+<span class="sd">option:</span>
+<span class="sd">    -h --help    Show help.</span>
+<span class="sd">    --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).</span>
+<span class="sd">    --model_faa=FILE    pathname to the proteom of the model (faa)</span>
+<span class="sd">    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70]. </span>
+<span class="sd">    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = gene_id_in_metabolic_network\tgene_id_in_faa</span>
+<span class="sd">    --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)</span>
+<span class="sd">    -v   print info</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">Bio</span> <span class="k">import</span> <span class="n">SeqIO</span>
+<span class="kn">import</span> <span class="nn">libsbml</span>
+<span class="kn">import</span> <span class="nn">docopt</span>
+<span class="kn">from</span> <span class="nn">padmet.utils</span> <span class="k">import</span> <span class="n">sbmlPlugin</span> <span class="k">as</span> <span class="n">sp</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">docopt</span><span class="o">.</span><span class="n">docopt</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
+    <span class="n">model_metabolic</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_metabolic&quot;</span><span class="p">]</span>
+    <span class="n">model_faa</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--model_faa&quot;</span><span class="p">]</span>
+    <span class="n">dict_ids_file</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--dict_ids_file&quot;</span><span class="p">]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;--output&quot;</span><span class="p">]</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;-v&quot;</span><span class="p">]</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;--cutoff&quot;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">model_metabolic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;check genes ids model_metablic vs model_faa&quot;</span><span class="p">)</span>
+        <span class="c1">#if true: more than cutoff% match</span>
+        <span class="k">if</span> <span class="n">check_ids</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">,</span> <span class="n">model_faa</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">dict_ids_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating a valid FAA with the dictionnary&quot;</span><span class="p">)</span>
+            <span class="n">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;check genes ids&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check_ids</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Also with the dictionnary, genes ids in the metabolic network and the FAA are not the same&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Change the cutoff or use an other dictionnary&quot;</span><span class="p">)</span>
+                                
+    <span class="k">elif</span> <span class="n">dict_ids_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating a valid FAA with the dictionnary&quot;</span><span class="p">)</span>
+        <span class="n">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_ids"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.check_ids">[docs]</a><span class="k">def</span> <span class="nf">check_ids</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">,</span> <span class="n">model_faa</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    check if genes ids of model_metabolic = model_faa for a given cutoff</span>
+<span class="sd">    faa genes ids are in the first line of each sequence: &gt;GENE_ID ....</span>
+<span class="sd">    metabolic netowkrs genes ids are in note section, GENE_ASSOCIATION: gene_id-1 or gene_id-2</span>
+<span class="sd">    @return: True if same ids, if verbose, print % of genes under cutoff</span>
+<span class="sd">    @type: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">SBMLReader</span><span class="p">()</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">model_metabolic</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+    <span class="n">document</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()</span>
+    <span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getListOfReactions</span><span class="p">()</span>
+    <span class="c1">#convert to set</span>
+    <span class="n">model_metabolic_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">parseGeneAssoc</span><span class="p">(</span><span class="n">geneAssoc</span><span class="p">)</span> 
+    <span class="k">for</span> <span class="n">geneAssoc</span> <span class="ow">in</span> <span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">parseNotes</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GENE_ASSOCIATION&quot;</span><span class="p">,[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">listOfReactions</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">geneAssoc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]))</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="s2">&quot;rU&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">model_faa_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">record</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">)])</span>
+
+    <span class="n">diff_genes</span> <span class="o">=</span> <span class="n">model_metabolic_ids</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">model_faa_ids</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">diff_genes_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">diff_genes</span><span class="p">))</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model_metabolic_ids</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;No genes found in model metabolic&quot;</span><span class="p">)</span>
+    <span class="c1">#if all model_metabolic_ids are in model_faa_ids</span>
+    <span class="k">if</span> <span class="n">diff_genes_ratio</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;all genes of the model_metabolic are in the model_faa&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="c1">#if not check if the nb is sup-equal to the cutoff</span>
+    <span class="k">elif</span> <span class="n">diff_genes_ratio</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">cutoff</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Only </span><span class="si">%.2f%%</span><span class="s2"> genes of the model_metabolic are not in the model_faa&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">diff_genes_ratio</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s%%</span><span class="s2"> genes of the model_metabolic are not in the model_faa&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">diff_genes_ratio</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">diff_genes</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="get_valid_faa"><a class="viewcode-back" href="../../../api_docs/script.connection.html#scripts.connection.pre_pantograph.get_valid_faa">[docs]</a><span class="k">def</span> <span class="nf">get_valid_faa</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="n">dict_ids_file</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    create a new faa from the model_faa by converting the gene id with the dict_ids</span>
+<span class="sd">    dict_ids: line = origin_id new_gene_id, sep = \t</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">regex_origin_id</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^&gt;(\w*)&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dict_ids_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">dict_ids</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()])</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">model_faa</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">):</span>
+                    <span class="n">origin_id</span> <span class="o">=</span> <span class="n">regex_origin_id</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">new_gene_id</span> <span class="o">=</span> <span class="n">dict_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">origin_id</span><span class="p">,</span><span class="n">origin_id</span><span class="p">)</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">origin_id</span><span class="p">,</span> <span class="n">new_gene_id</span><span class="p">)</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Scripts: Management &mdash; padmet-utils  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> padmet-utils
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="wiki.main.html">Wiki</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">padmet-utils</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Scripts: Management</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api_docs/script.management.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="scripts-management">
+<h1>Scripts: Management<a class="headerlink" href="#scripts-management" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>#TODO</p>
+<div class="section" id="module-scripts.management.manual_curation">
+<span id="scripts-management-manual-curation-module"></span><h3>scripts.management.manual_curation module<a class="headerlink" href="#module-scripts.management.manual_curation" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+This script allows to combine rxn_creator.py and update_padmetSpec.py.
+This script was created specially for AuReMe and the default metabolic network
+reconstruction workflow.
+If the file reaction_to_add_delete exist: calls update_padmetSpec
+If the file new_reaction_data exist: calls rxn_creator.py
+Update padmetSpec and create a new padmet (new_padmet) or overwritte the input</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>manual_curation.py –padmetSpec=FILE –data=FILE [–padmetRef=FILE] [–output=FILE] [–tool=STR] [–category=STR] [-v]
+manual_curation.py –template_new_rxn –output=FILE
+manual_curation.py –template_add_delete –output=FILE</dd>
+<dt>option:</dt>
+<dd>-h –help    Show help.
+–padmetSpec=FILE    pathname to the padmet to update
+–padmetRef=FILE    pathname of the padmet representing the reference database
+–data=FILE    pathname to the file used for rxn_creator.py
+–output=FILE    pathname to the ouput. if None. Overwritting padmetSpec
+-v    print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.management.manual_curation.add_delete_rxn">
+<code class="descclassname">scripts.management.manual_curation.</code><code class="descname">add_delete_rxn</code><span class="sig-paren">(</span><em>data_file</em>, <em>padmetSpec</em>, <em>padmetRef=None</em>, <em>output=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/manual_curation.html#add_delete_rxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.manual_curation.add_delete_rxn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.management.manual_curation.main">
+<code class="descclassname">scripts.management.manual_curation.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/manual_curation.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.manual_curation.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.management.manual_curation.rxn_creator">
+<code class="descclassname">scripts.management.manual_curation.</code><code class="descname">rxn_creator</code><span class="sig-paren">(</span><em>data_file</em>, <em>padmetSpec</em>, <em>padmetRef=None</em>, <em>output=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/manual_curation.html#rxn_creator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.manual_curation.rxn_creator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.management.manual_curation.template_add_delete">
+<code class="descclassname">scripts.management.manual_curation.</code><code class="descname">template_add_delete</code><span class="sig-paren">(</span><em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/manual_curation.html#template_add_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.manual_curation.template_add_delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="scripts.management.manual_curation.template_new_rxn">
+<code class="descclassname">scripts.management.manual_curation.</code><code class="descname">template_new_rxn</code><span class="sig-paren">(</span><em>output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/manual_curation.html#template_new_rxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.manual_curation.template_new_rxn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.management.padmet_compart">
+<span id="scripts-management-padmet-compart-module"></span><h3>scripts.management.padmet_compart module<a class="headerlink" href="#module-scripts.management.padmet_compart" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>padmet_compart.py –padmet=FILE
+padmet_compart.py –padmet=FILE –remove=STR [–output=FILE] [-v]
+padmet_compart.py –padmet=FILE –old=STR –new=STR [–output=FILE] [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–padmet=FILE    pathname of the padmet file
+–old=STR    compartment id to remove
+–new=STR    new compartment id
+–output=FILE    new padmet pathname, if none, overwritting the original padmet</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.management.padmet_compart.main">
+<code class="descclassname">scripts.management.padmet_compart.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/padmet_compart.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.padmet_compart.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-scripts.management.padmet_medium">
+<span id="scripts-management-padmet-medium-module"></span><h3>scripts.management.padmet_medium module<a class="headerlink" href="#module-scripts.management.padmet_medium" title="Permalink to this headline">¶</a></h3>
+<p>This file is part of padmet-utils.</p>
+<p>padmet-utils is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>padmet-utils is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with padmet-utils. If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>&#64;author: Meziane AITE, <a class="reference external" href="mailto:meziane&#46;aite&#37;&#52;&#48;inria&#46;fr">meziane<span>&#46;</span>aite<span>&#64;</span>inria<span>&#46;</span>fr</a>
+Description:
+For a given set of compounds representing the growth medium (or seeds). Create 2 reactions
+for each compounds to maintain consistency of the network for flux analysis.
+For each compounds create</p>
+<blockquote>
+<div>-an exchange reaction: this reaction consumes the compound in the</div></blockquote>
+<dl class="docutils">
+<dt>compartment ‘C-BOUNDARY’ and produces the compound in the compartment ‘e’ extracellular</dt>
+<dd>-a transport reaction: this reaction consumes the compound in the compartment</dd>
+</dl>
+<p>‘e’ extracellular’ and produces the compound in the compartment ‘c’ cytosol
+ex: for seed ‘cpd-a’
+1/ check if cpd-a in padmetSpec, if not, copy from padmetRef.
+2/ create exchange reaction: ExchangeSeed_cpd-a_b: 1 cpd-a (C-BOUNDARAY) &lt;=&gt; 1 cpd-a (e)
+3/ create transport reaction: TransportSeed_cpd-a_e: 1 cpd-a (e) =&gt; 1 cpd-a (c)
+4/ create a new file if output not None, or overwritte padmetSpec</p>
+<dl class="docutils">
+<dt>usage:</dt>
+<dd>padmet_medium.py –padmetSpec=FILE
+padmet_medium.py –padmetSpec=FILE -r [–output=FILE] [-v]
+padmet_medium.py –padmetSpec=FILE –seeds=FILE [–padmetRef=FILE] [–output=FILE] [–b_compart=STR] [–e_compart=STR] [–c_compart=STR] [-v]</dd>
+<dt>options:</dt>
+<dd>-h –help     Show help.
+–padmetSpec=FILE    pathanme to the padmet file to update
+–padmetRef=FILE    pathname to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
+–seeds=FILE    the pathname to the file containing the compounds ids and the compart, line = cpd-id        compart.
+–output=FILE    If not None, pathname to the padmet file updated
+-v   print info</dd>
+</dl>
+<dl class="function">
+<dt id="scripts.management.padmet_medium.main">
+<code class="descclassname">scripts.management.padmet_medium.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scripts/management/padmet_medium.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scripts.management.padmet_medium.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Meziane AITE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
