@@ -37,14 +37,6 @@ scripts.exploration.convert\_sbml\_db module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.dendrogram\_reactions\_distance module
-==========================================================
-
-.. automodule:: scripts.exploration.dendrogram_reactions_distance
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 scripts.exploration.flux\_analysis module
 =========================================
 
