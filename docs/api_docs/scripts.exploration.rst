@@ -5,14 +5,6 @@ Description
 -----------
 #TODO
 
-scripts.exploration.chili module
-================================
-
-.. automodule:: scripts.exploration.chili
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 scripts.exploration.compare\_padmet module
 ==========================================
 
@@ -81,14 +73,6 @@ scripts.exploration.padmet\_stats module
 ========================================
 
 .. automodule:: scripts.exploration.padmet_stats
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-scripts.exploration.repair\_flux module
-=======================================
-
-.. automodule:: scripts.exploration.repair_flux
     :members:
     :undoc-members:
     :show-inheritance:

@@ -85,14 +85,6 @@ genesfba3
     :undoc-members:
     :show-inheritance:
 
-grammar\-boolean\-rapsody
-======================================
-
-.. automodule:: scripts.connection.grammar-boolean-rapsody
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 modelSeed\_to\_padmet
 ======================================
 
