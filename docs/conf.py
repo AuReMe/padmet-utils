@@ -112,6 +112,7 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+autodoc_mock_imports = ["padmet"]
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
