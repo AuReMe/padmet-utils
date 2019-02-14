@@ -15,11 +15,7 @@ scripts.exploration.compare\_padmet module
 
 scripts.exploration.compare\_sbml module
 ========================================
-
-.. automodule:: scripts.exploration.compare_sbml
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#TODO
 
 scripts.exploration.compare\_sbml\_padmet module
 ================================================
@@ -39,11 +35,7 @@ scripts.exploration.convert\_sbml\_db module
 
 scripts.exploration.flux\_analysis module
 =========================================
-
-.. automodule:: scripts.exploration.flux_analysis
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#TODO
 
 scripts.exploration.get\_pwy\_from\_rxn module
 ==============================================
@@ -55,19 +47,11 @@ scripts.exploration.get\_pwy\_from\_rxn module
 
 scripts.exploration.mutatools module
 ====================================
-
-.. automodule:: scripts.exploration.mutatools
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#TODO
 
 scripts.exploration.padmet\_stats module
 ========================================
-
-.. automodule:: scripts.exploration.padmet_stats
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#TODO
 
 scripts.exploration.report\_network module
 ==========================================

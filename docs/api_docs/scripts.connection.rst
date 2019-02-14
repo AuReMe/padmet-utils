@@ -47,11 +47,7 @@ enhanced\_sgs\_output
 
 extract\_rxn\_sbml
 ======================================
-
-.. automodule:: scripts.connection.extract_rxn_sbml
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#TODO
 
 extract\_rxn\_with\_gene\_assoc
 ======================================
