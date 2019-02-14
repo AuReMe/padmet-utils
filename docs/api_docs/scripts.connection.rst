@@ -1,87 +1,184 @@
-====================
-Scripts: Exploration
-====================
+===================
+Scripts: Connection
+===================
 Description
 -----------
 #TODO
 
-scripts.exploration.compare\_padmet module
-==========================================
+aspGenerator
+======================================
 
-.. automodule:: scripts.exploration.compare_padmet
+.. automodule:: scripts.connection.aspGenerator
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.compare\_sbml module
-========================================
-#TODO
+biggAPI\_temp
+======================================
 
-scripts.exploration.compare\_sbml\_padmet module
-================================================
-
-.. automodule:: scripts.exploration.compare_sbml_padmet
+.. automodule:: scripts.connection.biggAPI_temp
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.convert\_sbml\_db module
-============================================
+biggAPI\_to\_padmet
+======================================
 
-.. automodule:: scripts.exploration.convert_sbml_db
+.. automodule:: scripts.connection.biggAPI_to_padmet
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.flux\_analysis module
-=========================================
-#TODO
+enhanced\_meneco\_output
+======================================
 
-scripts.exploration.get\_pwy\_from\_rxn module
-==============================================
-
-.. automodule:: scripts.exploration.get_pwy_from_rxn
+.. automodule:: scripts.connection.enhanced_meneco_output
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.mutatools module
-====================================
-#TODO
+enhanced\_sgs\_output
+======================================
 
-scripts.exploration.padmet\_stats module
-========================================
-#TODO
-
-scripts.exploration.report\_network module
-==========================================
-
-.. automodule:: scripts.exploration.report_network
+.. automodule:: scripts.connection.enhanced_sgs_output
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.visu\_path module
-=====================================
+extract\_rxn\_sbml
+======================================
 
-.. automodule:: scripts.exploration.visu_path
+.. automodule:: scripts.connection.extract_rxn_sbml
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.visu\_path\_new module
-==========================================
+extract\_rxn\_with\_gene\_assoc
+======================================
 
-.. automodule:: scripts.exploration.visu_path_new
+.. automodule:: scripts.connection.extract_rxn_with_gene_assoc
     :members:
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.visu\_path\_update module
-=============================================
+gbk\_to\_faa
+======================================
 
-.. automodule:: scripts.exploration.visu_path_update
+.. automodule:: scripts.connection.gbk_to_faa
     :members:
     :undoc-members:
     :show-inheritance:
+
+gene\_to\_targets
+======================================
+
+.. automodule:: scripts.connection.gene_to_targets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+modelSeed\_to\_padmet
+======================================
+
+.. automodule:: scripts.connection.modelSeed_to_padmet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+padmet\_to\_asp
+======================================
+
+.. automodule:: scripts.connection.padmet_to_asp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+padmet\_to\_matrix
+======================================
+
+.. automodule:: scripts.connection.padmet_to_matrix
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+padmet\_to\_padmet
+======================================
+
+.. automodule:: scripts.connection.padmet_to_padmet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+padmet\_to\_tsv
+======================================
+
+.. automodule:: scripts.connection.padmet_to_tsv
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pgdb\_to\_padmet
+======================================
+
+.. automodule:: scripts.connection.pgdb_to_padmet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+post\_pantograph\_gbr
+======================================
+
+.. automodule:: scripts.connection.post_pantograph_gbr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pre\_pantograph
+======================================
+
+.. automodule:: scripts.connection.pre_pantograph
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sbmlGenerator
+======================================
+
+.. automodule:: scripts.connection.sbmlGenerator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sbml\_to\_gene\_assoc
+======================================
+
+.. automodule:: scripts.connection.sbml_to_gene_assoc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+sbml\_to\_padmet
+======================================
+
+.. automodule:: scripts.connection.sbml_to_padmet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+wikiGenerator
+======================================
+
+.. automodule:: scripts.connection.wikiGenerator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+wikiGenerator\_multi
+======================================
+
+.. automodule:: scripts.connection.wikiGenerator_multi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
