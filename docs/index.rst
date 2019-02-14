@@ -43,7 +43,9 @@ wiki API
     :maxdepth: 2
     :glob:
 
+    api_docs/wiki.*
 
 .. References/hyperlinks used above
 .. _Git repository: https://github.com/AuReMe/padmet-utils
 .. _PyPi: https://pypi.python.org/pypi
+
