@@ -112,7 +112,7 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
-autodoc_mock_imports = ["padmet", "grequests", "seaborn", "sklearn", "fastcluster"]
+autodoc_mock_imports = ["padmet", "grequests", "seaborn", "sklearn", "fastcluster", "matplotlib"]
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

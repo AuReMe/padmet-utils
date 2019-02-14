@@ -77,14 +77,6 @@ gene\_to\_targets
     :undoc-members:
     :show-inheritance:
 
-genesfba3
-======================================
-
-.. automodule:: scripts.connection.genesfba3
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 modelSeed\_to\_padmet
 ======================================
 
