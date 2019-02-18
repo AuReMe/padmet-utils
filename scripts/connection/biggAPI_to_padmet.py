@@ -1,42 +1,33 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Require internet access !
-Allows to extract the bigg database from the API to create a padmet.
-1./ Get all reactions universal id from http://bigg.ucsd.edu/api/v2/universal/reactions
-2./ Using async_list, extract all the informations for each reactions (compounds, stochio, name ...)
-3./ Need to use sleep time to avoid to lose the server access.
-4./ Because the direction fo the reaction is not set by default in bigg. 
-We get all the models where the reaction is and the final direction will the one found
-in more than 75%
-5./ Also extract xrefs
+    Require internet access !
 
-usage:
-    biggAPI_to_padmet.py --output=FILE [--pwy_file=FILE] [-v]
+    Allows to extract the bigg database from the API to create a padmet.
 
-options:
-    -h --help     Show help.
-    --output=FILE    pathname of the padmet file to create
-    --pwy_file=FILE   add kegg pathways from this pathways file 'pwy_id, pwy_name, x, rxn_id'.
-    -v   print info.
+    1./ Get all reactions universal id from http://bigg.ucsd.edu/api/v2/universal/reactions
+
+    2./ Using async_list, extract all the informations for each reactions (compounds, stochio, name ...)
+
+    3./ Need to use sleep time to avoid to lose the server access.
+
+    4./ Because the direction fo the reaction is not set by default in bigg. 
+    We get all the models where the reaction is and the final direction will the one found
+    in more than 75%
+
+    5./ Also extract xrefs
+
+::
+
+    usage:
+        biggAPI_to_padmet.py --output=FILE [--pwy_file=FILE] [-v]
+    
+    options:
+        -h --help     Show help.
+        --output=FILE    path to output, the padmet file.
+        --pwy_file=FILE   add kegg pathways from pathways file, line:'pwy_id, pwy_name, x, rxn_id'.
+        -v   print info.
 """
-from padmet.classes import Node
 from padmet.classes import Relation
 from padmet.classes import PadmetRef
 from datetime import datetime

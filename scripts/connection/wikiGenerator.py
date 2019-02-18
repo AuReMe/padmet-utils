@@ -1,32 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet.
-
-padmet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Contains all necessary functions to generate wikiPages from a padmet file and update 
-a wiki online. Require WikiManager module (with wikiMate,Vendor)
+    Contains all necessary functions to generate wikiPages from a padmet file and update 
+    a wiki online. Require WikiManager module (with wikiMate,Vendor)
 
-usage:
-    wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] [-v]
-    wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
+::
 
-options:
-    -h --help     Show help.
+    usage:
+        wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] [-v]
+        wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
+    
+    options:
+        -h --help     Show help.
+        --padmetSpec=FILE    path to padmet file.
+        --output=DIR    path to folder to create with all wikipages in subdir.
+        --model_id=STR    id of the model to use in mainpage of wiki.
+        --model_name=FILE    name of the model to use in mainpage of wiki.
+        --padmetRef=FILE    path to padmet of reference, ex: metacyc_xx.padmet, if given, able to calcul pathway rate completion.
+        --log_file=FILE    log file from an aureme run, use this file to create a wikipage with all the command used during the aureme run.
+        --aureme_run=DIR    can use an aureme run as input, will use from config file information for model_id and log_file and padmetRef.
+        -v    print info.
 """
 from padmet.classes import PadmetRef
 from padmet.classes import PadmetSpec
@@ -713,26 +707,29 @@ def xrefLink(dataInArray, db, ids):
 def get_labels(data, fill=["number"]):
     """    
     get a dict of labels for groups in data
-    
-    @type data: list[Iterable]    
-    @rtype: dict[str, str]
-    input
-      data: data to get label for
-      fill: ["number"|"logic"|"percent"]
-    return
-      labels: a dict of labels for different sets
     example:
     In [12]: get_labels([range(10), range(5,15), range(3,8)], fill=["number"])
     Out[12]:
     {'001': '0',
-     '010': '5',
-     '011': '0',
-     '100': '3',
-     '101': '2',
-     '110': '2',
-     '111': '3'}
-    """
+    '010': '5',
+    '011': '0',
+    '100': '3',
+    '101': '2',
+    '110': '2',
+    '111': '3'}
+    
+    Parameters
+    ----------    
+    data: list
+        data to get label for
+    fill: 
+        ["number"|"logic"|"percent"]
 
+    Returns
+    -------
+    dict:
+        a dict of labels for different sets
+    """
     N = len(data)
 
     sets_data = [set(data[i]) for i in range(N)]  # sets for separate groups
@@ -768,19 +765,20 @@ def get_labels(data, fill=["number"]):
 def venn4(labels, names=['A', 'B', 'C', 'D'], **options):
     """
     plots a 4-set Venn diagram
-        
-    @type labels: dict[str, str]
-    @type names: list[str]
-    @rtype: (Figure, AxesSubplot)
-    
-    input
-      labels: a label dict where keys are identified via binary codes ('0001', '0010', '0100', ...),
-              hence a valid set could look like: {'0001': 'text 1', '0010': 'text 2', '0100': 'text 3', ...}.
-              unmentioned codes are considered as ''.
-      names:  group names
-      more:   colors, figsize, dpi
-    return
-      pyplot Figure and AxesSubplot object
+
+    Parameters
+    ----------    
+    labels: dict
+        a label dict where keys are identified via binary codes ('0001', '0010', '0100', ...),
+        hence a valid set could look like: {'0001': 'text 1', '0010': 'text 2', '0100': 'text 3', ...}.
+        unmentioned codes are considered as ''.
+    names: list
+        group names
+
+    Returns
+    -------
+    set
+        (Figure, AxesSubplot), pyplot Figure and AxesSubplot object
     """
     colors = options.get('colors', [default_colors[i] for i in range(4)])
     figsize = options.get('figsize', (12, 12))

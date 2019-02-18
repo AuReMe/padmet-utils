@@ -1,39 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet.
-
-padmet is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-The module sbmlGenerator contains functions to generate sbml files from padmet and txt
-usign the libsbml package
+    The module sbmlGenerator contains functions to generate sbml files from padmet and txt
+    usign the libsbml package
 
-usage:
-    sbmlGenerator.py --padmet=FILE --output=FILE --sbml_lvl=STR [--model_id=STR] [--obj_fct=STR] [--mnx_chem_prop=FILE] [--mnx_chem_xref=FILE] [-v]
-    sbmlGenerator.py --padmet=FILE --output=FILE [--init_source=STR] [-v]
-    sbmlGenerator.py --compound=FILE --output=FILE [--padmetRef=FILE] [-v]
-    sbmlGenerator.py --reaction=FILE --output=FILE --padmetRef=FILE [-v]
+::
 
-option:
-    -h --help    Show help.
-    --padmet=FILE    pathname of the padmet file to convert into sbml
-    --output=FILE    pathanme of the sbml file to generate.
-    --obj_fct=STR    id of the reaction objective.
-    --sbml_lvl=STR    sbml level 2 is sufficient for FBA.
-    -v   print info.
+    usage:
+        sbmlGenerator.py --padmet=FILE --output=FILE --sbml_lvl=STR [--model_id=STR] [--obj_fct=STR] [--mnx_chem_prop=FILE] [--mnx_chem_xref=FILE] [-v]
+        sbmlGenerator.py --padmet=FILE --output=FILE [--init_source=STR] [-v]
+        sbmlGenerator.py --compound=FILE --output=FILE [--padmetRef=FILE] [-v]
+        sbmlGenerator.py --reaction=FILE --output=FILE --padmetRef=FILE [-v]
+    
+    option:
+        -h --help    Show help.
+        --padmet=FILE    path of the padmet file to convert into sbml
+        --output=FILE    path of the sbml file to generate.
+        --mnx_chem_prop=FILE    path of the MNX chemical compounds properties.
+        --mnx_chem_xref=FILE    path of the mnx dict of chemical compounds id mapping.
+        --reaction=FILE    path of file of reactions ids, one by line to convert to sbml.
+        --compound=FILE    path of file of compounds ids, one by line to convert to sbml.
+        --init_source=STR    Select the reactions of padmet to convert on sbml based on the source of the reactions, check relations rxn has_reconstructionData.
+        --sbml_lvl=STR    sbml level of output.
+        --obj_fct=STR    id of the reaction objective.
+        -v   print info.
 """
 from padmet.classes import PadmetSpec
 import padmet.utils.sbmlPlugin as sp

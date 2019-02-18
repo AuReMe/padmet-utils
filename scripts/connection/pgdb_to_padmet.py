@@ -1,118 +1,104 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
 
-classes.dat:
-For each class:
-create new node / class = class
-UNIQUE-ID (1) => node._id = UNIQUE-ID
-COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
-TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
-SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name synonyms)
- 
-compounds.dat:
-for each compound:
-create new node / class = compound
-UNIQUE-ID (1) => node._id = UNIQUE-ID
-COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
-INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
-MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
-SMILES (0-1) => node.misc()['SMILES'] = SMILES
-TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
-SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name name)
-DBLINKS (0-n) {(db "id" ...)} => for each, create new node xref, create rlt (node has_xref xref)
+    classes.dat:
+    For each class:
+    create new node / class = class
+    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
+    TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
+    SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name synonyms)
+     
+    compounds.dat:
+    for each compound:
+    create new node / class = compound
+    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
+    INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
+    MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
+    SMILES (0-1) => node.misc()['SMILES'] = SMILES
+    TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
+    SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name name)
+    DBLINKS (0-n) {(db "id" ...)} => for each, create new node xref, create rlt (node has_xref xref)
+    
+    proteins.dat:
+    for each protein:
+    create new node / class = protein
+    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
+    INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
+    MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
+    SMILES (0-1) => node.misc()['SMILES'] = SMILES
+    TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
+    SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name name)
+    DBLINKS (0-n) {(db "id" ...)} => for each, create new node xref, create rlt (node has_xref xref)
+    SPECIES (0-1) => for each, check or create new node class, create rlt (node is_in_species class)
+    
+    reactions.dat:
+    for each reaction:
+    create new node / class = reaction + node.misc()["DIRECTION"] = "UNKNOWN" by default
+    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
+    EC-NUMBER (0-n) => node.Misc['EC-NUMBER'] = EC-NUMBER
+    REACTION-DIRECTION (0-1) => node.Misc['DIRECTION'] = reaction-direction, if REVERSIBLE, else: LEFT-TO-RIGHT
+    RXN-LOCATIONS (0,n) => node.misc['COMPARTMENT'] = rxn-location
+    TYPES (0-n) => check or create new node class, create rlt (node.id is_a_class types's_node.id)
+    DBLINKS (0-n) {(db "id" ...)} => create new node xref, create rlt (node has_xref xref's_node.id)
+    SYNONYMS (0-n) => create new node name, create rlt (node has_name name's_node.id)
+    --
+    for LEFT and RIGHT, also check 2 next lines if info about 'coefficient' or 'compartment'
+    defaut value: coefficient/stoichiometry = 1, compartment = unknown
+    also check if the direction is 'RIGHT-TO-LEFT', if yes, inverse consumes and produces relations
+    then change direction to 'LEFT-TO-RIGHT'
+    LEFT (1-n) => create rlt (node.id consumes left's_node.id)
+    RIGHT (1-n) => create rlt (node.id produces right's_node.id)
+    
+    enzrxns.dat:
+    for each association enzyme/reaction:
+    create new rlt / type = catalyses
+    ENZYME (1) => stock enzyme as 'enzyme catalyses'
+    REACTION (1-n) => for each reaction after, create relation 'enzyme catalyses reaction'
+    
+    pathways.dat:
+    for each pathway:
+    create new node / class = pathway
+    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    TYPES (0-n) => check or create new node class, create rlt (node is_a_class types)
+    COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
+    DBLINKS (0-n) {(db "id" ...)} => create new node xref, create rlt (node has_xref xref)
+    SYNONYMS (0-n) => create new node name, create rlt (node has_name name)
+    IN-PATHWAY (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
+    REACTION-LIST (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
+    
+    metabolic-reaction.xml: optional
+    for each reaction:
 
-proteins.dat:
-for each protein:
-create new node / class = protein
-UNIQUE-ID (1) => node._id = UNIQUE-ID
-COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
-INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
-MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
-SMILES (0-1) => node.misc()['SMILES'] = SMILES
-TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
-SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name name)
-DBLINKS (0-n) {(db "id" ...)} => for each, create new node xref, create rlt (node has_xref xref)
-SPECIES (0-1) => for each, check or create new node class, create rlt (node is_in_species class)
+::
 
-reactions.dat:
-for each reaction:
-create new node / class = reaction + node.misc()["DIRECTION"] = "UNKNOWN" by default
-UNIQUE-ID (1) => node._id = UNIQUE-ID
-COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
-EC-NUMBER (0-n) => node.Misc['EC-NUMBER'] = EC-NUMBER
-REACTION-DIRECTION (0-1) => node.Misc['DIRECTION'] = reaction-direction, if REVERSIBLE, else: LEFT-TO-RIGHT
-RXN-LOCATIONS (0,n) => node.misc['COMPARTMENT'] = rxn-location
-TYPES (0-n) => check or create new node class, create rlt (node.id is_a_class types's_node.id)
-DBLINKS (0-n) {(db "id" ...)} => create new node xref, create rlt (node has_xref xref's_node.id)
-SYNONYMS (0-n) => create new node name, create rlt (node has_name name's_node.id)
---
-for LEFT and RIGHT, also check 2 next lines if info about 'coefficient' or 'compartment'
-defaut value: coefficient/stoichiometry = 1, compartment = unknown
-also check if the direction is 'RIGHT-TO-LEFT', if yes, inverse consumes and produces relations
-then change direction to 'LEFT-TO-RIGHT'
-LEFT (1-n) => create rlt (node.id consumes left's_node.id)
-RIGHT (1-n) => create rlt (node.id produces right's_node.id)
-
-enzrxns.dat:
-for each association enzyme/reaction:
-create new rlt / type = catalyses
-ENZYME (1) => stock enzyme as 'enzyme catalyses'
-REACTION (1-n) => for each reaction after, create relation 'enzyme catalyses reaction'
-
-pathways.dat:
-for each pathway:
-create new node / class = pathway
-UNIQUE-ID (1) => node._id = UNIQUE-ID
-TYPES (0-n) => check or create new node class, create rlt (node is_a_class types)
-COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
-DBLINKS (0-n) {(db "id" ...)} => create new node xref, create rlt (node has_xref xref)
-SYNONYMS (0-n) => create new node name, create rlt (node has_name name)
-IN-PATHWAY (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
-REACTION-LIST (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
-
-metabolic-reaction.xml: optional
-for each reaction:
-
-usage:
-    pgdb_to_padmet.py --output=FILE --directory=DIR [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m] [--version=V] [--db=ID]
-    pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
-
-options:
-    -h --help     Show help.
-    --version=V    Xcyc version
-    --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...)
-    --output=FILE    padmet file corresponding to the DB
-    --directory=DIR    directory containg all the .dat files of metacyc (data)
-    --padmetRef=FILE    padmet of reference
-    --classes_file=FILE   
-    --compounds_file=FILE   
-    --proteins_file=FILE 
-    --reactions_file=FILE 
-    --enzrxns_file=FILE 
-    --pathways_file=FILE
-    --genes_file=FILE
-    --metabolic_reactions=FILE
-    --source=STR    Tag associated to the source of the reactions, used to ensure traceability
-    -m    use the metabolic-reactions.xml file to enhance the database
-    -g    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
-    -v   print info
+    usage:
+        pgdb_to_padmet.py --output=FILE --directory=DIR [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m] [--version=V] [--db=ID]
+        pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
+    
+    options:
+        -h --help     Show help.
+        --version=V    Xcyc version
+        --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...)
+        --output=FILE    padmet file corresponding to the DB
+        --directory=DIR    directory containg all the .dat files of metacyc (data)
+        --padmetRef=FILE    padmet of reference
+        --classes_file=FILE   
+        --compounds_file=FILE   
+        --proteins_file=FILE 
+        --reactions_file=FILE 
+        --enzrxns_file=FILE 
+        --pathways_file=FILE
+        --genes_file=FILE
+        --metabolic_reactions=FILE
+        --source=STR    Tag associated to the source of the reactions, used to ensure traceability
+        -m    use the metabolic-reactions.xml file to enhance the database
+        -g    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
+        -v   print info
 
 """
 import re

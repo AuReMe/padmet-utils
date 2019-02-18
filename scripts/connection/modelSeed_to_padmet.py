@@ -1,32 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-#TODO
-usage:
-    modelSeed_to_padmet.py --output=FILE --rxn_file=FILE --pwy_file=FILE [-v]
+    #TODO
 
-options:
-    -h --help     Show help.
-    --output=FILE    pathname of the padmet file to create
-    --rxn_file=FILE   json file of modelSeed reactions
-    --pwy_file=FILE   pathway reactions association from modelSeed
-    -v   print info.
+::
+
+    usage:
+        modelSeed_to_padmet.py --output=FILE --rxn_file=FILE --pwy_file=FILE [-v]
+    
+    options:
+        -h --help     Show help.
+        --output=FILE    path of the padmet file to create
+        --rxn_file=FILE   path to json file of modelSeed reactions
+        --pwy_file=FILE   path to pathway reactions association from modelSeed
+        -v   print info.
 """
 from padmet.node import Node
 from padmet.relation import Relation

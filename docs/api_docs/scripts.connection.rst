@@ -1,25 +1,9 @@
 ===================
 Scripts: Connection
 ===================
-Description
------------
+Description:
+
 #TODO
-
-aspGenerator
-======================================
-
-.. automodule:: scripts.connection.aspGenerator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-biggAPI\_temp
-======================================
-
-.. automodule:: scripts.connection.biggAPI_temp
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 biggAPI\_to\_padmet
 ======================================
@@ -44,10 +28,6 @@ enhanced\_sgs\_output
     :members:
     :undoc-members:
     :show-inheritance:
-
-extract\_rxn\_sbml
-======================================
-#TODO
 
 extract\_rxn\_with\_gene\_assoc
 ======================================
@@ -145,13 +125,22 @@ sbmlGenerator
     :undoc-members:
     :show-inheritance:
 
-sbml\_to\_gene\_assoc
+sbml\_to\_curation\_form
 ======================================
+Description:
+    extract all reactions from a sbml file to the form used in aureme for curation.
 
-.. automodule:: scripts.connection.sbml_to_gene_assoc
-    :members:
-    :undoc-members:
-    :show-inheritance:
+::
+
+    usage:
+        sbml_to_curation_form.py --sbml=FILE --output=FILE --comment=STR [--rxn_id=ID]
+    
+    options:
+        -h --help     Show help.
+        --sbml=FILE    path of the sbml.
+        --output=FILE    form containing the reaction extracted, form used for manual curation in aureme.
+        --rxn_id=FILE    id of one reaction or n reactions sep by ';', if None try to extract the reaction with objective coefficient == 1.
+        --comment=STR    comment associated to the reactions in the form. Used to track sources of curation in aureme.
 
 sbml\_to\_padmet
 ======================================

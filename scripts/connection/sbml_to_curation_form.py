@@ -1,36 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
+    extract all reactions from a sbml file to the form used in aureme for curation.
 
-usage:
-    extract_rxn_sbml.py --sbml=FILE --output=FILE --comment=STR [--rxn_id=ID]
+::
 
-options:
-    -h --help     Show help.
-    --sbml=FILE    pathname of the sbml
-    --output=FILE    form containing the reaction extracted, form used for manual curation in aureme
-    --rxn_id=FILE    id of one reaction or n reactions sep by ';', if None try to extract the reaction with objective coefficient == 1
+    usage:
+        sbml_to_curation_form.py --sbml=FILE --output=FILE --comment=STR [--rxn_id=ID]
+    
+    options:
+        -h --help     Show help.
+        --sbml=FILE    path of the sbml.
+        --output=FILE    form containing the reaction extracted, form used for manual curation in aureme.
+        --rxn_id=FILE    id of one reaction or n reactions sep by ';', if None try to extract the reaction with objective coefficient == 1.
+        --comment=STR    comment associated to the reactions in the form. Used to track sources of curation in aureme.
 """
 
-from cobra.io.sbml import create_cobra_model_from_sbml_file
-from cobra import *
 import docopt
+from cobra.io.sbml import create_cobra_model_from_sbml_file
 from padmet.utils.sbmlPlugin import convert_from_coded_id
 
 def main():

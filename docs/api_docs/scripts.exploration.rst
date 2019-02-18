@@ -1,9 +1,8 @@
 ====================
 Scripts: Exploration
 ====================
------------
-Description
------------
+Description:
+
 #TODO
 
 scripts.exploration.compare\_padmet module

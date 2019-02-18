@@ -1,42 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-The standard output of meneco return ids of reactions corresponding to the solution for gapfilling.
-The ids are those from the sbml and so they are encoded.
-This script extract the solution corresponding to the union of reactions
-"Computing union of reactions from all completion"
-Based on padmetRef return a file with more information for each reaction.
-ex: RXN__45__5
-RXN-5, common_name, ec-number, Formula (with id),Formula (with cname),Action,Comment
-Also, the output can be used as input of the script update_padmetSpec.py
-In the column Action: 'add' => To add the reaction, '' => to do nothing
-Comment: the reason of adding the reaction (ex: added for gap-filling by meneco)
+    The standard output of meneco return ids of reactions corresponding to the solution for gapfilling.
 
-usage:
-    enhanced_meneco_output.py --meneco_output=FILE --padmetRef=FILE --output=FILE [-v]
+    The ids are those from the sbml and so they are encoded.
 
-options:
-    -h --help     Show help.
-    --meneco_output=FILE    pathname of a meneco run' result
-    --padmetRef=FILE    pathanme to padmet file corresponding to the database of reference (the repair network)
-    --output=FILE    pathname to tsv output file
+    This script extract the solution corresponding to the union of reactions
+    "Computing union of reactions from all completion"
+    Based on padmetRef return a file with more information for each reaction.
 
+    ex: RXN__45__5
+
+    RXN-5, common_name, ec-number, Formula (with id),Formula (with cname),Action,Comment
+    Also, the output can be used as input of the script update_padmetSpec.py
+    In the column Action: 'add' => To add the reaction, '' => to do nothing
+
+    Comment: the reason of adding the reaction (ex: added for gap-filling by meneco)
+
+::
+    
+    usage:
+        enhanced_meneco_output.py --meneco_output=FILE --padmetRef=FILE --output=FILE [-v]
+    
+    options:
+        -h --help     Show help.
+        --meneco_output=FILE    pathname of a meneco run' result
+        --padmetRef=FILE    path to padmet file corresponding to the database of reference (the repair network)
+        --output=FILE    path to tsv output file
 """
 from padmet.classes import PadmetRef
 from padmet.utils.sbmlPlugin import convert_from_coded_id

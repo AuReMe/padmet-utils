@@ -1,35 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-From a list of genes, recovere from the linked reactions the list of products.
-R1 is linked to G1, R1 produces M1 and M2.  output: M1,M2. Takes into account reversibility
+    From a list of genes, get from the linked reactions the list of products.
 
-usage:
-    gene_to_targets.py --padmetSpec=FILE --genes=FILE --output=FILE [-v]
+    R1 is linked to G1, R1 produces M1 and M2.  output: M1,M2. Takes into account reversibility
 
-option:
-    -h --help     Show help
-    --padmetSpec=FILE    pathanme to the padmet file
-    --genes=FILE   pathname to the file containing gene ids, one id by line
-    --output=FILE    pathname to the output file containing all tagerts which can by produced by all reactions associated to the given genes
-    -v   print info
+::
 
+    usage:
+        gene_to_targets.py --padmetSpec=FILE --genes=FILE --output=FILE [-v]
+    
+    option:
+        -h --help     Show help
+        --padmetSpec=FILE    path to the padmet file
+        --genes=FILE   path to the file containing gene ids, one id by line
+        --output=FILE    path to the output file containing all tagerts which can by produced by all reactions associated to the given genes
+        -v   print info
 """
 from padmet.classes import PadmetSpec
 import docopt

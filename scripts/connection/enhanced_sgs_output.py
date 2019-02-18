@@ -1,35 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-1./ extract all data from sgs output
-2./ If needed, convert reaction id to metacyc id
+    1./ extract all data from sgs output
 
-usage:
-    enhanced_sgs_output.py --sgs_output=FILE --padmetRef=FILE --output=FILE [--db=ID] [--mnx=FILE] [-v]
+    2./ If needed, convert reaction id to metacyc id
 
-options:
-    -h --help     Show help.
-    --sgs_output=FILE    pathname of a sgs run' result
-    --db=ID    database origin of the reactions. will be converted to metacyc
-    --padmetRef=FILE    pathanme to padmet file corresponding to the database of reference (the repair network)
-    --mnx=FILE    pathanme to metanetx file for reactions (reac_xref.tsv)
-    --output=FILE    pathname to tsv output file
+::
+
+    usage:
+        enhanced_sgs_output.py --sgs_output=FILE --padmetRef=FILE --output=FILE [--db=ID] [--mnx=FILE] [-v]
+    
+    options:
+        -h --help     Show help.
+        --sgs_output=FILE    path of a sgs run' result
+        --db=ID    database origin of the reactions. will be converted to metacyc
+        --padmetRef=FILE    path to padmet file corresponding to the database of reference (the repair network)
+        --mnx=FILE    path to metanetx file for reactions (reac_xref.tsv)
+        --output=FILE    path to tsv output file
 """
 from padmet.classes import PadmetRef
 import csv

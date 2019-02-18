@@ -1,8 +1,8 @@
 ===================
 Scripts: Management
 ===================
-Description
------------
+Description:
+
 #TODO
 
 scripts.management.manual\_curation module

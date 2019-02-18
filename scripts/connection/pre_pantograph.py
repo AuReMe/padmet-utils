@@ -1,46 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Before running pantograph it is necessary to check if the metabolic network 
-and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff). 
-To only check this. Use the 2nd usage.
-If the genes ids are not the same, it is necessary to use a dictionnary of genes ids associating
-the genes ids from the proteom to the genes ids from the metabolic network.
-To create the correct proteom from the dictionnnary, use the 3nd usage
-Finnaly by using the 1st usage, it is possible to:
-    1/ Check model_faa and model_metabolic for a given cutoff
-    2/ if under the cutoff, convert model_faa to the correct one with dict_ids_file
-    3/ if still under, SystemExit()
+    Before running pantograph it is necessary to check if the metabolic network 
+    and the proteom of the model organism use the same ids for genes (or at least more than a given cutoff). 
+    To only check this. Use the 2nd usage.
 
-usage:
-    pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [--dict_ids_file=FILE] --output=FILE    [-v]
-    pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [-v]
-    pre_pantograph.py    --model_faa=FILE    --dict_ids_file=FILE    --output=FILE [-v]
+    If the genes ids are not the same, it is necessary to use a dictionnary of genes ids associating
+    the genes ids from the proteom to the genes ids from the metabolic network.
 
-option:
-    -h --help    Show help.
-    --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
-    --model_faa=FILE    pathname to the proteom of the model (faa)
-    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70]. 
-    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = gene_id_in_metabolic_network\tgene_id_in_faa
-    --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
-    -v   print info
+    To create the correct proteom from the dictionnnary, use the 3nd usage
+    Finnaly by using the 1st usage, it is possible to:
+
+        1/ Check model_faa and model_metabolic for a given cutoff
+
+        2/ if under the cutoff, convert model_faa to the correct one with dict_ids_file
+
+        3/ if still under, SystemExit()
+
+::
+   
+    usage:
+        pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [--dict_ids_file=FILE] --output=FILE    [-v]
+        pre_pantograph.py    --model_metabolic=FILE    --model_faa=FILE    [--cutoff=FLOAT] [-v]
+        pre_pantograph.py    --model_faa=FILE    --dict_ids_file=FILE    --output=FILE [-v]
+    
+    option:
+        -h --help    Show help.
+        --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
+        --model_faa=FILE    pathname to the proteom of the model (faa)
+        --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70]. 
+        --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line = gene_id_in_metabolic_network\tgene_id_in_faa
+        --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
+        -v   print info
 """
 import re
 import itertools

@@ -1,34 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Create a stoichiometry matrix from a padmet file.
-The columns represent the reactions and rows represent metabolites.
-S[i,j] contains the quantity of metabolite 'i' produced (negative for consumed)
-by reaction 'j'.
+    Create a stoichiometry matrix from a padmet file.
 
-usage:
-    padmet_to_matrix.py --padmet=FILE --output=FILE
+    The columns represent the reactions and rows represent metabolites.
 
-option:
-    -h --help    Show help.
-    --padmet=FILE    pathname to the padmet file to convert.
-    --output=FILE    pathname to the output file, col: rxn, row: metabo, sep = "\t".
+    S[i,j] contains the quantity of metabolite 'i' produced (negative for consumed)
+    by reaction 'j'.
+
+::
+
+    usage:
+        padmet_to_matrix.py --padmet=FILE --output=FILE
+    
+    option:
+        -h --help    Show help.
+        --padmet=FILE    path to the padmet file to convert.
+        --output=FILE    path to the output file, col: rxn, row: metabo, sep = "\t".
 """
 import docopt
 from padmet.classes import PadmetSpec

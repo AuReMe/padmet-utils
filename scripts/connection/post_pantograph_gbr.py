@@ -1,35 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
+    #TODO
 
-usage:
-    post_pantograph.py    --ptg_run=DIR --output=FILE [-v]
-    post_pantograph.py    --model_metabolic=FILE    --study_metabolic=FILE    --inp=FILE --omcl=FILE --output=FILE [-v]
-
-option:
-    -h --help    Show help.
-    --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
-    --model_faa=FILE    pathname to the proteom of the model (faa)
-    --cutoff=FLOAT    cutoff [0:1] for comparing model_metabolic and model_faa. [default: 0.70].
-    --dict_ids_file=FILE    pathname to the dict associating genes ids from the model_metabolic to the model_faa. line =
-    --output=FILE    output of get_valid_faa (a faa) or get_dict_ids (a dictionnary of gene ids in tsv)
-    -v   print info
+::
+    
+    usage:
+        post_pantograph.py    --ptg_run=DIR --output=FILE [-v]
+        post_pantograph.py    --model_metabolic=FILE    --study_metabolic=FILE    --inp=FILE --omcl=FILE --output=FILE [-v]
+    
+    option:
+        -h --help    Show help.
+        --model_metabolic=FILE    pathname to the metabolic network of the model (sbml).
+        --study_metabolic=FILE    ****.
+        --inp=FILE    ****.
+        --omcl=FILE    ****.
+        --output=FILE    ****.
+        -v   print info.
 """
 import re
 from padmet.utils.sbmlPlugin import parseNotes, parseGeneAssoc
