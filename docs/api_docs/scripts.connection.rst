@@ -158,12 +158,3 @@ wikiGenerator
     :undoc-members:
     :show-inheritance:
 
-wikiGenerator\_multi
-======================================
-
-.. automodule:: scripts.connection.wikiGenerator_multi
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
