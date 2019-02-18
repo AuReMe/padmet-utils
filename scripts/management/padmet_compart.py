@@ -1,34 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
+    #TODO
 
-usage:
-    padmet_compart.py --padmet=FILE
-    padmet_compart.py --padmet=FILE --remove=STR [--output=FILE] [-v]
-    padmet_compart.py --padmet=FILE --old=STR --new=STR [--output=FILE] [-v]
-
-options:
-    -h --help     Show help.
-    --padmet=FILE    pathname of the padmet file
-    --old=STR    compartment id to remove
-    --new=STR    new compartment id
-    --output=FILE    new padmet pathname, if none, overwritting the original padmet
+::
+    
+    usage:
+        padmet_compart.py --padmet=FILE
+        padmet_compart.py --padmet=FILE --remove=STR [--output=FILE] [-v]
+        padmet_compart.py --padmet=FILE --old=STR --new=STR [--output=FILE] [-v]
+    
+    options:
+        -h --help     Show help.
+        --padmet=FILE    pathname of the padmet file
+        --remove=STR    compartment id to remove
+        --old=STR    compartment id to change to new id
+        --new=STR    new compartment id
+        --output=FILE    new padmet pathname, if none, overwritting the original padmet
+        -v   print info
 """
 from padmet.classes import PadmetSpec
 import docopt

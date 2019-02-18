@@ -1,31 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-compare reactions in sbml and padmet files
+    compare reactions in sbml and padmet file
 
-usage:
-    compare_sbml_padmet.py --padmet=FILE --sbml=FILE
-
-option:
-    -h --help    Show help.
-    --padmet=FILE    pathname of the padmet file
-    --sbml=FILE    pathanme of the sbml file
+::
+    
+    usage:
+        compare_sbml_padmet.py --padmet=FILE --sbml=FILE
+    
+    option:
+        -h --help    Show help.
+        --padmet=FILE    path of the padmet file
+        --sbml=FILE    path of the sbml file
 """
 from padmet.classes import PadmetSpec
 import padmet.utils.sbmlPlugin as sp

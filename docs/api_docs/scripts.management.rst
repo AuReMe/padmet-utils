@@ -5,7 +5,7 @@ Description:
 
 #TODO
 
-scripts.management.manual\_curation module
+manual\_curation
 ==========================================
 
 .. automodule:: scripts.management.manual_curation
@@ -13,7 +13,7 @@ scripts.management.manual\_curation module
     :undoc-members:
     :show-inheritance:
 
-scripts.management.padmet\_compart module
+padmet\_compart
 =========================================
 
 .. automodule:: scripts.management.padmet_compart
@@ -21,7 +21,7 @@ scripts.management.padmet\_compart module
     :undoc-members:
     :show-inheritance:
 
-scripts.management.padmet\_medium module
+padmet\_medium
 ========================================
 
 .. automodule:: scripts.management.padmet_medium

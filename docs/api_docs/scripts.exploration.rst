@@ -5,7 +5,7 @@ Description:
 
 #TODO
 
-scripts.exploration.compare\_padmet module
+compare\_padmet
 ==========================================
 
 .. automodule:: scripts.exploration.compare_padmet
@@ -13,11 +13,22 @@ scripts.exploration.compare\_padmet module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.compare\_sbml module
+compare\_sbml
 ========================================
-#TODO
+Description:
+    compare reactions in two sbml
 
-scripts.exploration.compare\_sbml\_padmet module
+::
+
+    usage:
+        compare_sbml.py --sbml1=FILE --sbml2=FILE
+    
+    option:
+        -h --help    Show help.
+        --sbml1=FILE    path of the first sbml file
+        --sbml2=FILE    path of the second sbml file
+
+compare\_sbml\_padmet
 ================================================
 
 .. automodule:: scripts.exploration.compare_sbml_padmet
@@ -25,7 +36,7 @@ scripts.exploration.compare\_sbml\_padmet module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.convert\_sbml\_db module
+convert\_sbml\_db
 ============================================
 
 .. automodule:: scripts.exploration.convert_sbml_db
@@ -33,11 +44,28 @@ scripts.exploration.convert\_sbml\_db module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.flux\_analysis module
+flux\_analysis
 =========================================
-#TODO
+Description:
+    Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
+    and return result in standard output
 
-scripts.exploration.get\_pwy\_from\_rxn module
+::
+    
+    usage:
+        flux_analysis.py --sbml=FILE
+        flux_analysis.py --sbml=FILE --seeds=FILE --targets=FILE
+        flux_analysis.py --sbml=FILE --all_species
+        
+    
+    option:
+        -h --help    Show help.
+        --sbml=FILE    pathname to the sbml file to test for fba and fva.
+        --seeds=FILE    pathname to the sbml file containing the seeds (medium).
+        --targets=FILE    pathname to the sbml file containing the targets.
+        --all_species    allow to make FBA on all the metabolites of the given model.
+
+get\_pwy\_from\_rxn
 ==============================================
 
 .. automodule:: scripts.exploration.get_pwy_from_rxn
@@ -45,15 +73,11 @@ scripts.exploration.get\_pwy\_from\_rxn module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.mutatools module
-====================================
-#TODO
-
-scripts.exploration.padmet\_stats module
+padmet\_stats
 ========================================
 #TODO
 
-scripts.exploration.report\_network module
+report\_network
 ==========================================
 
 .. automodule:: scripts.exploration.report_network
@@ -61,26 +85,10 @@ scripts.exploration.report\_network module
     :undoc-members:
     :show-inheritance:
 
-scripts.exploration.visu\_path module
+visu\_path
 =====================================
 
 .. automodule:: scripts.exploration.visu_path
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-scripts.exploration.visu\_path\_new module
-==========================================
-
-.. automodule:: scripts.exploration.visu_path_new
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-scripts.exploration.visu\_path\_update module
-=============================================
-
-.. automodule:: scripts.exploration.visu_path_update
     :members:
     :undoc-members:
     :show-inheritance:

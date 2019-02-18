@@ -1,41 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-This script allows to combine rxn_creator.py and update_padmetSpec.py.
-This script was created specially for AuReMe and the default metabolic network
-reconstruction workflow.
-If the file reaction_to_add_delete exist: calls update_padmetSpec
-If the file new_reaction_data exist: calls rxn_creator.py
-Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
+    This script allows to combine rxn_creator.py and update_padmetSpec.py.
 
-usage:
-    manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [--tool=STR] [--category=STR] [-v]
-    manual_curation.py --template_new_rxn --output=FILE
-    manual_curation.py --template_add_delete --output=FILE
+    This script was created specially for AuReMe and the default metabolic network
+    reconstruction workflow.
 
-option:
-    -h --help    Show help.
-    --padmetSpec=FILE    pathname to the padmet to update
-    --padmetRef=FILE    pathname of the padmet representing the reference database
-    --data=FILE    pathname to the file used for rxn_creator.py
-    --output=FILE    pathname to the ouput. if None. Overwritting padmetSpec
-    -v    print info
+    If the file reaction_to_add_delete exist: calls update_padmetSpec
+
+    If the file new_reaction_data exist: calls rxn_creator.py
+
+    Update padmetSpec and create a new padmet (new_padmet) or overwritte the input
+
+::
+    
+    usage:
+        manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [--tool=STR] [--category=STR] [-v]
+        manual_curation.py --template_new_rxn --output=FILE
+        manual_curation.py --template_add_delete --output=FILE
+    
+    option:
+        -h --help    Show help.
+        --padmetSpec=FILE    path to the padmet to update
+        --padmetRef=FILE    path of the padmet representing the reference database
+        --data=FILE    path to the form with data for curation
+        --output=FILE    path to the ouput. if None. Overwritting padmetSpec
+        --tool=STR    specification of the tool used to allow this curation: ex a tool of gapfilling (meneco)
+        --category=STR    specification of the category of curation: ex if a reaction is added based on annotation info, use 'annotation'
+        --template_new_rxn=FILE    create a form used to create new reaction, use this form as input for 'data' option
+        --template_add_delete=FILE    create a form used to add or delete reaction, use this form as input for 'data' option
+        -v    print info
 """
 import docopt
 import os

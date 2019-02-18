@@ -1,37 +1,23 @@
     # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
-and return result in standard output
+    Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
+    and return result in standard output
 
-usage:
-    flux_analysis.py --sbml=FILE
-    flux_analysis.py --sbml=FILE --seeds=FILE --targets=FILE
-    flux_analysis.py --sbml=FILE --all_species
+::
     
-
-option:
-    -h --help    Show help.
-    --sbml=FILE    pathname to the sbml file to test for fba and fva.
-    --seeds=FILE    pathname to the sbml file containing the seeds (medium).
-    --targets=FILE    pathname to the sbml file containing the targets.
-    --all_species    allow to make FBA on all the metabolites of the given model.
+    usage:
+        flux_analysis.py --sbml=FILE
+        flux_analysis.py --sbml=FILE --seeds=FILE --targets=FILE
+        flux_analysis.py --sbml=FILE --all_species
+        
+    
+    option:
+        -h --help    Show help.
+        --sbml=FILE    pathname to the sbml file to test for fba and fva.
+        --seeds=FILE    pathname to the sbml file containing the seeds (medium).
+        --targets=FILE    pathname to the sbml file containing the targets.
+        --all_species    allow to make FBA on all the metabolites of the given model.
 """
 from padmet.utils.sbmlPlugin import convert_from_coded_id
 from cobra import *

@@ -1,32 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-compare 2 padmet files
+    compare n padmet files
 
-usage:
-    compare_padmet.py --padmet=FILES/DIR --output=DIR --padmetRef=FILE [-v]
-
-option:
-    -h --help    Show help.
-    --padmet=FILES/DIR    pathname of the padmet files, sep all files by ',', ex: /path/padmet1.padmet;/path/padmet2.padmet OR a folder
-    --output=DIR    pathname of the output folder
-    --padmetRef=FILE    pathanme of the database ref in padmet
+::
+    
+    usage:
+        compare_padmet.py --padmet=FILES/DIR --output=DIR --padmetRef=FILE [-v]
+    
+    option:
+        -h --help    Show help.
+        --padmet=FILES/DIR    pathname of the padmet files, sep all files by ',', ex: /path/padmet1.padmet;/path/padmet2.padmet OR a folder
+        --output=DIR    pathname of the output folder
+        --padmetRef=FILE    pathanme of the database ref in padmet
 """
 from padmet.classes import PadmetSpec, PadmetRef
 import os

@@ -1,40 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
-
 Description:
-For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen
-the output is a file with line = reaction_id in origin database, reaction_id in db_out database
-if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in
-the output file the mapping of those compounds
+    For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen
+    the output is a file with line = reaction_id in origin database, reaction_id in db_out database
+    if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in
+    the output file the mapping of those compounds
 
-usage:
-    convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
-    convert_sbml_db.py --mnx_rxn=FILE --sbml=FILE
-
-options:
-    -h --help     Show help.
-    --mnx_rxn=FILE     path to the MetaNetX file for reactions
-    --mnx_cpd=FILE     path to the MetaNetX file for compounds
-    --sbml=FILE     path to the sbml file to convert
-    --output=FILE     path to the file containing the mapping, sep = "\t"
-    --db_out=FILE     id of the output database in ["BIGG","METACYC","KEGG"]
-    -v     verbose.
+::
+    
+    usage:
+        convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
+        convert_sbml_db.py --mnx_rxn=FILE --sbml=FILE
+    
+    options:
+        -h --help     Show help.
+        --mnx_rxn=FILE     path to the MetaNetX file for reactions
+        --mnx_cpd=FILE     path to the MetaNetX file for compounds
+        --sbml=FILE     path to the sbml file to convert
+        --output=FILE     path to the file containing the mapping, sep = "\t"
+        --db_out=FILE     id of the output database in ["BIGG","METACYC","KEGG"]
+        -v     verbose.
 
 """
 import libsbml

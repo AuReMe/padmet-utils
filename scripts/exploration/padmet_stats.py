@@ -1,29 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
 Description:
-Create a padmet stats file containing the number of pathways, reactions,
-genes and compounds inside the padmet.
+    Create a padmet stats file containing the number of pathways, reactions,
+    genes and compounds inside the padmet.
 
-The input is a padmet file or a folder containing multiple padmets.
-
-Create a tsv file named padmet_stats.tsv where the script have been
-launched.
+    The input is a padmet file or a folder containing multiple padmets.
+    
+    Create a tsv file named padmet_stats.tsv where the script have been
+    launched.
 """
 
 import argparse
