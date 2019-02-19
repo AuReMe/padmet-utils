@@ -77,7 +77,7 @@ Description:
 ::
 
     usage:
-        pgdb_to_padmet.py --output=FILE --directory=DIR [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m] [--version=V] [--db=ID]
+        pgdb_to_padmet.py --output=FILE --directory=DIR --version=V --db=ID [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m]
         pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
     
     options:
