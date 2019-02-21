@@ -22,7 +22,6 @@
 
 FROM debian:jessie
 MAINTAINER "Meziane A."
-LABEL Version="0.4"
 LABEL Vendor="INRIA-Dyliss team"
 LABEL Description="MediaWiki installation in Docker container that runs on Nginx, MySQL, php5-fpm"
 

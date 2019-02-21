@@ -25,7 +25,6 @@ usage:
 	wiki --init=ID
 	wiki --wiki=ID --update=DIR [--api_url=STR] [--username=STR] [--password=STR]
 	wiki --wiki=ID --clean
-	wiki --wiki=ID --clean
 	wiki --wiki=ID --remove
 	wiki --all
 
