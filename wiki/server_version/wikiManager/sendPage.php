@@ -4,7 +4,7 @@ include 'globals.php';
 $api_url = $argv[3];
 $username = $argv[4];
 $password = $argv[5];
-$page_name = $argv[1].replace("__47__","/")
+$page_name = $argv[1].replace("__47__","/");
 echo $argv;
 return false;
 
