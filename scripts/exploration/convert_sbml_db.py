@@ -9,8 +9,10 @@ Description:
 ::
     
     usage:
+        convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE
+        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE
+        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE --output=FILE --db_out=ID [-v]
         convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
-        convert_sbml_db.py --mnx_rxn=FILE --sbml=FILE
     
     options:
         -h --help     Show help.
@@ -23,14 +25,19 @@ Description:
 
 """
 import libsbml
-#from padmet.padmetRef import PadmetRef
-import re
+from padmet.utils.sbmlPlugin import convert_from_coded_id
 import docopt
+import os
 
 def main():
     args = docopt.docopt(__doc__)
-    mnx_rxn_file = args["--mnx_rxn"]
-    mnx_cpd_file = args["--mnx_cpd"]
+    if args["--mnx_folder"]:
+        mnx_folder = args["--mnx_folder"]
+        mnx_rxn_file = os.path.join(mnx_folder, "reac_xref.tsv")
+        mnx_cpd_file = os.path.join(mnx_folder, "chem_xref.tsv")
+    else:
+        mnx_rxn_file = args["--mnx_rxn"]
+        mnx_cpd_file = args["--mnx_cpd"]
     sbml_file = args["--sbml"]
     reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
@@ -39,28 +46,51 @@ def main():
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
     listOfSpecies = model.getListOfSpecies()
-
     if args["--db_out"]:
         db_out = args["--db_out"].upper()
     else:
         print("Check from which database is this sbml:")
         with open(mnx_rxn_file, "r") as f:
-            dict_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
+            dict_rxn_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
             if not line.startswith("#") and ":" in line.split("\t")[0]])
-        db_found = {'total_rxn':0}
+        with open(mnx_cpd_file, "r") as f:
+            dict_cpd_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
+            if not line.startswith("#") and ":" in line.split("\t")[0]])
+        db_found = {'total_rxn':0, "total_cpd":0}
         for rxn in listOfReactions:
             db_found['total_rxn'] += 1
             rxn_id_decoded = convert_from_coded_id(rxn.id)[0]
-            db = dict_id_db.get(rxn_id_decoded,'Unknown')
+            print("RXN: original id: %s decoded id:%s" %(rxn.id, rxn_id_decoded))
+            try:
+                db = dict_rxn_id_db[rxn_id_decoded]
+            except KeyError:
+                if rxn_id_decoded[-2] == "_":
+                    new_rxn_id_decoded = rxn_id_decoded[:-2]
+                    print("Try removing '_*' at end of id: %s" % new_rxn_id_decoded)
+                    db = dict_rxn_id_db.get(new_rxn_id_decoded,'Unknown')
+                else:
+                    db = "Unknown"
+            print("\t%s" %db)
             try:
                 db_found[db] += 1
             except KeyError:
                 db_found[db] = 1
+        for cpd in listOfSpecies:
+            db_found['total_cpd'] += 1
+            cpd_id_decoded = convert_from_coded_id(cpd.id)[0]
+            print("CPD: original id: %s decoded id:%s" %(cpd.id, cpd_id_decoded))
+            db = dict_cpd_id_db.get(cpd_id_decoded,'Unknown')
+            print("\t%s" %db)
+            try:
+                db_found[db] += 1
+            except KeyError:
+                db_found[db] = 1
+
         db_select = [k for k, v in list(db_found.items())
                      if v == max([j for i,j in list(db_found.items()) if i != 'total_rxn'])][0]
         output = "Database ref:%s\n%s" %(db_select, db_found)
         print(output)
-        return(output)
+        return
                 
     if db_out not in ["BIGG","METACYC","KEGG"]:
         raise ValueError('Please choose a database id in ["BIGG","METACYC","KEGG"]')
@@ -160,58 +190,6 @@ def main():
         for k,v in list(mapped_cpd.items()):
             f.write(k+"\t"+v+"\n")
     
-
-def convert_from_coded_id(coded):
-    """
-    convert an id from sbml format to the original id. try to extract the type of
-    the id and the compart using strong regular expression
-    @param coded: the encoded id
-    @type coded: str
-    @return: (the uncoded id, type=None, compart=None)
-    @rtype: tuple
-    """
-    #replace DASH from very old sbmls
-    coded = coded.replace('_DASH_', '_')
-    #an original id starting with int will start with '_' in sbml
-    if coded.startswith("_"):
-        coded = coded[1:]
-    #reg ex to find the ascii used to replace not allowed char
-    codepat = re.compile('__(\d+)__')
-    #replac ascii by the not allowed char of sbml
-    coded = codepat.sub(ascii_replace, coded)
-    
-    reg_expr = re.compile('(?P<_type>^[MRS]_)(?P<_id>.*)(?P<compart>_.*)')
-    search_result = reg_expr.search(coded)
-    if search_result is not None:
-        compart = search_result.group('compart').replace("_","")    
-        _type = search_result.group('_type').replace("_","")
-        uncoded = search_result.group('_id')
-    else:
-        reg_expr = re.compile('(?P<_type>^[MRS]_)(?P<_id>.*)')
-        search_result = reg_expr.search(coded)
-        if search_result is not None:
-            compart = None
-            _type = search_result.group('_type').replace("_","")
-            uncoded = search_result.group('_id')
-        else:
-            reg_expr = re.compile('(?P<_id>.*)(?P<compart>_.*)')
-            search_result = reg_expr.search(coded)
-            if search_result is not None:
-                _type = None
-                compart = search_result.group('compart').replace("_","")    
-                uncoded = search_result.group('_id')
-            else:
-                uncoded = coded
-                _type = None
-                compart = None
-            
-    return (uncoded, _type, compart)
-
-def ascii_replace(match):
-    """
-    recover banned char from the integer ordinal in the reg.match
-    """
-    return chr(int(match.group(1)))
 
 def mnx_reader(input_file, db_out):
     with open(input_file, "r") as f:
