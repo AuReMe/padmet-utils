@@ -77,7 +77,7 @@ Description:
 ::
 
     usage:
-        pgdb_to_padmet.py --output=FILE --directory=DIR --version=V --db=ID [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m]
+        pgdb_to_padmet.py --output=FILE --directory=DIR [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m]
         pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
     
     options:
@@ -102,6 +102,7 @@ Description:
 
 """
 import re
+import os
 from datetime import datetime
 from time import time
 from padmet.classes import PadmetRef, PadmetSpec, Node, Relation
@@ -124,7 +125,9 @@ def main():
     #parsing args
     args = docopt.docopt(__doc__)
     version = args["--version"]
+    if not version: version = "NA"
     db = args["--db"]
+    if not db: db = "NA"
     output = args["--output"]
     path = args["--directory"]
     enhanced_db = args["-m"]
@@ -135,16 +138,15 @@ def main():
     if source : source = source.upper()
     
     if path is not None:
-        if not path.endswith("/"): path += "/"
 
         classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
-        [(path + _file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
+         [os.path.join(path,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
         if enhanced_db:
             metabolic_reactions = path + "metabolic-reactions.xml"
         else:
             metabolic_reactions = None
         if with_genes:
-            genes_file = path + "genes.dat"
+            genes_file = os.path.join(path,"genes.dat")
         else:
             genes_file = None
 
@@ -183,7 +185,9 @@ def main():
 
 
         if verbose: print("parsing genes")
-        dict_protein_gene_id = genes_parser(genes_file, padmet)
+        genes_parser(genes_file, padmet)
+        if verbose: print("parsing proteins")
+        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
         if verbose: print("parsing association enzrxns")
         enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
 
@@ -292,13 +296,13 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
         if not pgdb_folder.endswith("/"): pgdb_folder += "/"
 
         classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
-        [(pgdb_folder + _file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
+        [os.path.join(pgdb_folder,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
         if enhanced_db:
             metabolic_reactions = pgdb_folder + "metabolic-reactions.xml"
         else:
             metabolic_reactions = None
         if with_genes:
-            genes_file = pgdb_folder + "genes.dat"
+            genes_file = os.path.join(pgdb_folder, "genes.dat")
         else:
             genes_file = None
 
@@ -371,7 +375,9 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
     
         if with_genes:
             if verbose: print("parsing genes")
-            dict_protein_gene_id = genes_parser(genes_file, padmet)
+            genes_parser(genes_file, padmet)
+            if verbose: print("parsing proteins")
+            dict_protein_gene_id = proteins_parser(proteins_file, padmet)
             if verbose: print("parsing association enzrxns")
             enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
     
@@ -800,7 +806,6 @@ def compounds_parser(filePath, padmet):
 def genes_parser(filePath, padmet):
     dict_data = {}
     #k='ACCESSION-1', v ='PRODUCT'
-    dict_protein_gene_id = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
@@ -826,8 +831,6 @@ def genes_parser(filePath, padmet):
         count += 1
         try:
             gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
-            enzyme_id = dict_values["PRODUCT"][0]
-            dict_protein_gene_id[enzyme_id] = gene_id
             gene_node = Node("gene", gene_id)
             padmet.dicOfNode[gene_id] = gene_node
             try:
@@ -866,11 +869,12 @@ def genes_parser(filePath, padmet):
         except KeyError:
             pass
         if verbose: print("%s/%s\t%s/%s" %(count, nb_genes, current_id, gene_id))
-    return dict_protein_gene_id
 
 def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     dict_data = {}
-    dict_id_protein_gene_real = {}
+    dict_protein_component_id = {}
+    dict_component_gene_id = {}
+    dict_protein_gene_id = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
         for line in data:
@@ -883,7 +887,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
                     current_id = value
                     dict_data[current_id] = {}
                 if attrib in ["COMMON-NAME","INCHI-KEY","MOLECULAR-WEIGHT","SMILES",\
-                "TYPES", "SPECIES", "SYNONYMS", "DBLINKS", "GENE", "GO-TERMS"]:
+                "TYPES", "SPECIES", "SYNONYMS", "DBLINKS", "GENE", "GO-TERMS", "COMPONENTS","COMPONENT-OF"]:
                     try:
                         dict_data[current_id][attrib].append(value)
                     except KeyError:
@@ -897,6 +901,16 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     for protein_id, dict_values in dict_data.items():
         count += 1
         if verbose: print("%s/%s\t%s" %(count, nb_proteins, protein_id))
+        try:
+            dict_protein_component_id[protein_id] = dict_values["COMPONENTS"]
+        except KeyError:
+            pass
+        try:
+            dict_component_gene_id[protein_id] = dict_values["GENE"]
+        except KeyError:
+            pass
+
+        """
         protein_node = Node("protein", protein_id)
         padmet.dicOfNode[protein_id] = protein_node
         try:
@@ -959,9 +973,15 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
                     list_of_relation.append(codes_for_rlt)
             except KeyError:
                 pass
-    return dict_id_protein_gene_real
+        """
+    for protein_id, list_of_components in dict_protein_component_id.items():
+        genes_associated = set()
+        [genes_associated.update(dict_component_gene_id[component]) for component in list_of_components]
+        dict_protein_gene_id[protein_id] = genes_associated
 
-def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
+    return dict_protein_gene_id
+
+def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -981,9 +1001,7 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
                         dict_data[current_id][attrib] = [value]
             except ValueError:
                 pass
-    for k,v in list(dict_data.items()):
-        if len(v["ENZYME"]) > 1:
-            print(k)
+
     count = 0
     nb_enzrxns = str(len(list(dict_data.keys())))
     for current_id, dict_values in dict_data.items():
@@ -1001,18 +1019,18 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id = None):
                 [rxn_node.misc["COMMON-NAME"].append(name) for name in names if name not in rxn_node.misc["COMMON-NAME"]]
             except KeyError:
                 rxn_node.misc["COMMON-NAME"] = names
-            if dict_protein_gene_id is not None:
+            try:
+                genes_id = dict_protein_gene_id[protein]
                 try:
-                    gene_id = dict_protein_gene_id[protein]
-                    try:
-                        assignment = dict_values["BASIS-FOR-ASSIGNMENT"][0]
-                        if assignment.startswith(":"): assignment = assignment[1:]
-                    except KeyError:
-                        assignment = "NA"
+                    assignment = dict_values["BASIS-FOR-ASSIGNMENT"][0]
+                    if assignment.startswith(":"): assignment = assignment[1:]
+                except KeyError:
+                    assignment = "NA"
+                for gene_id in genes_id:
                     is_linked_rlt = Relation(rxn_id, "is_linked_to", gene_id, {"SOURCE:ASSIGNMENT":[source+":"+assignment]})
                     list_of_relation.append(is_linked_rlt)
-                except KeyError:
-                    pass
+            except KeyError:
+                pass
         except KeyError:
             pass
 
