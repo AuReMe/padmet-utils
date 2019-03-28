@@ -110,8 +110,6 @@ import padmet.utils.sbmlPlugin as sbmlPlugin
 import libsbml
 import docopt
 
-path = "/home/maite/Forge/docker/comparison_workspace/workdir/algues/annotation_based/PGDBs/Chlamydomonas_Reinhardtii"
-with_genes = True
 
 #1 Parsing .dat
 #2 creating nodes and relations
@@ -725,7 +723,6 @@ def genes_parser(filePath, padmet):
 def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     dict_data = {}
     dict_protein_component_id = {}
-    dict_component_gene_id = {}
     dict_protein_gene_id = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -758,7 +755,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
         except KeyError:
             pass
         try:
-            dict_component_gene_id[protein_id] = dict_values["GENE"]
+            dict_protein_gene_id[protein_id] = dict_values["GENE"]
         except KeyError:
             pass
             
@@ -828,7 +825,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
         """
     for protein_id, list_of_components in dict_protein_component_id.items():
         genes_associated = set()
-        [genes_associated.update(dict_component_gene_id[component]) for component in list_of_components]
+        [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
         dict_protein_gene_id[protein_id] = genes_associated
             
     return dict_protein_gene_id
