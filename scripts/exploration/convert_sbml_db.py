@@ -60,27 +60,27 @@ def main():
         for rxn in listOfReactions:
             db_found['total_rxn'] += 1
             rxn_id_decoded = convert_from_coded_id(rxn.id)[0]
-            print("RXN: original id: %s decoded id:%s" %(rxn.id, rxn_id_decoded))
-            try:
-                db = dict_rxn_id_db[rxn_id_decoded]
-            except KeyError:
-                if rxn_id_decoded[-2] == "_":
-                    new_rxn_id_decoded = rxn_id_decoded[:-2]
-                    print("Try removing '_*' at end of id: %s" % new_rxn_id_decoded)
-                    db = dict_rxn_id_db.get(new_rxn_id_decoded,'Unknown')
-                else:
-                    db = "Unknown"
-            print("\t%s" %db)
+            db = dict_rxn_id_db.get(rxn_id_decoded,'Unknown')
+            print("RXN: original id: %s decoded id:%s db_match:%s" %(rxn.id, rxn_id_decoded, db))
+            if db == 'Unknown':
+                print("\t%s" %db)
+                new_rxn_id_decoded = convert_from_coded_id(rxn.id, compart_in_rxn = True)[0]
+                db = dict_rxn_id_db.get(new_rxn_id_decoded,'Unknown')
+                print("Try removing '_*' at end of id %s, new decoded id: %s, db_match:%s" % (rxn.id, new_rxn_id_decoded, db))
             try:
                 db_found[db] += 1
             except KeyError:
                 db_found[db] = 1
+
         for cpd in listOfSpecies:
             db_found['total_cpd'] += 1
             cpd_id_decoded = convert_from_coded_id(cpd.id)[0]
-            print("CPD: original id: %s decoded id:%s" %(cpd.id, cpd_id_decoded))
-            db = dict_cpd_id_db.get(cpd_id_decoded,'Unknown')
-            print("\t%s" %db)
+            db = dict_cpd_id_db.get(cpd_id_decoded, 'Unknown')
+            print("CPD: original id: %s decoded id:%s db_match:%s" %(cpd.id, cpd_id_decoded, db))
+            if db == 'Unknown':
+                new_cpd_id_decoded = convert_from_coded_id(cpd.id, pattern = "_", species_tag = "S")[0]
+                db = dict_rxn_id_db.get(new_cpd_id_decoded,'Unknown')
+                print("Try old convert system for %s, new decoded id: %s, db_match:%s" %(cpd.id, new_cpd_id_decoded, db))
             try:
                 db_found[db] += 1
             except KeyError:
@@ -97,7 +97,6 @@ def main():
         exit()
     output_dict = args["--output"]
     verbose = args["-v"]
-
 
     if verbose:
         print("nb reactions: %s" %len(listOfReactions))
