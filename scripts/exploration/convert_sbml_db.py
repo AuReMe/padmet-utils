@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen
-    the output is a file with line = reaction_id in origin database, reaction_id in db_out database
-    if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in
-    the output file the mapping of those compounds
+    This tool is use the MetaNetX database to check or convert a sbml. Flat files
+    from MetaNetx are required to run this tool. They can be found in the aureme workflow
+    or from the MetaNetx website.
+    To use the tool set:
+        mnx_folder= the path to a folder containing MetaNetx flat files.
+        the files must be named as 'reac_xref.tsv' and 'chem_xref.tsv'
+        or set manually the different path of the flat files with:
+            mnx_reac= path to the flat file for reactions
+            mnx_chem= path to the flat file for chemical compounds (species)
 
+    To check the database used in a sbml:
+        to check all element of sbml (reaction and species) set:
+            to--map=all
+        to check only reaction of sbml set:
+            to--map=reaction
+        to check only species of sbml set:
+            to--map=species
+
+    To map a sbml and obtain a file of mapping ids to a given database set:
+        to-map: as previously explained
+        db_out: the name of the database target: ['metacyc', 'bigg', 'kegg'] only
+        output: the path to the output file
+        For a given sbml using a specific database.
+        Return a dictionnary of mapping.
+        the output is a file with line = reaction_id/or species in sbml, reaction_id/species in db_out database
+        ex: For a sbml based on kegg database, db_out=metacyc: the output file will contains for ex:
+        R02283 ACETYLORNTRANSAM-RXN
+    
 ::
     
     usage:
@@ -16,6 +39,7 @@ Description:
     
     options:
         -h --help     Show help.
+        --to-map=STR     select the part of the sbml to check or convert, must be in ['all', 'reaction', 'species']
         --mnx_reac=FILE     path to the MetaNetX file for reactions
         --mnx_chem=FILE     path to the MetaNetX file for compounds
         --sbml=FILE     path to the sbml file to convert
@@ -33,30 +57,51 @@ def main():
     args = docopt.docopt(__doc__)
     verbose = args["-v"]
     to_map = args["--to-map"]
-    if args["--mnx_folder"]:
-        mnx_folder = args["--mnx_folder"]
-        mnx_reac_file = os.path.join(mnx_folder, "reac_xref.tsv")
-        mnx_chem_file = os.path.join(mnx_folder, "chem_xref.tsv")
-    else:
-        mnx_reac_file = args["--mnx_reac"]
-        mnx_chem_file = args["--mnx_chem"]
+    mnx_folder = args["--mnx_folder"]
+    mnx_reac_file = args["--mnx_reac"]
+    mnx_chem_file = args["--mnx_chem"]
     sbml_file = args["--sbml"]
 
     if args["--db_out"]:
         db_out = args["--db_out"].upper()
-        output_dict = args["--output"]
-        map_sbml(sbml_file, to_map, db_out, output_dict, verbose, mnx_reac_file, mnx_chem_file)
+        output = args["--output"]
+        map_sbml(sbml_file, to_map, db_out, output, verbose, mnx_reac_file, mnx_chem_file, mnx_folder)
     else:
-        db_select, db_found = check_sbml_db(sbml_file, to_map, verbose, mnx_reac_file, mnx_chem_file)
-        print(db_select, db_found)
+        db_select, db_found = check_sbml_db(sbml_file, to_map, verbose, mnx_reac_file, mnx_chem_file, mnx_folder)
+        print("Best matching database: %s" %db_select)
+        print(db_found)
 
-def check_sbml_db(sbml_file, to_map, verbose = False, mnx_reac_file = None, mnx_chem_file = None):
+
+def check_sbml_db(sbml_file, to_map, verbose = False, mnx_reac_file = None, mnx_chem_file = None, mnx_folder = None):
     """
-    
+    Check sbml database of a given sbml.
+
+    Parameters
+    ----------
+    sbml_file: str
+        path to the sbml file to convert
+    to_map: str
+        select the part of the sbml to check must be in ['all', 'reaction', 'species']
+    verbose: bool
+        if true: more info during process
+    mnx_reac_file: str
+        path to the flat file for reactions (can be None if given mnx_folder)
+    mnx_chem_file: str
+        path to the flat file for chemical compounds (species) (can be None if given mnx_folder)
+    mnx_folder: str
+        the path to a folder containing MetaNetx flat files
+
+    Returns
+    -------
+    tuple:
+        (name of the best matching database, dict of matching)
     """
     if to_map not in ["all", "reaction", "species"]:
         raise ValueError("%s must be in [all, reaction, species]" %to_map)
-
+    if mnx_folder:
+        mnx_reac_file = os.path.join(mnx_folder, "reac_xref.tsv")
+        mnx_chem_file = os.path.join(mnx_folder, "chem_xref.tsv")
+    
     reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
@@ -138,12 +183,41 @@ def check_sbml_db(sbml_file, to_map, verbose = False, mnx_reac_file = None, mnx_
 
     return (db_select, db_found)
 
-def map_sbml(sbml_file, to_map, db_out, output_dict, verbose = False, mnx_reac_file = None, mnx_chem_file = None):
+def map_sbml(sbml_file, to_map, db_out, output, verbose = False, mnx_reac_file = None, mnx_chem_file = None, mnx_folder = None):
     """
+    map a sbml and obtain a file of mapping ids to a given database.
+
+    Parameters
+    ----------
+    sbml_file: str
+        path to the sbml file to convert
+    to_map: str
+        select the part of the sbml to check must be in ['all', 'reaction', 'species']
+    db_out: str
+        the name of the database target: ['metacyc', 'bigg', 'kegg'] only
+    output: str
+        path to the file containing the mapping, sep = "\t"
+    verbose: bool
+        if true: more info during process
+    mnx_reac_file: str
+        path to the flat file for reactions (can be None if given mnx_folder)
+    mnx_chem_file: str
+        path to the flat file for chemical compounds (species) (can be None if given mnx_folder)
+    mnx_folder: str
+        the path to a folder containing MetaNetx flat files
+
+    Returns
+    -------
+    tuple:
+        (name of the best matching database, dict of matching)
+
     """
     map_from_cpd = False
     if to_map not in ["all", "reaction", "species"]:
         raise ValueError("%s must be in [all, reaction, species]" %to_map)
+    if mnx_folder:
+        mnx_reac_file = os.path.join(mnx_folder, "reac_xref.tsv")
+        mnx_chem_file = os.path.join(mnx_folder, "chem_xref.tsv")
 
     reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
@@ -258,7 +332,7 @@ def map_sbml(sbml_file, to_map, db_out, output_dict, verbose = False, mnx_reac_f
             print("Total reactions mapped:%s/%s" %(count_nb_stric_reac_mapped+len(reaction_mapped_with_cpds),len(listOfReactions)))
         print("#######")
 
-    with open(output_dict, 'w') as f:
+    with open(output, 'w') as f:
         for k,v in list(dict_sbml_id_mapped_id.items()):
             f.write(k+"\t"+v+"\n")
 
@@ -314,6 +388,8 @@ def mnx_reader(input_file, db_out):
 
 
 def intern_mapping(id_to_map, db_out, _type):
+    """
+    """
     
     intern_reac_dict = {
     "UNIQ_ID_1":{"METACYC":["RXN-6382"],"KEGG":["R00904"],"UNKNOWN":["APor"]},
