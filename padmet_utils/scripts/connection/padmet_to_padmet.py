@@ -7,13 +7,13 @@ Description:
 ::
     
     usage:
-        padmet_to_padmet.py --init_padmet=FILE --padmetRef=FILE --to_add=FILE [--output=FILE] [-v]
+        padmet_to_padmet.py --init_padmet=FILE --to_add=FILE/DIR [--padmetRef=FILE] [--output=FILE] [-v]
     
     options:
         -h --help     Show help.
         --init_padmet=FILE    path to the padmet file to update.
         --padmetRef=FILE    path to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
-        --to_add=FILE    path to the padmet file to add.
+        --to_add=FILE/DIR    path to the padmet file to add or path to folder of padmet files.
         --output=FILE   path to the new padmet file, if none overwritte init_padmet
         -v   print info
 """

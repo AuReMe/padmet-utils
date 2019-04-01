@@ -140,7 +140,7 @@ def main():
     if path is not None:
 
         classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
-         [os.path.join(path,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
+        [os.path.join(path,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
         if enhanced_db:
             metabolic_reactions = path + "metabolic-reactions.xml"
         else:
@@ -228,6 +228,7 @@ def main():
         if with_genes:
             if verbose: print("parsing genes")
             genes_parser(genes_file, padmet)
+            if verbose: print("parsing proteins")
             dict_protein_gene_id = proteins_parser(proteins_file, padmet)
             if verbose: print("parsing association enzrxns")
             enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
@@ -700,7 +701,7 @@ def pathways_parser(filePath, padmet):
     nb_pathways = str(len(list(dict_data.keys())))
     for pathway_id, dict_values in dict_data.items():
         count += 1
-        #if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
+        if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
         pathway_node = Node("pathway", pathway_id)
         padmet.dicOfNode[pathway_id] = pathway_node
         try:
@@ -769,7 +770,7 @@ def compounds_parser(filePath, padmet):
     nb_cpds = str(len(list(dict_data.keys())))
     for compound_id, dict_values in dict_data.items():
         count += 1
-        #if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
+        if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
         compound_node = Node("compound", compound_id)
         padmet.dicOfNode[compound_id] = compound_node
         try:
@@ -874,7 +875,6 @@ def genes_parser(filePath, padmet):
 def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
     dict_data = {}
     dict_protein_component_id = {}
-    dict_component_gene_id = {}
     dict_protein_gene_id = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -910,7 +910,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
             dict_protein_gene_id[protein_id] = dict_values["GENE"]
         except KeyError:
             pass
-
+            
         """
         protein_node = Node("protein", protein_id)
         padmet.dicOfNode[protein_id] = protein_node
@@ -979,7 +979,7 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
         genes_associated = set()
         [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
         dict_protein_gene_id[protein_id] = genes_associated
-
+            
     return dict_protein_gene_id
 
 def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
@@ -1007,7 +1007,7 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
     nb_enzrxns = str(len(list(dict_data.keys())))
     for current_id, dict_values in dict_data.items():
         count += 1
-        #if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
+        if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
         rxn_id = dict_values["REACTION"][0]
         names = dict_values.get("COMMON-NAME",[])
         for name in names: 
