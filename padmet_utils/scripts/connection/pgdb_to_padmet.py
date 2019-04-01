@@ -291,6 +291,8 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
     with_genes = arg_with_genes
     source = arg_source
     if not source: source = 'genome'
+    if not version: version = "NA"
+    if not db: db = "NA"
 
     if source : source = source.upper()
 
@@ -339,7 +341,9 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
 
 
         if verbose: print("parsing genes")
-        dict_protein_gene_id = genes_parser(genes_file, padmet)
+        genes_parser(genes_file, padmet)
+        if verbose: print("parsing proteins")
+        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
         if verbose: print("parsing association enzrxns")
         enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
 
