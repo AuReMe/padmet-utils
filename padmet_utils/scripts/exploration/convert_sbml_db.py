@@ -1,23 +1,47 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    For a given sbml using a specific database. Return a dictionnary of mapping from this database to a choosen
-    the output is a file with line = reaction_id in origin database, reaction_id in db_out database
-    if a reaction can not be mapped, try to map the compounds and if all the compounds are mapped. Insert in
-    the output file the mapping of those compounds
+    This tool is use the MetaNetX database to check or convert a sbml. Flat files
+    from MetaNetx are required to run this tool. They can be found in the aureme workflow
+    or from the MetaNetx website.
+    To use the tool set:
+        mnx_folder= the path to a folder containing MetaNetx flat files.
+        the files must be named as 'reac_xref.tsv' and 'chem_xref.tsv'
+        or set manually the different path of the flat files with:
+            mnx_reac= path to the flat file for reactions
+            mnx_chem= path to the flat file for chemical compounds (species)
 
+    To check the database used in a sbml:
+        to check all element of sbml (reaction and species) set:
+            to--map=all
+        to check only reaction of sbml set:
+            to--map=reaction
+        to check only species of sbml set:
+            to--map=species
+
+    To map a sbml and obtain a file of mapping ids to a given database set:
+        to-map: as previously explained
+        db_out: the name of the database target: ['metacyc', 'bigg', 'kegg'] only
+        output: the path to the output file
+        For a given sbml using a specific database.
+        Return a dictionnary of mapping.
+        the output is a file with line = reaction_id/or species in sbml, reaction_id/species in db_out database
+        ex: For a sbml based on kegg database, db_out=metacyc: the output file will contains for ex:
+        R02283 ACETYLORNTRANSAM-RXN
+    
 ::
     
     usage:
-        convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE
-        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE
-        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE --output=FILE --db_out=ID [-v]
-        convert_sbml_db.py --mnx_rxn=FILE --mnx_cpd=FILE --sbml=FILE --output=FILE --db_out=ID [-v]
+        convert_sbml_db.py --mnx_reac=FILE --mnx_chem=FILE --sbml=FILE --to-map=STR [-v]
+        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE --to-map=STR [-v]
+        convert_sbml_db.py --mnx_folder=DIR --sbml=FILE --output=FILE --db_out=ID --to-map=STR [-v]
+        convert_sbml_db.py --mnx_reac=FILE --mnx_chem=FILE --sbml=FILE --output=FILE --db_out=ID --to-map=STR [-v]
     
     options:
         -h --help     Show help.
-        --mnx_rxn=FILE     path to the MetaNetX file for reactions
-        --mnx_cpd=FILE     path to the MetaNetX file for compounds
+        --to-map=STR     select the part of the sbml to check or convert, must be in ['all', 'reaction', 'species']
+        --mnx_reac=FILE     path to the MetaNetX file for reactions
+        --mnx_chem=FILE     path to the MetaNetX file for compounds
         --sbml=FILE     path to the sbml file to convert
         --output=FILE     path to the file containing the mapping, sep = "\t"
         --db_out=FILE     id of the output database in ["BIGG","METACYC","KEGG"]
@@ -25,20 +49,59 @@ Description:
 
 """
 import libsbml
-from padmet.utils.sbmlPlugin import convert_from_coded_id
+from padmet.utils.sbmlPlugin import get_all_decoded_version
 import docopt
 import os
 
 def main():
     args = docopt.docopt(__doc__)
-    if args["--mnx_folder"]:
-        mnx_folder = args["--mnx_folder"]
-        mnx_rxn_file = os.path.join(mnx_folder, "reac_xref.tsv")
-        mnx_cpd_file = os.path.join(mnx_folder, "chem_xref.tsv")
-    else:
-        mnx_rxn_file = args["--mnx_rxn"]
-        mnx_cpd_file = args["--mnx_cpd"]
+    verbose = args["-v"]
+    to_map = args["--to-map"]
+    mnx_folder = args["--mnx_folder"]
+    mnx_reac_file = args["--mnx_reac"]
+    mnx_chem_file = args["--mnx_chem"]
     sbml_file = args["--sbml"]
+
+    if args["--db_out"]:
+        db_out = args["--db_out"].upper()
+        output = args["--output"]
+        map_sbml(sbml_file, to_map, db_out, output, verbose, mnx_reac_file, mnx_chem_file, mnx_folder)
+    else:
+        db_select, db_found = check_sbml_db(sbml_file, to_map, verbose, mnx_reac_file, mnx_chem_file, mnx_folder)
+        print("Best matching database: %s" %db_select)
+        print(db_found)
+
+
+def check_sbml_db(sbml_file, to_map, verbose = False, mnx_reac_file = None, mnx_chem_file = None, mnx_folder = None):
+    """
+    Check sbml database of a given sbml.
+
+    Parameters
+    ----------
+    sbml_file: str
+        path to the sbml file to convert
+    to_map: str
+        select the part of the sbml to check must be in ['all', 'reaction', 'species']
+    verbose: bool
+        if true: more info during process
+    mnx_reac_file: str
+        path to the flat file for reactions (can be None if given mnx_folder)
+    mnx_chem_file: str
+        path to the flat file for chemical compounds (species) (can be None if given mnx_folder)
+    mnx_folder: str
+        the path to a folder containing MetaNetx flat files
+
+    Returns
+    -------
+    tuple:
+        (name of the best matching database, dict of matching)
+    """
+    if to_map not in ["all", "reaction", "species"]:
+        raise ValueError("%s must be in [all, reaction, species]" %to_map)
+    if mnx_folder:
+        mnx_reac_file = os.path.join(mnx_folder, "reac_xref.tsv")
+        mnx_chem_file = os.path.join(mnx_folder, "chem_xref.tsv")
+    
     reader = libsbml.SBMLReader()
     document = reader.readSBML(sbml_file)
     for i in range(document.getNumErrors()):
@@ -46,152 +109,250 @@ def main():
     model = document.getModel()
     listOfReactions = model.getListOfReactions()
     listOfSpecies = model.getListOfSpecies()
-    if args["--db_out"]:
-        db_out = args["--db_out"].upper()
-    else:
-        print("Check from which database is this sbml:")
-        with open(mnx_rxn_file, "r") as f:
-            dict_rxn_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
-            if not line.startswith("#") and ":" in line.split("\t")[0]])
-        with open(mnx_cpd_file, "r") as f:
-            dict_cpd_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
-            if not line.startswith("#") and ":" in line.split("\t")[0]])
-        db_found = {'total_rxn':0, "total_cpd":0}
-        for rxn in listOfReactions:
-            db_found['total_rxn'] += 1
-            rxn_id_decoded = convert_from_coded_id(rxn.id)[0]
-            print("RXN: original id: %s decoded id:%s" %(rxn.id, rxn_id_decoded))
-            try:
-                db = dict_rxn_id_db[rxn_id_decoded]
-            except KeyError:
-                if rxn_id_decoded[-2] == "_":
-                    new_rxn_id_decoded = rxn_id_decoded[:-2]
-                    print("Try removing '_*' at end of id: %s" % new_rxn_id_decoded)
-                    db = dict_rxn_id_db.get(new_rxn_id_decoded,'Unknown')
-                else:
-                    db = "Unknown"
-            print("\t%s" %db)
-            try:
-                db_found[db] += 1
-            except KeyError:
-                db_found[db] = 1
-        for cpd in listOfSpecies:
-            db_found['total_cpd'] += 1
-            cpd_id_decoded = convert_from_coded_id(cpd.id)[0]
-            print("CPD: original id: %s decoded id:%s" %(cpd.id, cpd_id_decoded))
-            db = dict_cpd_id_db.get(cpd_id_decoded,'Unknown')
-            print("\t%s" %db)
-            try:
-                db_found[db] += 1
-            except KeyError:
-                db_found[db] = 1
 
+    unknown_db = "Unknown"
+    db_found = {unknown_db: 0}
+    if to_map == "all":
+        db_found["total_reaction_species"] = 0
+    if verbose:
+        print("Check from which database is this sbml:")
+    if to_map in ["all", "reaction"]:
+        db_found['total_reaction'] = 0
+        with open(mnx_reac_file, "r") as f:
+            dict_reaction_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
+            if not line.startswith("#") and ":" in line.split("\t")[0]])
+
+        for reaction in listOfReactions:
+            reaction_id = reaction.id
+            db_found['total_reaction'] += 1
+            if to_map == "all":
+                db_found["total_reaction_species"] += 1
+            all_reaction_id_decoded = get_all_decoded_version(reaction_id, "reaction")
+   
+            for reaction_id_decoded in all_reaction_id_decoded:
+                db_match = dict_reaction_id_db.get(reaction_id_decoded, unknown_db)
+                if db_match != unknown_db:
+                    break
+            if verbose:
+                if db_match != unknown_db:
+                    print("reaction: original id: %s; decoded id:%s; db_match:%s" %(reaction_id, reaction_id_decoded, db_match))
+                else:
+                    print("reaction: original id:%s; all decoded id:%s; no db found" %(reaction_id, all_reaction_id_decoded))
+            try:
+                db_found[db_match] += 1
+            except KeyError:
+                db_found[db_match] = 1
+
+    if to_map in ["all", "species"]:
+        db_found["total_species"] = 0
+        with open(mnx_chem_file, "r") as f:
+            dict_species_id_db = dict([(line.split("\t")[0].split(":")[1], line.split("\t")[0].split(":")[0])  for line in f.read().splitlines()
+            if not line.startswith("#") and ":" in line.split("\t")[0]])
+
+        for species in listOfSpecies:
+            species_id = species.id
+            db_found['total_species'] += 1
+            if to_map == "all":
+                db_found["total_reaction_species"] += 1
+
+            all_species_id_decoded = get_all_decoded_version(species_id, "species")
+    
+            for species_id_decoded in all_species_id_decoded:
+                db_match = dict_species_id_db.get(species_id_decoded, unknown_db)
+                if db_match != unknown_db:
+                    break
+            if verbose:
+                if db_match != unknown_db:
+                    print("species: original id: %s; decoded id:%s; db_match:%s" %(species_id, species_id_decoded, db_match))
+                else:
+                    print("species: original id:%s; all decoded id:%s; no db found" %(species_id, all_species_id_decoded))
+            try:
+                db_found[db_match] += 1
+            except KeyError:
+                db_found[db_match] = 1
+
+    if to_map == "all":
         db_select = [k for k, v in list(db_found.items())
-                     if v == max([j for i,j in list(db_found.items()) if i != 'total_rxn'])][0]
-        output = "Database ref:%s\n%s" %(db_select, db_found)
-        print(output)
-        return
+                     if v == max([j for i,j in list(db_found.items()) if i != 'total_reaction_species'])][0]
+    elif to_map == "reaction":
+        db_select = [k for k, v in list(db_found.items())
+                     if v == max([j for i,j in list(db_found.items()) if i != 'total_reaction'])][0]
+    elif to_map == "species":
+        db_select = [k for k, v in list(db_found.items())
+                     if v == max([j for i,j in list(db_found.items()) if i != 'total_species'])][0]
+
+    return (db_select, db_found)
+
+def map_sbml(sbml_file, to_map, db_out, output, verbose = False, mnx_reac_file = None, mnx_chem_file = None, mnx_folder = None):
+    """
+    map a sbml and obtain a file of mapping ids to a given database.
+
+    Parameters
+    ----------
+    sbml_file: str
+        path to the sbml file to convert
+    to_map: str
+        select the part of the sbml to check must be in ['all', 'reaction', 'species']
+    db_out: str
+        the name of the database target: ['metacyc', 'bigg', 'kegg'] only
+    output: str
+        path to the file containing the mapping, sep = "\t"
+    verbose: bool
+        if true: more info during process
+    mnx_reac_file: str
+        path to the flat file for reactions (can be None if given mnx_folder)
+    mnx_chem_file: str
+        path to the flat file for chemical compounds (species) (can be None if given mnx_folder)
+    mnx_folder: str
+        the path to a folder containing MetaNetx flat files
+
+    Returns
+    -------
+    tuple:
+        (name of the best matching database, dict of matching)
+
+    """
+    map_from_cpd = False
+    if to_map not in ["all", "reaction", "species"]:
+        raise ValueError("%s must be in [all, reaction, species]" %to_map)
+    if mnx_folder:
+        mnx_reac_file = os.path.join(mnx_folder, "reac_xref.tsv")
+        mnx_chem_file = os.path.join(mnx_folder, "chem_xref.tsv")
+
+    reader = libsbml.SBMLReader()
+    document = reader.readSBML(sbml_file)
+    for i in range(document.getNumErrors()):
+        print(document.getError(i).getMessage())
+    model = document.getModel()
+    listOfReactions = model.getListOfReactions()
+    listOfSpecies = model.getListOfSpecies()
                 
     if db_out not in ["BIGG","METACYC","KEGG"]:
         raise ValueError('Please choose a database id in ["BIGG","METACYC","KEGG"]')
-        exit()
-    output_dict = args["--output"]
-    verbose = args["-v"]
 
-
-    if verbose:
-        print("nb reactions: %s" %len(listOfReactions))
-
-    #For reactions: k = MNXid, v = {k=db_id,v=[list of ids]}
-    mnx_rxn_dict = mnx_reader(mnx_rxn_file, db_out)
-
-    #For species: k = MNXid, v = {k=db_id,v=[list of ids]} 
-    mnx_cpd_dict = mnx_reader(mnx_cpd_file, db_out)
 
     #k: orignial id, v = ref id
-    mapped_rxn = {}
-    mapped_cpd = {}
-    rxn_with_more_one_mapping = 0
-    cpd_with_more_one_mapping = 0
-    rxn_mapped_with_cpds = []
-    for sbml_rxn in listOfReactions:
-        rxn_id = sbml_rxn.id
-        uncoded_rxn_id = convert_from_coded_id(rxn_id)[0]
-        
-        #first check in intern dict mapping
-        match_id = intern_mapping(uncoded_rxn_id, db_out, "reaction")
-        
-        #check if in mnx_rxn_dict
-        if match_id:
-            mapped_rxn[rxn_id] = match_id
-        else:
-            for map_dict in list(mnx_rxn_dict.values()):
-                #print(mapp_dict)
-                all_rxn_id = []
-                [all_rxn_id.extend(i) for i in list(map_dict.values())]
-                if uncoded_rxn_id in all_rxn_id:
-                    matchs_rxns = map_dict[db_out]
-                    if len(matchs_rxns) > 1: 
-                        rxn_with_more_one_mapping += 1
+    dict_sbml_id_mapped_id = {}
+    if to_map in ["all", "reaction"]:
+        #For reactions: k = MNXid, v = {k=db_id,v=[list of ids]}
+        mnx_reac_dict = mnx_reader(mnx_reac_file, db_out)
+        reaction_with_more_one_mapping = 0
+        count_nb_stric_reac_mapped = 0
+
+        for reaction in listOfReactions:
+            reaction_id = reaction.id
+            match_ids = None
+            all_reaction_id_decoded = get_all_decoded_version(reaction_id, "reaction")
+            for reaction_id_decoded in all_reaction_id_decoded:
+                if not match_ids:
+                    #first check in intern dict mapping
+                    match_ids = intern_mapping(reaction_id_decoded, db_out, "reaction")
+                    if match_ids:
+                        dict_sbml_id_mapped_id[reaction_id] = match_ids
+                        count_nb_stric_reac_mapped += 1
                         if verbose:
-                            print("More than one mapping for reaction %s:\t%s" %(rxn_id,matchs_rxns))
+                            print("reaction: original id:%s; decoded id:%s; match_with:%s from intern mapping" %(reaction_id, reaction_id_decoded, match_ids))
+                    #check if in mnx_reac_dict
                     else:
-                        mapped_rxn[rxn_id] = matchs_rxns[0]
+                        match_ids = get_from_mnx(mnx_reac_dict, reaction_id_decoded, db_out)
+                        if match_ids:
+                            if len(match_ids) > 1: 
+                                reaction_with_more_one_mapping += 1
+                                if verbose:
+                                    print("reaction: original id:%s; decoded id:%s; More than one mapping:%s" %(reaction_id, reaction_id_decoded, match_ids))
+                            else:
+                                dict_sbml_id_mapped_id[reaction_id] = match_ids[0]
+                                count_nb_stric_reac_mapped += 1
+                                if verbose:
+                                    print("reaction: original id:%s; decoded id:%s; match_with:%s from MNX mapping" %(reaction_id, reaction_id_decoded, match_ids[0]))
+            if verbose and not match_ids:
+                print("reaction: original id:%s; all decoded id:%s; not mapped" %(reaction_id, all_reaction_id_decoded))
+
+    if to_map in ["all", "species"]:
+        #For species: k = MNXid, v = {k=db_id,v=[list of ids]} 
+        mnx_chem_dict = mnx_reader(mnx_chem_file, db_out)
+        species_with_more_one_mapping = 0
+        count_nb_stric_species_mapped = 0
+  
+        for species in listOfSpecies:
+            species_id = species.id
+            match_ids = None
+            all_species_id_decoded = get_all_decoded_version(species_id, "species")
+    
+            for species_id_decoded in all_species_id_decoded:
+                #first check in intern dict mapping
+                match_ids = intern_mapping(species_id_decoded, db_out, "species")
+        
+                if match_ids:
+                    dict_sbml_id_mapped_id[species_id] = match_ids
+                    count_nb_stric_species_mapped += 1
+                    if verbose:
+                        print("species: original id:%s; decoded id:%s; match_with:%s from intern mapping" %(species_id, species_id_decoded, match_ids))
                     break
-    #for all non mapped rxn, check if able to map all speices
-    for sbml_cpd in listOfSpecies:
-        cpd_id = sbml_cpd.id
-        uncoded_cpd_id = convert_from_coded_id(cpd_id)[0]
-
-        match_id = intern_mapping(uncoded_cpd_id, db_out, "compound")
-
-        #check if in mnx_rxn_dict
-        if match_id:
-            mapped_cpd[cpd_id] = match_id
-        else:
-            for map_dict in list(mnx_cpd_dict.values()):
-                #print(mapp_dict)
-                all_cpd_id = []
-                [all_cpd_id.extend(i) for i in list(map_dict.values())]
-                if uncoded_cpd_id in all_cpd_id:
-                    matchs_cpds = map_dict[db_out]
-                    if len(matchs_cpds) > 1:
-                        if db_out == "METACYC" and uncoded_cpd_id.upper() in matchs_cpds:
-                            mapped_cpd[cpd_id] = uncoded_cpd_id.upper()
-                        else: 
-                            cpd_with_more_one_mapping += 1
+                #check if in mnx_chem_dict
+                else:
+                    match_ids = get_from_mnx(mnx_chem_dict, species_id_decoded, db_out)
+                    if match_ids:
+                        if len(match_ids) > 1:
+                            species_with_more_one_mapping += 1
                             if verbose:
-                                print("More than one mapping for compound %s:\t%s" %(cpd_id,matchs_cpds))
-                    else:
-                        mapped_cpd[cpd_id] = matchs_cpds[0]
-                    break
+                                print("species: original id:%s; decoded id:%s; More than one mapping:%s" %(species_id, species_id_decoded, match_ids))
+                        else: 
+                            dict_sbml_id_mapped_id[species_id] = match_ids[0]
+                            count_nb_stric_species_mapped += 1
+                            if verbose:
+                                print("species: original id:%s; decoded id:%s; match_with:%s from MNX mapping" %(species_id, species_id_decoded, match_ids))
+            if verbose and not match_ids:
+                print("species: original id:%s; all decoded id:%s; not mapped" %(species_id, all_species_id_decoded))
 
-    for sbml_rxn in [i for i in listOfReactions if i.id not in list(mapped_rxn.keys())]:
-        all_cpds = set([r.getSpecies() for r in sbml_rxn.getListOfReactants()] + [r.getSpecies() for r in sbml_rxn.getListOfProducts()])
-        match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in list(mapped_cpd.keys())])
+    if map_from_cpd:
+        reaction_mapped_with_cpds = []
 
-        if len(match_cpd_in_rxn) == len(all_cpds):
-            rxn_mapped_with_cpds.append(sbml_rxn.id)
+        #for all non mapped rxn, check if able to map all speices
+        for sbml_rxn in [i for i in listOfReactions if i.id not in list(dict_sbml_id_mapped_id.keys())]:
+            all_cpds = set([r.getSpecies() for r in sbml_rxn.getListOfReactants()] + [r.getSpecies() for r in sbml_rxn.getListOfProducts()])
+            match_cpd_in_rxn = set([cpd_id for cpd_id in all_cpds if cpd_id in list(dict_sbml_id_mapped_id.keys())])
+    
+            if len(match_cpd_in_rxn) == len(all_cpds):
+                reaction_mapped_with_cpds.append(sbml_rxn.id)
+
     if verbose:
         print("#######")
-        print("Mapped reactions: %s/%s" %(len(list(mapped_rxn.keys())),len(listOfReactions)))
-        print("Reactions with more than one mapping: %s" %rxn_with_more_one_mapping)
-        print("Mapped species: %s/%s" %(len(list(mapped_cpd.keys())),len(listOfSpecies)))
-        print("Species with more than one mapping: %s" %cpd_with_more_one_mapping)
-        print("Mapped reactions from species: %s" %(len(rxn_mapped_with_cpds)))
-        for i in rxn_mapped_with_cpds:
-            print("\t%s" %i)
-        print("Total reactions mapped:%s/%s" %(len(list(mapped_rxn.keys()))+len(rxn_mapped_with_cpds),len(listOfReactions)))
+        if to_map in ["all", "reaction"]:
+            print("Mapped reactions: %s/%s" %(count_nb_stric_reac_mapped,len(listOfReactions)))
+            print("Reactions with more than one mapping: %s" %reaction_with_more_one_mapping)
+        if to_map in ["all", "species"]:
+            print("Mapped species: %s/%s" %(count_nb_stric_species_mapped,len(listOfSpecies)))
+            print("Species with more than one mapping: %s" %species_with_more_one_mapping)
+
+        if map_from_cpd:
+            print("Mapped reactions from species: %s" %(len(reaction_mapped_with_cpds)))
+            for i in reaction_mapped_with_cpds:
+                print("\t%s" %i)
+            print("Total reactions mapped:%s/%s" %(count_nb_stric_reac_mapped+len(reaction_mapped_with_cpds),len(listOfReactions)))
         print("#######")
 
-    with open(output_dict, 'w') as f:
-        for k,v in list(mapped_rxn.items()):
+    with open(output, 'w') as f:
+        for k,v in list(dict_sbml_id_mapped_id.items()):
             f.write(k+"\t"+v+"\n")
-        for k,v in list(mapped_cpd.items()):
-            f.write(k+"\t"+v+"\n")
+
+def get_from_mnx(mnx_dict, element_id, db_out):
+    """
+    """
+    match_ids = None
+    for map_dict in list(mnx_dict.values()):
+        #print(map_dict)
+        all_element_id = []
+        [all_element_id.extend(i) for i in list(map_dict.values())]
+        if element_id in all_element_id:
+            match_ids = map_dict[db_out]
+            break
+    return match_ids
     
 
 def mnx_reader(input_file, db_out):
+    """
+    """
     with open(input_file, "r") as f:
         dataInArray = [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#")]
 
@@ -227,8 +388,10 @@ def mnx_reader(input_file, db_out):
 
 
 def intern_mapping(id_to_map, db_out, _type):
+    """
+    """
     
-    intern_rxn_dict = {
+    intern_reac_dict = {
     "UNIQ_ID_1":{"METACYC":["RXN-6382"],"KEGG":["R00904"],"UNKNOWN":["APor"]},
     "UNIQ_ID_2":{"METACYC":["CARNOSINE-SYNTHASE-RXN"],"UNKNOWN":["HAL"]},
     "UNIQ_ID_3":{"METACYC":["ALANINE-AMINOTRANSFERASE-RXN"],"KEGG":["R00258"]},
@@ -243,7 +406,7 @@ def intern_mapping(id_to_map, db_out, _type):
     "UNIQ_ID_12":{"METACYC":["CARBODEHYDRAT-RXN"],"BIGG":["HCO3E","HCO3Em","HCO3Ehi"]}
     }
     
-    intern_cpd_dict = {
+    intern_chem_dict = {
     "UNIQ_ID_1":{"METACYC":["WATER"],"KEGG":["C00001"],"BIGG":["h2o"],"UNKNOWN":["H2O"]},
     "UNIQ_ID_2":{"METACYC":["2-KETOGLUTARATE"],"BIGG":["akg"],"KEGG":["C00026"]},
     "UNIQ_ID_3":{"METACYC":["Pi"],"BIGG":["pi"],"KEGG":["C00009"]},
@@ -287,17 +450,17 @@ def intern_mapping(id_to_map, db_out, _type):
 
 
     if _type == "reaction":
-        for mapp_dict in list(intern_rxn_dict.values()):
-            all_rxn_id = []
-            [all_rxn_id.extend(i) for i in list(mapp_dict.values())]
-            if id_to_map in all_rxn_id:
+        for mapp_dict in list(intern_reac_dict.values()):
+            all_reaction_id = []
+            [all_reaction_id.extend(i) for i in list(mapp_dict.values())]
+            if id_to_map in all_reaction_id:
                 return mapp_dict.get(db_out, [None])[0]
 
-    elif _type == "compound":
-        for mapp_dict in list(intern_cpd_dict.values()):
-            all_cpd_id = []
-            [all_cpd_id.extend(i) for i in list(mapp_dict.values())]
-            if id_to_map in all_cpd_id:
+    elif _type == "species":
+        for mapp_dict in list(intern_chem_dict.values()):
+            all_species_id = []
+            [all_species_id.extend(i) for i in list(mapp_dict.values())]
+            if id_to_map in all_species_id:
                 return mapp_dict.get(db_out, [None])[0]
 
     return None
