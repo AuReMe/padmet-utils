@@ -77,238 +77,73 @@ Description:
 ::
 
     usage:
-        pgdb_to_padmet.py --output=FILE --directory=DIR [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [-g] [-m]
-        pgdb_to_padmet.py --version=V --db=ID --output=FILE --classes_file=FILE --compounds_file=FILE --proteins_file=FILE --reactions_file=FILE --enzrxns_file=FILE --pathways_file=FILE [--genes_file=FILE] [--metabolic_reactions=FILE] [--source=STR] [-v]
+        pgdb_to_padmet.py --pgdb=DIR --output=FILE [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [--enhance]
+        pgdb_to_padmet.py --pgdb=DIR --output=FILE --extract-gene [--no-orphan]  [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [--enhance]
     
     options:
         -h --help     Show help.
         --version=V    Xcyc version
         --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...)
         --output=FILE    padmet file corresponding to the DB
-        --directory=DIR    directory containg all the .dat files of metacyc (data)
+        --pgdb=DIR    directory containg all the .dat files of metacyc (data)
         --padmetRef=FILE    padmet of reference
-        --classes_file=FILE   
-        --compounds_file=FILE   
-        --proteins_file=FILE 
-        --reactions_file=FILE 
-        --enzrxns_file=FILE 
-        --pathways_file=FILE
-        --genes_file=FILE
-        --metabolic_reactions=FILE
         --source=STR    Tag associated to the source of the reactions, used to ensure traceability
-        -m    use the metabolic-reactions.xml file to enhance the database
-        -g    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
+        --enhance    use the metabolic-reactions.xml file to enhance the database
+        --extract-gene    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
+        --no-orhpan    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
         -v   print info
 
 """
 import re
 import os
 from datetime import datetime
-from time import time
 from padmet.classes import PadmetRef, PadmetSpec, Node, Relation
 import padmet.utils.sbmlPlugin as sbmlPlugin
 import libsbml
 import docopt
 
-
 #1 Parsing .dat
 #2 creating nodes and relations
 def main():
-    chronoDepart = time()
-
-    global regex_purge, regex_xref, list_of_relation, verbose, def_compart_in, def_compart_out, with_genes, source
-    regex_purge = re.compile("<.*?>|\|")
-    regex_xref = re.compile('^\((?P<DB>\S*)\s*"(?P<ID>\S*)"')
-    list_of_relation = []
-    def_compart_in = "c"
-    def_compart_out = "e"
     #parsing args
     args = docopt.docopt(__doc__)
     version = args["--version"]
-    if not version: version = "NA"
+    if not version: version = 'NA'
     db = args["--db"]
-    if not db: db = "NA"
-    output = args["--output"]
-    path = args["--directory"]
-    enhanced_db = args["-m"]
-    with_genes = args["-g"]
+    if not db: db = 'NA'
     source = args["--source"]
-    if not source: source = 'genome'
+    if not source: source = 'GENOME'
+    output = args["--output"]
+    pgdb_folder = args["--pgdb"]
+    enhanced_db = args["--enhance"]
+    extract_gene = args["--extract-gene"]
+    no_orphan = args["--no-orphan"]
     padmetRef_file = args["--padmetRef"]
-    if source : source = source.upper()
-    
-    if path is not None:
-
-        classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
-        [os.path.join(path,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
-        if enhanced_db:
-            metabolic_reactions = path + "metabolic-reactions.xml"
-        else:
-            metabolic_reactions = None
-        if with_genes:
-            genes_file = os.path.join(path,"genes.dat")
-        else:
-            genes_file = None
-
-    else:
-        classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file, genes_file, metabolic_reactions = \
-        args["--classes_file"], args["--compounds_file"], args["--proteins_file"], args["--reactions_file"], args["--enzrxns_file"], args["--pathways_file"], args["--genes_file"], args["--metabolic_reactions"]
     verbose = args["-v"]
-    now = datetime.now()
-    today_date = now.strftime("%Y-%m-%d")
-    if padmetRef_file:
-        padmet = PadmetSpec()
-        padmetRef = PadmetRef(padmetRef_file)
-        version = padmetRef.info["DB_info"]["version"]
-        db = padmetRef.info["DB_info"]["DB"]
-        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
-        padmet.setInfo(dbNotes)
-        padmet.setPolicy(padmetRef)
-        with open(reactions_file, 'rU') as f:
-            rxns_id = [line.split(" - ")[1] for line in f.read().splitlines() if line.startswith("UNIQUE-ID")]
-        count = 0
-        for rxn_id in rxns_id:
-            count += 1
-            if verbose: print("%s/%s Copy %s" %(count, len(rxns_id), rxn_id))
-            try:
-                padmet.copyNode(padmetRef, rxn_id)
-                reconstructionData_id = rxn_id+"_reconstructionData_"+source
-                if reconstructionData_id in list(padmet.dicOfNode.keys()) and verbose:
-                    print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
-                reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
-                reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
-                padmet.dicOfNode[reconstructionData_id] = Node("reconstructionData", reconstructionData_id, reconstructionData)
-                padmet._addRelation(reconstructionData_rlt)
-
-            except TypeError:
-                if verbose: print("%s not in padmetRef" %(rxn_id))
-
-
-        if verbose: print("parsing genes")
-        genes_parser(genes_file, padmet)
-        if verbose: print("parsing proteins")
-        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
-        if verbose: print("parsing association enzrxns")
-        enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
-
-    else:
-        #print(verbose,today_date,version, output, classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file)
-        #return    
-        POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
-                        ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
-                        ['gene','is_a_class','class'], ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
-                        ['pathway','is_a_class','class'], ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'], 
-                        ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
-                        ['protein','is_in_species','class'], 
-                        ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],  
-                        ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                        ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                        ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
-                        ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
-        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
-        padmet = PadmetRef()
-        if verbose: print("setting policy")
-        padmet.setPolicy(POLICY_IN_ARRAY)
-        if verbose: print("setting dbInfo")
-        padmet.setInfo(dbNotes)
-    
-    
-        if verbose: print("parsing classes")
-        classes_parser(classes_file, padmet)
-    
-        if verbose: print("parsing compounds")
-        compounds_parser(compounds_file, padmet)
-    
-        if verbose: print("parsing reactions")
-        reactions_parser(reactions_file, padmet)
-    
-        if verbose: print("parsing pathways")
-        pathways_parser(pathways_file, padmet)
-    
-        if with_genes:
-            if verbose: print("parsing genes")
-            genes_parser(genes_file, padmet)
-            if verbose: print("parsing proteins")
-            dict_protein_gene_id = proteins_parser(proteins_file, padmet)
-            if verbose: print("parsing association enzrxns")
-            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
-    
-        if metabolic_reactions is not None:
-            if verbose: print("enhancing db from metabolic-reactions.xml")
-            enhance_db(metabolic_reactions, padmet, with_genes)
-    
-    for rlt in list_of_relation:
-        try:
-            padmet.dicOfRelationIn[rlt.id_in].append(rlt)
-        except KeyError:
-            padmet.dicOfRelationIn[rlt.id_in] = [rlt]
-        try:
-            padmet.dicOfRelationOut[rlt.id_out].append(rlt)
-        except KeyError:
-            padmet.dicOfRelationOut[rlt.id_out] = [rlt]
-
-    if with_genes:
-        #temp, removing or not reactions without gene assoc:
-        all_reactions = [node for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
-        rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
-        #[padmet.delNode(node.id) for node in rxn_to_del]
-        for rxn in rxn_to_del:
-            padmet.delNode(rxn.id)
-        if verbose: print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
-        all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
-        all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
-        count = 0
-        for gene_id in [g for g in all_genes if g not in all_genes_linked]:
-            count += 1
-            #if verbose: print("Removing gene without gene assoc %s" %gene_id)
-            padmet.dicOfNode.pop(gene_id)
-        if verbose: print("%s/%s genes not linked to any reactions deleted" %(count, len(all_genes)))
-    else:
-        rxns = [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
-        for rxn_id in rxns:
-            cp_rlts = set([rlt.type for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]])
-            if len(cp_rlts) == 1:
-                padmet.delNode(rxn_id)
-
+    print(args)
+    padmet = from_pgdb_to_padmet(pgdb_folder, db , version, source, extract_gene, no_orphan, enhanced_db, padmetRef_file, verbose)
     padmet.generateFile(output)
 
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: ", chrono, "s !")
-
-def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, arg_source, enhanced_db, padmetRef_file):
-    chronoDepart = time()
-
-    global regex_purge, regex_xref, list_of_relation, verbose, def_compart_in, def_compart_out, with_genes, source
+def from_pgdb_to_padmet(pgdb_folder, db = 'NA', version = 'NA', source = 'GENOME', extract_gene = False, no_orphan = False, enhanced_db = False, padmetRef_file = None, verbose = False):
+    global regex_purge, regex_xref, list_of_relation, def_compart_in, def_compart_out
     regex_purge = re.compile("<.*?>|\|")
     regex_xref = re.compile('^\((?P<DB>\S*)\s*"(?P<ID>\S*)"')
     list_of_relation = []
     def_compart_in = "c"
     def_compart_out = "e"
     #parsing args
-    verbose = arg_verbose
-    with_genes = arg_with_genes
-    source = arg_source
-    if not source: source = 'genome'
-    if not version: version = "NA"
-    if not db: db = "NA"
-
-    if source : source = source.upper()
-
-    if pgdb_folder is not None:
-        if not pgdb_folder.endswith("/"): pgdb_folder += "/"
-
-        classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
-        [os.path.join(pgdb_folder,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
-        if enhanced_db:
-            metabolic_reactions = pgdb_folder + "metabolic-reactions.xml"
-        else:
-            metabolic_reactions = None
-        if with_genes:
-            genes_file = os.path.join(pgdb_folder, "genes.dat")
-        else:
-            genes_file = None
+    source = source.upper()
+    
+    classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
+    [os.path.join(pgdb_folder,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
+    if enhanced_db:
+        metabolic_reactions = os.path.join(pgdb_folder,"metabolic-reactions.xml")
+    else:
+        metabolic_reactions = None
+    if extract_gene:
+        genes_file = os.path.join(pgdb_folder,"genes.dat")
+    else:
+        genes_file = None
 
     now = datetime.now()
     today_date = now.strftime("%Y-%m-%d")
@@ -319,6 +154,7 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
         db = padmetRef.info["DB_info"]["DB"]
         dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
         padmet.setInfo(dbNotes)
+
         padmet.setPolicy(padmetRef)
         with open(reactions_file, 'rU') as f:
             rxns_id = [line.split(" - ")[1] for line in f.read().splitlines() if line.startswith("UNIQUE-ID")]
@@ -339,13 +175,13 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
             except TypeError:
                 if verbose: print("%s not in padmetRef" %(rxn_id))
 
-
-        if verbose: print("parsing genes")
-        genes_parser(genes_file, padmet)
-        if verbose: print("parsing proteins")
-        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
-        if verbose: print("parsing association enzrxns")
-        enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
+        if extract_gene:
+            if verbose: print("parsing genes")
+            genes_parser(genes_file, padmet, verbose)
+            if verbose: print("parsing proteins")
+            dict_protein_gene_id = proteins_parser(proteins_file, padmet, verbose)
+            if verbose: print("parsing association enzrxns")
+            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id, source, verbose)
 
     else:
         POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
@@ -368,28 +204,28 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
     
     
         if verbose: print("parsing classes")
-        classes_parser(classes_file, padmet)
+        classes_parser(classes_file, padmet, verbose)
     
         if verbose: print("parsing compounds")
-        compounds_parser(compounds_file, padmet)
+        compounds_parser(compounds_file, padmet, verbose)
     
         if verbose: print("parsing reactions")
-        reactions_parser(reactions_file, padmet)
+        reactions_parser(reactions_file, padmet, extract_gene, source, verbose)
     
         if verbose: print("parsing pathways")
-        pathways_parser(pathways_file, padmet)
+        pathways_parser(pathways_file, padmet, verbose)
     
-        if with_genes:
+        if extract_gene:
             if verbose: print("parsing genes")
-            genes_parser(genes_file, padmet)
+            genes_parser(genes_file, padmet, verbose)
             if verbose: print("parsing proteins")
-            dict_protein_gene_id = proteins_parser(proteins_file, padmet)
+            dict_protein_gene_id = proteins_parser(proteins_file, padmet, verbose)
             if verbose: print("parsing association enzrxns")
-            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
+            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id, source, verbose)
     
         if metabolic_reactions is not None:
             if verbose: print("enhancing db from metabolic-reactions.xml")
-            enhance_db(metabolic_reactions, padmet, with_genes)
+            enhance_db(metabolic_reactions, padmet, extract_gene, verbose)
     
     for rlt in list_of_relation:
         try:
@@ -401,14 +237,13 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
         except KeyError:
             padmet.dicOfRelationOut[rlt.id_out] = [rlt]
 
-    if with_genes:
-        #temp, removing or not reactions without gene assoc:
+    if extract_gene and no_orphan:
         all_reactions = [node for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
         rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
-        #[padmet.delNode(node.id) for node in rxn_to_del]
         for rxn in rxn_to_del:
             padmet.delNode(rxn.id)
-        if verbose: print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
+        if verbose:
+            print("%s/%s orphan reactions (without gene association) deleted" %(len(rxn_to_del), len(all_reactions)))
         all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
         all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
         count = 0
@@ -416,22 +251,19 @@ def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, a
             count += 1
             #if verbose: print("Removing gene without gene assoc %s" %gene_id)
             padmet.dicOfNode.pop(gene_id)
-        if verbose: print("%s/%s genes not linked to any reactions deleted" %(count, len(all_genes)))
-    else:
-        rxns = [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
-        for rxn_id in rxns:
-            cp_rlts = set([rlt.type for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]])
-            if len(cp_rlts) == 1:
-                padmet.delNode(rxn_id)
+        if verbose:
+            print("%s/%s orphan genes (not linked to any reactions) deleted" %(count, len(all_genes)))
 
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: ", chrono, "s !")
+    rxns = [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
+    for rxn_id in rxns:
+        cp_rlts = set([rlt.type for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]])
+        if len(cp_rlts) == 1:
+            print("rxn only consume or produce, transport ???: %s" %rxn_id)
+            padmet.delNode(rxn_id)
 
     return padmet
 
-def classes_parser(filePath, padmet):
+def classes_parser(filePath, padmet, verbose = False):
     """
     from class.dat: get for each class, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS
     Create a class node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}
@@ -474,7 +306,9 @@ def classes_parser(filePath, padmet):
     nb_classes = str(len(list(dict_data.keys())))
     for class_id, dict_values in dict_data.items():
         count += 1
-        #if verbose: print("%s/%s\t%s" %(count, nb_classes, class_id))
+        if verbose:
+            print("\r%s/%s" %(count, nb_classes), end="", flush=True)
+            #print(class_id)
         class_node = Node("class", class_id)
         padmet.dicOfNode[class_id] = class_node
         try:
@@ -496,9 +330,10 @@ def classes_parser(filePath, padmet):
             _setXrefs(xrefs, class_id, padmet)
         except KeyError:
             pass
+    if verbose: print("")
 
 
-def reactions_parser(filePath, padmet):
+def reactions_parser(filePath, padmet, extract_gene, source, verbose = False):
     """
     from reaction.dat: get for each reaction, the UNIQUE-ID, COMMON-NAME, TYPES, SYNONYMS, DBLINKS
     Create a reaction node with node.id = UNIQUE-ID,  node.misc = {COMMON-NAME:[COMMON-NAMES]}
@@ -578,7 +413,9 @@ def reactions_parser(filePath, padmet):
     for rxn_id, dict_values in dict_data.items():
         if "LEFT" in list(dict_values.keys()) or "RIGHT" in list(dict_values.keys()):
             count += 1
-            if verbose: print("%s/%s\t%s" %(count, nb_rxn, rxn_id))
+            if verbose:
+                print("\r%s/%s" %(count, nb_rxn), end="", flush=True)
+                #print(rxn_id)
             rxn_node = Node("reaction", rxn_id)
             padmet.dicOfNode[rxn_id] = rxn_node
             try:
@@ -624,7 +461,7 @@ def reactions_parser(filePath, padmet):
                 _setXrefs(xrefs, rxn_id, padmet)
             except KeyError:
                 pass
-            if with_genes:
+            if extract_gene:
                 reconstructionData_id = rxn_id+"_reconstructionData_"+source
                 if reconstructionData_id in list(padmet.dicOfNode.keys()) and verbose:
                     print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
@@ -678,8 +515,9 @@ def reactions_parser(filePath, padmet):
                 pass
             if rxn_node.misc["DIRECTION"][0] == "RIGHT-TO-LEFT":
                 rxn_node.misc["DIRECTION"] = ["LEFT-TO-RIGHT"]
+    if verbose: print("")
 
-def pathways_parser(filePath, padmet):
+def pathways_parser(filePath, padmet, verbose = False):
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -705,7 +543,9 @@ def pathways_parser(filePath, padmet):
     nb_pathways = str(len(list(dict_data.keys())))
     for pathway_id, dict_values in dict_data.items():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_pathways, pathway_id))
+        if verbose:
+            print("\r%s/%s" %(count, nb_pathways), end="", flush=True)
+            #print(pathway_id)
         pathway_node = Node("pathway", pathway_id)
         padmet.dicOfNode[pathway_id] = pathway_node
         try:
@@ -747,8 +587,9 @@ def pathways_parser(filePath, padmet):
                 list_of_relation.append(is_in_pathway_rlt)
         except KeyError:
             pass
+    if verbose: print("")
 
-def compounds_parser(filePath, padmet):
+def compounds_parser(filePath, padmet, verbose = False):
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -774,7 +615,9 @@ def compounds_parser(filePath, padmet):
     nb_cpds = str(len(list(dict_data.keys())))
     for compound_id, dict_values in dict_data.items():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_cpds, compound_id))
+        if verbose:
+            print("\r%s/%s" %(count, nb_cpds),end="", flush=True)
+            #print(compound_id)
         compound_node = Node("compound", compound_id)
         padmet.dicOfNode[compound_id] = compound_node
         try:
@@ -808,8 +651,10 @@ def compounds_parser(filePath, padmet):
             _setXrefs(xrefs, compound_id, padmet)
         except KeyError:
             pass
+    if verbose: print("")
+    
 
-def genes_parser(filePath, padmet):
+def genes_parser(filePath, padmet, verbose = False):
     dict_data = {}
     #k='ACCESSION-1', v ='PRODUCT'
     with open(filePath, 'r', encoding='windows-1252') as f:
@@ -834,9 +679,12 @@ def genes_parser(filePath, padmet):
     count = 0
     nb_genes = str(len(list(dict_data.keys())))
     for current_id, dict_values in dict_data.items():
-        count += 1
         try:
             gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
+            count += 1
+            if verbose: 
+                print("\r%s/%s" %(count, nb_genes), end="", flush=True)
+                #print(current_id, gene_id)
             gene_node = Node("gene", gene_id)
             padmet.dicOfNode[gene_id] = gene_node
             try:
@@ -874,9 +722,9 @@ def genes_parser(filePath, padmet):
                 pass
         except KeyError:
             pass
-        if verbose: print("%s/%s\t%s/%s" %(count, nb_genes, current_id, gene_id))
+    if verbose: print("")
 
-def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
+def proteins_parser(filePath, padmet, verbose = False):
     dict_data = {}
     dict_protein_component_id = {}
     dict_protein_gene_id = {}
@@ -900,12 +748,13 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
             except ValueError:
                 pass
             
-
     count = 0
     nb_proteins = str(len(list(dict_data.keys())))
     for protein_id, dict_values in dict_data.items():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_proteins, protein_id))
+        if verbose:
+            print("\r%s/%s" %(count, nb_proteins), end="", flush=True)
+            #print(protein_id)
         try:
             dict_protein_component_id[protein_id] = dict_values["COMPONENTS"]
         except KeyError:
@@ -915,78 +764,15 @@ def proteins_parser(filePath, padmet, dict_gene_unique_id_real_id = None):
         except KeyError:
             pass
             
-        """
-        protein_node = Node("protein", protein_id)
-        padmet.dicOfNode[protein_id] = protein_node
-        try:
-            protein_node.misc["COMMON-NAME"] = dict_values["COMMON-NAME"]
-        except KeyError:
-            pass
-        try:
-            protein_node.misc["INCHI-KEY"] = dict_values["INCHI-KEY"]
-        except KeyError:
-            pass
-        try:
-            protein_node.misc["MOLECULAR-WEIGHT"] = dict_values["MOLECULAR-WEIGHT"]
-        except KeyError:
-            pass
-        try:
-            protein_node.misc["SMILES"] = dict_values["SMILES"]
-        except KeyError:
-            pass
-        try:
-            types = dict_values["TYPES"]
-            _setType(types, protein_id, padmet)
-        except KeyError:
-            pass
-        try:
-            species = dict_values["SPECIES"]
-            _setType(species, protein_id, padmet)
-        except KeyError:
-            pass
-        try:
-            syns = dict_values["SYNONYMS"]
-            _setSyns(syns, protein_id, padmet)
-        except KeyError:
-            pass
-        try:
-            xrefs = dict_values["DBLINKS"]
-            _setXrefs(xrefs, protein_id, padmet)
-        except KeyError:
-            pass
-        try:
-            xrefs = dict_values["GO-TERMS"]
-            _setXrefs(xrefs, protein_id, padmet)
-        except KeyError:
-            pass
-        if dict_gene_unique_id_real_id is not None:
-            try:
-                genes = dict_values["GENE"]
-                for gene in genes:
-                    try:
-                        gene_id = dict_gene_unique_id_real_id[gene]
-                    except KeyError:
-                        gene_id = gene
-                        gene_node = Node("gene", gene_id)                        
-                        padmet.dicOfNode[gene_id] = gene_node
-                    try:
-                        dict_id_protein_gene_real[protein_id].append(gene_id)
-                    except KeyError:
-                        dict_id_protein_gene_real[protein_id] = [gene_id]
-    
-                    codes_for_rlt = Relation(gene_id, "codes_for", protein_id)
-                    list_of_relation.append(codes_for_rlt)
-            except KeyError:
-                pass
-        """
     for protein_id, list_of_components in dict_protein_component_id.items():
         genes_associated = set()
         [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
         dict_protein_gene_id[protein_id] = genes_associated
-            
+    if verbose: print("")
+           
     return dict_protein_gene_id
 
-def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
+def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = False):
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -1011,7 +797,9 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
     nb_enzrxns = str(len(list(dict_data.keys())))
     for current_id, dict_values in dict_data.items():
         count += 1
-        if verbose: print("%s/%s\t%s" %(count, nb_enzrxns, current_id))
+        if verbose:
+            print("\r%s/%s" %(count, nb_enzrxns), end="", flush=True)
+            #print(current_id)
         rxn_id = dict_values["REACTION"][0]
         names = dict_values.get("COMMON-NAME",[])
         for name in names: 
@@ -1038,6 +826,7 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id):
                 pass
         except KeyError:
             pass
+    if verbose: print("")
 
 
 def _setType(types, current_id, padmet):
@@ -1097,7 +886,7 @@ def _setXrefs(xrefs, current_id, padmet):
         else:
             xref_node.misc[db] = [_id]
 
-def enhance_db(metabolic_reactions, padmet, with_genes=False):
+def enhance_db(metabolic_reactions, padmet, with_genes, verbose = False):
     print("loading sbml file: %s" %metabolic_reactions)
     reader = libsbml.SBMLReader()
     document = reader.readSBML(metabolic_reactions)
