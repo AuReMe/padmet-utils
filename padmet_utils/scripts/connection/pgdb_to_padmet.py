@@ -120,7 +120,6 @@ def main():
     no_orphan = args["--no-orphan"]
     padmetRef_file = args["--padmetRef"]
     verbose = args["-v"]
-    print(args)
     padmet = from_pgdb_to_padmet(pgdb_folder, db , version, source, extract_gene, no_orphan, enhanced_db, padmetRef_file, verbose)
     padmet.generateFile(output)
 
