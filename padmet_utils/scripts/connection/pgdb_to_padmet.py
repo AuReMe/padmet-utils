@@ -185,7 +185,9 @@ def main():
 
 
         if verbose: print("parsing genes")
-        dict_protein_gene_id = genes_parser(genes_file, padmet)
+        genes_parser(genes_file, padmet)
+        if verbose: print("parsing proteins")
+        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
         if verbose: print("parsing association enzrxns")
         enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
 
@@ -274,6 +276,160 @@ def main():
     partie_entiere, partie_decimale = str(chrono).split('.')
     chrono = ".".join([partie_entiere, partie_decimale[:3]])
     if verbose: print("done in: ", chrono, "s !")
+
+def from_pgdb_to_padmet(pgdb_folder, db, version, arg_verbose, arg_with_genes, arg_source, enhanced_db, padmetRef_file):
+    chronoDepart = time()
+
+    global regex_purge, regex_xref, list_of_relation, verbose, def_compart_in, def_compart_out, with_genes, source
+    regex_purge = re.compile("<.*?>|\|")
+    regex_xref = re.compile('^\((?P<DB>\S*)\s*"(?P<ID>\S*)"')
+    list_of_relation = []
+    def_compart_in = "c"
+    def_compart_out = "e"
+    #parsing args
+    verbose = arg_verbose
+    with_genes = arg_with_genes
+    source = arg_source
+    if not source: source = 'genome'
+    if not version: version = "NA"
+    if not db: db = "NA"
+
+    if source : source = source.upper()
+
+    if pgdb_folder is not None:
+        if not pgdb_folder.endswith("/"): pgdb_folder += "/"
+
+        classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file = \
+        [os.path.join(pgdb_folder,_file) for _file in ["classes.dat", "compounds.dat", "proteins.dat", "reactions.dat", "enzrxns.dat", "pathways.dat"]]
+        if enhanced_db:
+            metabolic_reactions = pgdb_folder + "metabolic-reactions.xml"
+        else:
+            metabolic_reactions = None
+        if with_genes:
+            genes_file = os.path.join(pgdb_folder, "genes.dat")
+        else:
+            genes_file = None
+
+    now = datetime.now()
+    today_date = now.strftime("%Y-%m-%d")
+    if padmetRef_file:
+        padmet = PadmetSpec()
+        padmetRef = PadmetRef(padmetRef_file)
+        version = padmetRef.info["DB_info"]["version"]
+        db = padmetRef.info["DB_info"]["DB"]
+        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
+        padmet.setInfo(dbNotes)
+        padmet.setPolicy(padmetRef)
+        with open(reactions_file, 'rU') as f:
+            rxns_id = [line.split(" - ")[1] for line in f.read().splitlines() if line.startswith("UNIQUE-ID")]
+        count = 0
+        for rxn_id in rxns_id:
+            count += 1
+            if verbose: print("%s/%s Copy %s" %(count, len(rxns_id), rxn_id))
+            try:
+                padmet.copyNode(padmetRef, rxn_id)
+                reconstructionData_id = rxn_id+"_reconstructionData_"+source
+                if reconstructionData_id in list(padmet.dicOfNode.keys()) and verbose:
+                    print("Warning: The reaction %s seems to be already added from the same source %s" %(rxn_id, source))
+                reconstructionData = {"SOURCE":[source],"TOOL":["PATHWAYTOOLS"],"CATEGORY":["ANNOTATION"]}
+                reconstructionData_rlt = Relation(rxn_id,"has_reconstructionData",reconstructionData_id)
+                padmet.dicOfNode[reconstructionData_id] = Node("reconstructionData", reconstructionData_id, reconstructionData)
+                padmet._addRelation(reconstructionData_rlt)
+
+            except TypeError:
+                if verbose: print("%s not in padmetRef" %(rxn_id))
+
+
+        if verbose: print("parsing genes")
+        genes_parser(genes_file, padmet)
+        if verbose: print("parsing proteins")
+        dict_protein_gene_id = proteins_parser(proteins_file, padmet)
+        if verbose: print("parsing association enzrxns")
+        enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
+
+    else:
+        POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
+                        ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
+                        ['gene','is_a_class','class'], ['gene','has_name','name'], ['gene','has_xref','xref'], ['gene','has_suppData','suppData'], ['gene','codes_for','protein'],
+                        ['pathway','is_a_class','class'], ['pathway','has_name','name'], ['pathway','has_xref','xref'], ['pathway','is_in_pathway','pathway'],
+                        ['protein','is_a_class','class'], ['protein','has_name','name'], ['protein','has_xref','xref'], ['protein','has_suppData','suppData'], ['protein','catalyses','reaction'],
+                        ['protein','is_in_species','class'],
+                        ['reaction','is_a_class','class'], ['reaction','has_name','name'], ['reaction','has_xref','xref'], ['reaction','has_suppData','suppData'], ['reaction','has_reconstructionData','reconstructionData'], ['reaction','is_in_pathway','pathway'],
+                        ['reaction','consumes','class','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','class','STOICHIOMETRY','X','COMPARTMENT','Y'],
+                        ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'],
+                        ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'],
+                        ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
+        dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
+        padmet = PadmetRef()
+        if verbose: print("setting policy")
+        padmet.setPolicy(POLICY_IN_ARRAY)
+        if verbose: print("setting dbInfo")
+        padmet.setInfo(dbNotes)
+    
+    
+        if verbose: print("parsing classes")
+        classes_parser(classes_file, padmet)
+    
+        if verbose: print("parsing compounds")
+        compounds_parser(compounds_file, padmet)
+    
+        if verbose: print("parsing reactions")
+        reactions_parser(reactions_file, padmet)
+    
+        if verbose: print("parsing pathways")
+        pathways_parser(pathways_file, padmet)
+    
+        if with_genes:
+            if verbose: print("parsing genes")
+            genes_parser(genes_file, padmet)
+            if verbose: print("parsing proteins")
+            dict_protein_gene_id = proteins_parser(proteins_file, padmet)
+            if verbose: print("parsing association enzrxns")
+            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id)
+    
+        if metabolic_reactions is not None:
+            if verbose: print("enhancing db from metabolic-reactions.xml")
+            enhance_db(metabolic_reactions, padmet, with_genes)
+    
+    for rlt in list_of_relation:
+        try:
+            padmet.dicOfRelationIn[rlt.id_in].append(rlt)
+        except KeyError:
+            padmet.dicOfRelationIn[rlt.id_in] = [rlt]
+        try:
+            padmet.dicOfRelationOut[rlt.id_out].append(rlt)
+        except KeyError:
+            padmet.dicOfRelationOut[rlt.id_out] = [rlt]
+
+    if with_genes:
+        #temp, removing or not reactions without gene assoc:
+        all_reactions = [node for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
+        rxn_to_del = [r for r in all_reactions if not any([rlt for rlt in padmet.dicOfRelationIn[r.id] if rlt.type == "is_linked_to"])]
+        #[padmet.delNode(node.id) for node in rxn_to_del]
+        for rxn in rxn_to_del:
+            padmet.delNode(rxn.id)
+        if verbose: print("%s/%s reactions without gene association deleted" %(len(rxn_to_del), len(all_reactions)))
+        all_genes_linked = set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type == "is_linked_to"])
+        all_genes = set([node.id for node in list(padmet.dicOfNode.values()) if node.type == "gene"])
+        count = 0
+        for gene_id in [g for g in all_genes if g not in all_genes_linked]:
+            count += 1
+            #if verbose: print("Removing gene without gene assoc %s" %gene_id)
+            padmet.dicOfNode.pop(gene_id)
+        if verbose: print("%s/%s genes not linked to any reactions deleted" %(count, len(all_genes)))
+    else:
+        rxns = [node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"]
+        for rxn_id in rxns:
+            cp_rlts = set([rlt.type for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]])
+            if len(cp_rlts) == 1:
+                padmet.delNode(rxn_id)
+
+    chrono = (time() - chronoDepart)
+    partie_entiere, partie_decimale = str(chrono).split('.')
+    chrono = ".".join([partie_entiere, partie_decimale[:3]])
+    if verbose: print("done in: ", chrono, "s !")
+
+    return padmet
 
 def classes_parser(filePath, padmet):
     """
