@@ -33,50 +33,59 @@ Description:
 """
 import docopt
 import os
-from time import time
 from padmet.classes import PadmetSpec
 from padmet.classes import PadmetRef
 from padmet.classes import Relation
 from padmet.utils.sbmlPlugin import parseGeneAssoc
-import re
 import csv
 
 def main():
     args = docopt.docopt(__doc__)
-    global tool, category, source
     data_file = args["--data"]
     output = args["--output"]
-    if not output:
-        output = args["--padmetSpec"]
     verbose = args["-v"]
 
     if data_file:
         filename = os.path.splitext(os.path.basename(data_file))[0]
         source = filename
 
+    category = args["--category"]
     tool = args["--tool"]
-    if tool:
-        tool = tool.upper()
-    if args["--category"]:
-        category = args["--category"].upper()
-    else:
-        category = "MANUAL"
-
     if args["--template_new_rxn"]:
         template_new_rxn(output)
-        return()
     elif args["--template_add_delete"]:
         template_add_delete(output)
-        return()
-
-    padmetSpec =  PadmetSpec(args["--padmetSpec"])
-    if args["--padmetRef"]:
-        padmetRef = PadmetRef(args["--padmetRef"])
     else:
-        padmetRef = None
+        padmetSpec =  PadmetSpec(args["--padmetSpec"])
+        if not output:
+            output = args["--padmetSpec"]
+        if args["--padmetRef"]:
+            padmetRef = PadmetRef(args["--padmetRef"])
+        else:
+            padmetRef = None
+        to_do = sniff_datafile(data_file)
 
-        
-    chronoDepart = time()
+        if to_do == "rxn_creator":
+            rxn_creator(data_file, padmetSpec, output, padmetRef, source, tool, category, verbose)
+        elif to_do == "add_delete_rxn":
+            add_delete_rxn(data_file, padmetSpec, output, padmetRef, source, tool, category, verbose)
+
+def sniff_datafile(data_file):
+    """
+    Read data_file and checkf which kind of data input it is.
+    A reaction_creator file contains only 2 columns.
+    Add reaction_add_delete more than 2. Basic, need to be improved.
+
+    Parameters
+    ----------
+    data_file: str
+        path to file of reaction_creator or reaction_add_delete.
+
+    Returns
+    -------
+    str:
+        "rxn_creator" or "add_delete_rxn"
+    """
     with open(data_file, 'r') as csvfile:
         dialect = csv.Sniffer().sniff(csvfile.read())
         csvfile.seek(0)
@@ -88,17 +97,48 @@ def main():
             to_do = "add_delete_rxn"
         else:
             raise TypeError("Unable to read the file")
-    if to_do == "rxn_creator":
-        rxn_creator(data_file, padmetSpec, padmetRef, output, verbose)
-    elif to_do == "add_delete_rxn":
-        add_delete_rxn(data_file, padmetSpec, padmetRef, output, verbose)
+    return to_do
 
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    print("done in: ", chrono, "s !")
+def rxn_creator(data_file, padmetSpec, output, padmetRef=None, source=None, tool=None, category="MANUAL", verbose=False):
+    """
+    Read a data_file (form created with template_new_rxn and filed), for each reaction
+    to create, add the reaction in padmetSpec (only if the id of the reaction is not already in padmetSpec or in padmetRef if given)
+    the source ensure the traceability of the reaction, its a simple tag ex 'pathway_XX_update'
+    if not given the filename of data_file will be used.
+    if a tool was used to infere the reaction, define tool='name_of_the_tool'
+    the Padmet of reference padmetRef can be used to check that the reaction id is not 
+    already in the database and copy information from the database for existing compounds
+    strongly recommanded to give a padmetRef.
 
-def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose = False):
+    Parameters
+    ----------
+    data_file: str
+        path to file based on template_new_rxn()
+    padmetSpec: padmet.classes.PadmetSpec
+        padmet to udpate
+    output: str
+        path to the new padmet file
+    source: str
+        tag associated to the new reactions to create and add, used for traceability
+    tool: str
+        The eventual tool used to infere the reactions to create and add
+    category: str
+        The default category of the reaction added manually is 'MANUAL'. Must not be changed.
+    padmetRef: padmet.classes.PadmetRef
+        padmet containing the database of reference
+    verbose: bool
+        if True print information
+    """
+    if not source:
+        filename = os.path.splitext(os.path.basename(data_file))[0]
+        source = filename
+    source = source.upper()
+    if tool:
+        tool = tool.upper()
+    if not category:
+        category = "MANUAL"
+
+    
     dict_data = {}
     with open(data_file, 'r') as f:
         all_read = f.read()
@@ -270,7 +310,47 @@ def rxn_creator(data_file, padmetSpec, padmetRef = None, output = None, verbose 
     if verbose: print("Creating output: %s" % output)
     padmetSpec.generateFile(output)
 
-def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbose = False):
+def add_delete_rxn(data_file, padmetSpec, output, padmetRef=None, source=None, tool=None, category="MANUAL", verbose=False):
+    """
+    Read a data_file (form created with template_add_delete and filed), for each reaction
+    if column 'Action' == 'add':
+        add the reaction from padmetRef to padmetSpec.
+    elif column 'Action' == 'delete':
+        removet the reaction
+    Can't add a reaction without a padmetRef !
+    
+    the source ensure the traceability of the reaction, its a simple tag ex 'pathway_XX_update'
+    if not given the filename of data_file will be used.
+    if a tool was used to infere the reaction, define tool='name_of_the_tool'
+
+    Parameters
+    ----------
+    data_file: str
+        path to file based on template_new_rxn()
+    padmetSpec: padmet.classes.PadmetSpec
+        padmet to udpate
+    padmetRef: padmet.classes.PadmetRef
+        padmet containing the database of reference
+    output: str
+        path to the new padmet file
+    source: str
+        tag associated to the new reactions to create and add, used for traceability
+    tool: str
+        The eventual tool used to infere the reactions to create and add
+    category: str
+        The default category of the reaction added manually is 'MANUAL'. Must not be changed.
+    verbose: bool
+        if True print information
+    """
+    if not source:
+        filename = os.path.splitext(os.path.basename(data_file))[0]
+        source = filename
+    source = source.upper()
+    if tool:
+        tool = tool.upper()
+    if not category:
+        category = "MANUAL"
+
     with open(data_file, 'r') as csvfile:
         dialect = csv.Sniffer().sniff(csvfile.read())
         csvfile.seek(0)
@@ -356,6 +436,14 @@ def add_delete_rxn(data_file, padmetSpec, padmetRef = None, output = None, verbo
 
 
 def template_new_rxn(output):
+    """
+    #TODO
+
+    Parameters
+    ----------
+    output: str
+        path for the tempalte new_rxn to create
+    """
     with open(output, 'w') as f:
         line = "\t".join(["reaction_id","my_rxn"])+"\n"
         f.write(line)
@@ -392,6 +480,14 @@ def template_new_rxn(output):
         f.write(line)
 
 def template_add_delete(output):
+    """
+    #TODO
+
+    Parameters
+    ----------
+    output: str
+        path for the tempalte rxn_add_delete to create
+    """
     with open(output, 'w') as csvfile:
         fieldnames = ["idRef","Comment", "Action", "Genes"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="\t")
