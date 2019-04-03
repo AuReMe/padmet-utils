@@ -25,7 +25,7 @@ Description:
     usage:
         padmet_medium.py --padmetSpec=FILE
         padmet_medium.py --padmetSpec=FILE -r [--output=FILE] [-v]
-        padmet_medium.py --padmetSpec=FILE --seeds=FILE [--padmetRef=FILE] [--output=FILE] [--b_compart=STR] [--e_compart=STR] [--c_compart=STR] [-v]
+        padmet_medium.py --padmetSpec=FILE --seeds=FILE [--padmetRef=FILE] [--output=FILE] [-v]
     
     options:
         -h --help     Show help.
@@ -34,16 +34,11 @@ Description:
         --seeds=FILE    the path to the file containing the compounds ids and the compart, line = cpd-id\tcompart.
         --output=FILE    If not None, pathname to the padmet file updated
         -r    Use to remove all medium from padmet
-        --b_compart=STR    id of the boundary compartment, default: C-BOUNDARY
-        --e_compart=STR    id of the extracellular compartment, default: e
-        --c_compart=STR    id of the cytosol compartment, default: c
         -v   print info
 
 """
 from padmet.classes import PadmetSpec
 from padmet.classes import PadmetRef
-from padmet.classes import Node
-from padmet.classes import Relation
 import docopt
 
 def main():
@@ -53,37 +48,59 @@ def main():
             seeds = [line.split("\t")[0] for line in f.read().splitlines()]
     else:
         seeds = None
-    padmetSpec = PadmetSpec(args["--padmetSpec"])
+    padmet = PadmetSpec(args["--padmetSpec"])
     if args["--padmetRef"]:
         padmetRef  = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
     output = args["--output"]
     verbose = args["-v"]
-    #b_compart = args["--b_compart"]
-    #e_compart = args["--e_compart"]
-    #c_compart = args["--c_compart"]
     remove = args["-r"]
+
     if output is None:
         output = args["--padmetSpec"]
     
     if not remove and not seeds:
-        g_m = padmetSpec.get_growth_medium()
+        g_m = padmet.get_growth_medium()
         print("List of growth medium:")
         if g_m:
             print(list(g_m))
         else:
             print("[]")
+    else:
+        manage_medium(padmet, seeds, padmetRef, verbose)
+        padmet.generateFile(output)
 
-    elif seeds:
-        padmetSpec.set_growth_medium(new_growth_medium = seeds, padmetRef = padmetRef, verbose = verbose)
-        padmetSpec.generateFile(output)
+def manage_medium(padmet, new_growth_medium=None, padmetRef=None, verbose=False):
+    """
+    Manage medium of a padmet. If new_growth_medium give, use this list of compound
+    to define the new medium and create transport and exchange reactions.
+    if padmetRef given, use the information from padmetRef to create the missing compound.
+    If no new_growth_medium given: remove the current medium in the padmet.
+
+    Parameters
+    ----------
+    padmet: padmet.classes.PadmetSpec
+        padmet to udpate
+    new_growth_medium: list
+        list of compound id representing the medium
+    padmetRef: padmet.classes.PadmetRef
+        padmet containing the database of reference
+    verbose: bool
+        if True print information
+
+    Returns
+    -------
+    padmet.classes.PadmetSpec:
+        New padmet after udpating medium
+    """
+    if new_growth_medium:
+        padmet.set_growth_medium(new_growth_medium = new_growth_medium, padmetRef = padmetRef, verbose = verbose)
+    else:
+        padmet.remove_growth_medium(verbose = verbose)
+    return padmet
+        
     
-    elif remove:
-        padmetSpec.remove_growth_medium(verbose = verbose)
-        padmetSpec.generateFile(output)
-
-
 if __name__ == "__main__":
     main()  
 

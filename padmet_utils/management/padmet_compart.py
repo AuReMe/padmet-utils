@@ -21,6 +21,7 @@ Description:
 """
 from padmet.classes import PadmetSpec
 import docopt
+
 __all__ = ["remove_compart", "remplace_compart"]
 
 def main():
@@ -64,7 +65,6 @@ def remove_compart(padmet, to_remove, verbose = False):
     -------
     padmet.classes.PadmetSpec:
         New padmet after removing compartment(s)
-
     """
     if "," in to_remove:
         to_remove = to_remove.split(",")
