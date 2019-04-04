@@ -13,14 +13,29 @@ Description:
         --sbml1=FILE    path of the first sbml file
         --sbml2=FILE    path of the second sbml file
 """
-from cobra import *
 from cobra.io.sbml import create_cobra_model_from_sbml_file
 import docopt
 
 def main():
     args = docopt.docopt(__doc__)
-    sbml_1 = create_cobra_model_from_sbml_file(args["--sbml1"])
-    sbml_2 = create_cobra_model_from_sbml_file(args["--sbml2"])
+    sbml1_path = args["--sbml1"]
+    sbml2_path = args["--sbml2"]
+    compare_sbml(sbml1_path, sbml2_path)
+
+def compare_sbml(sbml1_path, sbml2_path):
+    """
+    Compare 2 sbml, print nb of metabolites and reactions.
+    If reaction missing print reaction id, and reaction formula.
+
+    Parameters
+    ----------
+    sbml1_path: str
+        path to the first sbml file to compare
+    sbml2_path: str
+        path to the second sbml file to compare
+    """
+    sbml_1 = create_cobra_model_from_sbml_file(sbml1_path)
+    sbml_2 = create_cobra_model_from_sbml_file(sbml2_path)
     
     print("sbml1:")
     print("metabolites: %s" %(len(sbml_1.metabolites)))
@@ -63,6 +78,23 @@ def main():
             pass
 
 def compare_rxn(rxn1,rxn2):
+    """
+    compare two cobra reaction object and return (same_cpd, same_rev)
+    same_cpd: bool, if true means same compounds consumed and produced
+    same_reve: bool, if true means same direction of reaction (reversible or not)
+
+    Parameters
+    ----------
+    rxn1: cobra.model.reaction
+        reaction as cobra object
+    rxn2: cobra.model.reaction
+        reaction as cobra object
+
+    Returns
+    -------
+    tuple:
+        (same_cpd (bool), same_rev (bool))
+    """
     same_cpd, same_rev = False, False
     rxn1_dict,rxn2_dict = {}, {}
     for k,v in list(rxn1.metabolites.items()):
@@ -76,9 +108,7 @@ def compare_rxn(rxn1,rxn2):
        same_rev = True
 
     return (same_cpd, same_rev)
-        
-        
-    
-    
+
+
 if __name__ == "__main__":
     main()
