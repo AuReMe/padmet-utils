@@ -1,12 +1,24 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    compare n padmet files
+    #Compare 1-n padmet and create a folder output with files:
+    genes.csv:
+        fieldnames = [gene, padmet_a, padmet_b, padmet_a_rxn_assoc, padmet_b_rxn_assoc]
+        line = [gene-a, 'present' (if in padmet_a), 'present' (if in padmet_b), rxn-1;rxn-2 (names of reactions associated to gene-a in padmet_a), rxn-2]
+    reactions.csv:
+        fieldnames = [reaction, padmet_a, padmet_b, padmet_a_genes_assoc, padmet_b_genes_assoc, padmet_a_formula, padmet_b_formula]
+        line = [rxn-1, 'present' (if in padmet_a), 'present' (if in padmet_b), 'gene-a;gene-b; gene-a, 'cpd-1 + cpd-2 => cpd-3', 'cpd-1 + cpd-2 => cpd-3']
+    pathways.csv:
+        fieldnames = [pathway, padmet_a_completion_rate, padmet_b_completion_rate, padmet_a_rxn_assoc, padmet_b_rxn_assoc]
+        line = [pwy-a, 0.80, 0.30, rxn-a;rxn-b; rxn-a]
+    compounds.csv:
+        fieldnames = ['metabolite', padmet_a_rxn_consume, padmet_a_rxn_produce, padmet_b_rxn_consume, padmet_rxn_produce]
+        line = [cpd-1, rxn-1,'',rxn-1,'']
 
 ::
     
     usage:
-        compare_padmet.py --padmet=FILES/DIR --output=DIR --padmetRef=FILE [-v]
+        compare_padmet.py --padmet=FILES/DIR --output=DIR [--padmetRef=FILE] [-v]
     
     option:
         -h --help    Show help.
@@ -16,28 +28,59 @@ Description:
 """
 from padmet.classes import PadmetSpec, PadmetRef
 import os
-import shutil
 import docopt
 import csv
 
 def main():
     args = docopt.docopt(__doc__)
-    root_folder = args["--output"]  
-    if not root_folder.endswith("/"): root_folder += "/"
+    output = args["--output"]
     verbose = args["-v"]
-    padmetRef = PadmetRef(args["--padmetRef"])
-    if not os.path.exists(root_folder):
-        if verbose: print("Creating %s" %root_folder)
-        os.makedirs(root_folder)
+    if args["--padmetRef"]:
+        padmetRef = PadmetRef(args["--padmetRef"])
     else:
-        if verbose: print("%s already exist, old comparison output folders will be overwritten" %root_folder)
+        padmetRef = None
+    padmet_path = args["--padmet"]
+    compare_padmet(padmet_path, output, padmetRef, verbose)
 
-    input_f = args["--padmet"]
-    if os.path.isdir(input_f):
-        if not input_f.endswith("/"): input_f += "/"
-        all_files = [input_f+f for f in next(os.walk(input_f))[2]]
+
+def compare_padmet(padmet_path, output, padmetRef = None, verbose = False):
+    """
+    #Compare 1-n padmet and create a folder output with files:
+    genes.csv:
+        fieldnames = [gene, padmet_a, padmet_b, padmet_a_rxn_assoc, padmet_b_rxn_assoc]
+        line = [gene-a, 'present' (if in padmet_a), 'present' (if in padmet_b), rxn-1;rxn-2 (names of reactions associated to gene-a in padmet_a), rxn-2]
+    reactions.csv:
+        fieldnames = [reaction, padmet_a, padmet_b, padmet_a_genes_assoc, padmet_b_genes_assoc, padmet_a_formula, padmet_b_formula]
+        line = [rxn-1, 'present' (if in padmet_a), 'present' (if in padmet_b), 'gene-a;gene-b; gene-a, 'cpd-1 + cpd-2 => cpd-3', 'cpd-1 + cpd-2 => cpd-3']
+    pathways.csv:
+        fieldnames = [pathway, padmet_a_completion_rate, padmet_b_completion_rate, padmet_a_rxn_assoc, padmet_b_rxn_assoc]
+        line = [pwy-a, 0.80, 0.30, rxn-a;rxn-b; rxn-a]
+    compounds.csv:
+        fieldnames = ['metabolite', padmet_a_rxn_consume, padmet_a_rxn_produce, padmet_b_rxn_consume, padmet_rxn_produce]
+        line = [cpd-1, rxn-1,'',rxn-1,'']
+
+    Parameters
+    ----------
+    padmet_path: str
+        pathname of the padmet files, sep all files by ',', ex: /path/padmet1.padmet;/path/padmet2.padmet OR a folder
+    output: str
+        pathname of the output folder
+    padmetRef: padmet.classes.PadmetRef
+        padmet containing the database of reference, need to calculat pathway completion rate
+    verbose: bool
+        if True print information
+    
+    """
+    if not os.path.exists(output):
+        if verbose: print("Creating %s" %output)
+        os.makedirs(output)
     else:
-        all_files = input_f.split(",")
+        if verbose: print("%s already exist, old comparison output folders will be overwritten" %output)
+
+    if os.path.isdir(padmet_path):
+        all_files = [os.path.join(padmet_path, f) for f in next(os.walk(padmet_path))[2]]
+    else:
+        all_files = padmet_path.split(",")
 
     if len(all_files) < 2:
         raise ValueError("You must specify at least 2 files in order to make a comparison")
@@ -115,9 +158,12 @@ def main():
                 dict_pwys[pwy_id][basename_file] = {"ratio":"", "rxn_associated":""}
             except KeyError:
                 dict_pwys[pwy_id] = {basename_file: {"ratio":"", "rxn_associated":""}}
-            all_rxns = set([rlt.id_in for rlt in padmetRef.dicOfRelationOut.get(pwy_id,[]) if rlt.type == "is_in_pathway"])
             in_rxns = set([rlt.id_in for rlt in padmet.dicOfRelationOut.get(pwy_id,[]) if rlt.type == "is_in_pathway"])
-            dict_pwys[pwy_id][basename_file]["ratio"] = str(len(in_rxns))+"/"+str(len(all_rxns))         
+            if padmetRef:
+                all_rxns = set([rlt.id_in for rlt in padmetRef.dicOfRelationOut.get(pwy_id,[]) if rlt.type == "is_in_pathway"])
+                dict_pwys[pwy_id][basename_file]["ratio"] = str(len(in_rxns))+"/"+str(len(all_rxns))
+            else:
+                dict_pwys[pwy_id][basename_file]["ratio"] = "NA"
             dict_pwys[pwy_id][basename_file]["rxn_associated"] = ";".join(in_rxns)
         
         #metabolites
@@ -126,17 +172,26 @@ def main():
         if verbose: print("\t%s metabolites..." %len(all_cpd))
         for cpd_id in all_cpd:
             #get for each cpd, the reactions consuming/producing the cpd
+            rxn_consume = set([rlt.id_in for rlt in padmet.dicOfRelationOut[cpd_id] if rlt.type == "consumes"])
+            if rxn_consume:
+                rxn_consume = ";".join(rxn_consume)
+            else:
+                rxn_consume = ""
+            rxn_produce = set([rlt.id_in for rlt in padmet.dicOfRelationOut[cpd_id] if rlt.type == "produces"])
+            if rxn_produce:
+                rxn_produce = ";".join(rxn_produce)
+            else:
+                rxn_produce = ""
             try:
-                dict_cpds[cpd_id][basename_file] = {"rxn_consume":"", "rxn_produce":""}
+                dict_cpds[cpd_id][basename_file] = {"rxn_consume":rxn_consume, "rxn_produce":rxn_produce}
             except KeyError:
-                dict_cpds[cpd_id] = {basename_file: {"rxn_consume":"", "rxn_produce":""}}
-
+                dict_cpds[cpd_id] = {basename_file: {"rxn_consume":rxn_consume, "rxn_produce":rxn_produce}}
 
     #create files
     all_basename_files = [os.path.basename(file_path).replace(".padmet","") for file_path in all_files]
     #genes
     #gene file header: gene_id, base_file_1, base_file_n, base_file_1_rxn_assoc (sep=;), base_file_n_rxn_assoc (sep=;)
-    genes_file = root_folder+"genes.csv"
+    genes_file = os.path.join(output,"genes.csv")
     if verbose: print("creating %s" %genes_file)
     with open(genes_file, 'w') as csvfile:
         fieldnames = ['gene'] + all_basename_files + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
@@ -145,12 +200,12 @@ def main():
         for gene_id, dic_basename_rxn_assoc in list(dict_genes.items()):
             dict_row = {'gene': gene_id}
             for basename_file, rxn_assoc in list(dic_basename_rxn_assoc.items()):
-                dict_row.update({basename_file : 'X', basename_file+"_rxn_assoc (sep=;)": rxn_assoc})
+                dict_row.update({basename_file : 'present', basename_file+"_rxn_assoc (sep=;)": rxn_assoc})
             writer.writerow(dict_row)
 
     #reactions
     #reactions file header: rxn_id, base_file_1, base_file_n, base_file_1_genes_assoc (sep=;), base_file_n_genes_assoc (sep=;), base_file_1_formula, base_file_n_formula
-    rxns_file = root_folder+"reactions.csv"
+    rxns_file = os.path.join(output,"reactions.csv")
     if verbose: print("creating %s" %rxns_file)
     with open(rxns_file, 'w') as csvfile:
         fieldnames = ['reaction'] + all_basename_files + [i+"_genes_assoc (sep=;)" for i in all_basename_files] + [i+"_formula" for i in all_basename_files]
@@ -164,7 +219,7 @@ def main():
 
     #pathways
     #pathways file header: pwy, base_file_1_rate, base_file_n_rate, base_file_1_rxn_assoc (sep=;), base_file_n_rxn_assoc (sep=;)
-    pwys_file = root_folder+"pathways.csv"
+    pwys_file = os.path.join(output,"pathways.csv")
     if verbose: print("creating %s" %pwys_file)
     with open(pwys_file, 'w') as csvfile:
         fieldnames = ['pathway'] + [i+"_completion_rate" for i in all_basename_files] + [i+"_rxn_assoc (sep=;)" for i in all_basename_files]
@@ -178,19 +233,17 @@ def main():
 
     #metabolites
     #metabolites file header: cpd, base_file_1, base_file_n
-    cpds_file = root_folder+"metabolites.csv"
+    cpds_file = os.path.join(output,"metabolites.csv")
     if verbose: print(("creating %s" %cpds_file))
     with open(cpds_file, 'w') as csvfile:
-        fieldnames = ['metabolite'] + all_basename_files
+        fieldnames = ['metabolite'] + [i+"_rxn_consume" for i in all_basename_files] + [i+"_rxn_produce" for i in all_basename_files]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-        for cpd_id in list(dict_cpds.keys()):
+        for cpd_id, dict_basename_data in dict_cpds.items():
             dict_row = {'metabolite': cpd_id}
+            for basename_file, cpd_data in dict_basename_data.items():
+                dict_row.update({basename_file+"_rxn_consume": cpd_data["rxn_consume"], basename_file+"_rxn_produce": cpd_data["rxn_produce"]})
             writer.writerow(dict_row)
-
-
-    exit()
-    
 
 
 if __name__ == "__main__":
