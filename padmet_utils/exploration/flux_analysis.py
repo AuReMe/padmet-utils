@@ -20,7 +20,8 @@ Description:
         --all_species    allow to make FBA on all the metabolites of the given model.
 """
 from padmet.utils.sbmlPlugin import convert_from_coded_id
-from cobra import *
+from cobra import Reaction
+from cobra import flux_analysis as cobra_flux_analysis
 from cobra.io.sbml import create_cobra_model_from_sbml_file
 import docopt
 import subprocess
@@ -30,9 +31,28 @@ def main():
     sbml_file = args["--sbml"]
     seeds_file = args["--seeds"]
     targets_file = args["--targets"]
+    all_species = args["--all_species"]
+    flux_analysis(sbml_file, seeds_file, targets_file, all_species)
+
+def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species = False):
+    """
+    Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
+    and return result in standard output
+
+    Parameters
+    ----------
+    sbml_file: str
+        path to sbml file to analyse
+    seeds_file: str
+        path to sbml file with only compounds representing the seeds/growth medium
+    targets_file: str
+        path to sbml file with only compounds representing the targets to reach
+    all_species: bool
+        if True will try to create obj function for each compound and return which are reachable by flux.
+        
+    """
     if targets_file:
         targets = create_cobra_model_from_sbml_file(targets_file).metabolites
-    all_species = args["--all_species"]
     model=create_cobra_model_from_sbml_file(sbml_file)
     try:
         biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
@@ -53,20 +73,24 @@ def main():
     
     #
     if seeds_file and targets_file:
-        print("#############")
-        print("Analyzing targets")
-        print("#Topological analysis")
-        cmd = "menecheck.py -d %s -s %s -t %s" %(sbml_file, seeds_file, targets_file)
-        out = subprocess.check_output(["/bin/bash", "-i", "-c", cmd])
-        #prod_targets = (i for i in out.splitlines() if i.endswith(" producible targets:")).next()[:-1]
-        print("Number of targets: %s" %(len(targets)))
-        print(out.decode("UTF-8"))
+        try:
+            print("#############")
+            print("Analyzing targets")
+            print("#Topological analysis")
+            cmd = "menecheck.py -d %s -s %s -t %s" %(sbml_file, seeds_file, targets_file)
+            out = subprocess.check_output(["/bin/bash", "-i", "-c", cmd])
+            #prod_targets = (i for i in out.splitlines() if i.endswith(" producible targets:")).next()[:-1]
+            print("Number of targets: %s" %(len(targets)))
+            print(out.decode("UTF-8"))
+        except subprocess.CalledProcessError:
+            print("Menetools are not install, Can't run topological analysis")
         print("#Flux Balance Analysis")
         fba_on_targets(targets, model)
     if all_species:
         targets = model.metabolites
         print("#Flux Balance Analysis on all model metabolites (long process...)")
         fba_on_targets(targets, model)
+        return
     print("#############")
     print("Computing optimization")
     solution= model.optimize()
@@ -75,9 +99,9 @@ def main():
     print("Status: %s" %solution.status)
     model.summary()
     if (solution.objective_value > 1e-5):
-        blocked = flux_analysis.find_blocked_reactions(model, model.reactions)
-        essRxns = flux_analysis.find_essential_reactions(model)
-        essGenes = flux_analysis.find_essential_genes(model)
+        blocked = cobra_flux_analysis.find_blocked_reactions(model, model.reactions)
+        essRxns = cobra_flux_analysis.find_essential_reactions(model)
+        essGenes = cobra_flux_analysis.find_essential_genes(model)
 
         print('FVA analysis:')
         print('\tBlocked reactions: %s' %len(blocked))
@@ -117,7 +141,18 @@ def main():
 
 
 def fba_on_targets(allspecies, model):
-    dict_output = {"positive":{},"negative":{}}
+    """
+    for each specie in allspecies, create an objective function with the current species as only product
+    and try to optimze the model and get flux.
+
+    Parameters
+    ----------
+    allSpecies: list
+        list of species ids to test
+    model: cobra.model
+        Cobra model from a sbml file
+    """
+    #dict_output = {"positive":{},"negative":{}}
     for species in allspecies:
         #lets create a copy of the initial model
         model2 = model.copy()
