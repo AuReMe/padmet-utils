@@ -32,7 +32,11 @@ def main():
 
 def extract_pwys(padmet, reactions):
     """
-    #extract from
+    #extract from padmet pathways containing 1-n reactions from a set of reactions 'reactions'
+    Return a dict of data.
+    dict, k=pathway_id, v=dict: k in [total_rxn, rxn_from_list, ratio
+    ex: {pwy-x:{'total_rxn':[a,b,c], rxn_from_list:[a], ratio:1/3}}
+
 
     Parameters
     ----------
