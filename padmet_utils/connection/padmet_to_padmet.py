@@ -2,57 +2,75 @@
 """
 
 Description:
-    Allows to merge two padmet. update the 'init_padmet' with the 'to_add' padmet.
+    Allows to merge 1-n padmet.
+    1./ Update the 'init_padmet' with the 'to_add' padmet(s).
+    to_add can be a file or a folder with only padmet files to add.
+    
+    padmetRef can be use to ensure data uniformization.
 
 ::
     
     usage:
-        padmet_to_padmet.py --init_padmet=FILE --to_add=FILE/DIR [--padmetRef=FILE] [--output=FILE] [-v]
+        padmet_to_padmet.py --to_add=FILE/DIR --output=FILE [--init_padmet=FILE] [--padmetRef=FILE]  [-v]
     
     options:
         -h --help     Show help.
+        --to_add=FILE/DIR    path to the padmet file to add or path to folder of padmet files.
+        --output=FILE   path to the new padmet file
         --init_padmet=FILE    path to the padmet file to update.
         --padmetRef=FILE    path to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
-        --to_add=FILE/DIR    path to the padmet file to add or path to folder of padmet files.
-        --output=FILE   path to the new padmet file, if none overwritte init_padmet
         -v   print info
 """
 from padmet.classes import PadmetSpec, PadmetRef
-from time import time
 from datetime import datetime
 import os
 import docopt
 
 def main():
     args = docopt.docopt(__doc__)
-    padmetRef_file = args["--padmetRef"]
-    output = args["--output"]
-    verbose = args["-v"]
-    padmetSpec_file = args["--init_padmet"]
-
-    if os.path.isdir(args["--to_add"]):
-        padmet_type = "path"
-    elif os.path.isfile(args["--to_add"]):
-        padmet_type = "file"
-    else:
-        raise TypeError("%s is not a dir or a file" %(args["--to_add"]))
-
-    if padmetRef_file and os.path.isfile(padmetRef_file):
-        padmetRef = PadmetRef(padmetRef_file)
+    if args["--padmetRef"]:
+        padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
-
-    if os.path.isfile(padmetSpec_file):
-        padmetSpec = PadmetSpec(padmetSpec_file)
+    if args["--init_padmet"]:
+        padmet_init = PadmetSpec(args["--init_padmet"])
     else:
+        padmet_init = None
+    output = args["--output"]
+    verbose = args["-v"]
+    to_add = args["--to_add"]
+    padmet_to_padmet(to_add, output, padmet_init, padmetRef, verbose)
+
+def padmet_to_padmet(to_add, output, padmet_init=None, padmetRef=None, verbose=False):
+    """
+    
+    """
+    if os.path.isdir(to_add):
+        padmet_type = "path"
+    elif os.path.isfile(to_add):
+        padmet_type = "file"
+    else:
+        raise TypeError("%s is not a dir or a file" %(to_add))
+
+    if padmet_type == "path":
+        path = to_add
+        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
+        padmetFiles = [os.path.join(path, i) for i in all_files if i.endswith(".padmet")]
+        if len(padmetFiles) == 0:
+            raise IOError("No padmet found in %s" %path)
+    else:
+        padmetFiles = list([to_add])
+
+
+    if not padmet_init:
         now = datetime.now()
         today_date = now.strftime("%Y-%m-%d")
 
-        padmetSpec = PadmetSpec()
+        padmet_init = PadmetSpec()
         if padmetRef:
-            padmetSpec.setInfo(padmetRef)
-            padmetSpec.info["PADMET"]["creation"] = today_date
-            padmetSpec.setPolicy(padmetRef)
+            padmet_init.setInfo(padmetRef)
+            padmet_init.info["PADMET"]["creation"] = today_date
+            padmet_init.setPolicy(padmetRef)
         else:
             POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
                             ['compound','is_a_class','class'], ['compound','has_name','name'], ['compound','has_xref','xref'], ['compound','has_suppData','suppData'],
@@ -65,41 +83,21 @@ def main():
                             ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                             ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                             ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
-            dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":db,"version":version}}
-            padmetSpec.setInfo(dbNotes)
-            padmetSpec.setPolicy(POLICY_IN_ARRAY)
+            dbNotes = {"PADMET":{"creation":today_date,"version":"2.6"},"DB_info":{"DB":'NA',"version":'NA'}}
+            padmet_init.setInfo(dbNotes)
+            padmet_init.setPolicy(POLICY_IN_ARRAY)
 
-    #if sbml is a directory, recover all file path in a list. if no => only one file: create a list with only this file
-    if padmet_type == "path":
-        path = args["--to_add"]
-        if not path.endswith("/"):
-            path += "/"
-        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
-        padmetFiles = [path+i for i in all_files if i.endswith(".padmet")]
-    else:
-        padmetFiles = [args["--to_add"]]
 
-    chronoDepart = time()
-    #CORE
-    for padmet_file in padmetFiles:
+    for padmet_update_file in padmetFiles:
         if verbose:
-            print("Updating %s from %s" %(os.path.basename(padmetSpec_file),os.path.basename(padmet_file)))
-        padmet = PadmetSpec(padmet_file)
-        padmetSpec.updateFromPadmet(padmet)
+            print("Updating %s from %s" %(os.path.basename(padmet_init),os.path.basename(padmet_update_file)))
+        padmet_update = PadmetSpec(padmet_update_file)
+        padmet_init.updateFromPadmet(padmet_update)
 
-    if len(padmetFiles) == 0:
-        if verbose: print("No padmet found in %s" %args["--to_add"])
-    else:
-        if not output:
-            output = padmetSpec_file
-        if verbose: print("Generated file: %s" %output)
-        padmetSpec.generateFile(output)
+    if verbose:
+        print("Generated file: %s" %output)
+    padmet_init.generateFile(output)
         
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: ", chrono, "s !")
-
 
 if __name__ == "__main__":
     main()
