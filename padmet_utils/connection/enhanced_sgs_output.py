@@ -45,7 +45,6 @@ def enhanced_sgs_output(sgs_output, padmetRef, output, verbose=False):
         pathname of the output folder
     verbose: bool
         if True print information
-    
     """
     #k = sgs_id, v = set of genes
     assoc_sgs_id_genes = {}
