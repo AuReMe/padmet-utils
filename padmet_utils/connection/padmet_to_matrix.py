@@ -26,7 +26,22 @@ def main():
     padmet_file = args["--padmet"]
     output = args["--output"]
     padmet = PadmetSpec(padmet_file)
+    padmet_to_matrix(padmet, output)
 
+def padmet_to_matrix(padmet, output):
+    """
+    Create a stoichiometry matrix from a padmet file.
+    The columns represent the reactions and rows represent metabolites.
+    S[i,j] contains the quantity of metabolite 'i' produced (negative for consumed)
+    by reaction 'j'.
+    
+    Parameters
+    ----------
+    padmet: padmet.PadmetSpec
+        padmet instance
+    output:
+        path to the output file, col: rxn, row: metabo, sep = "\t"
+    """
     all_metabolites = sorted(set([rlt.id_out for rlt in padmet.getAllRelation() if rlt.type in ["consumes","produces"]]))
     all_reactions = sorted([node.id for node in list(padmet.dicOfNode.values()) if node.type == "reaction"])
     #col = reactions, row = metabolites
