@@ -25,9 +25,26 @@ from Bio.Alphabet.IUPAC import protein
 def main():
     args = docopt.docopt(__doc__)
     gbk_file = args["--gbk"]
-    faa_file = args["--output"]
+    output = args["--output"]
     qualifier = args["--qualifier"]
     verbose = args["-v"]
+    gbk_to_faa(gbk_file, output, qualifier, verbose)
+
+def gbk_to_faa(gbk_file, output, qualifier='locus_tag', verbose=True):
+    """
+    convert GBK to FAA with Bio package
+
+    Parameters
+    ----------
+    gbk_file: str
+        path to the gbk file
+    output: str
+        path to the output, a FAA file
+    qualifier: str
+        he qualifier of the gene id
+    verbose: bool
+        if True print information
+    """
     fasta_records = []
     with open(gbk_file, "r") as gbk:
         for seq_record in SeqIO.parse(gbk, "genbank"):
@@ -41,8 +58,7 @@ def main():
                             print("locus without Translation: "+seq_feature.qualifiers['locus_tag'][0])
                         except KeyError:
                             print("locus without Translation: "+seq_feature.qualifiers.get('gene',["Unknown"])[0])
-
-    SeqIO.write(fasta_records, faa_file, "fasta")
+    SeqIO.write(fasta_records, output, "fasta")
 
 if __name__ == "__main__":
     main()
