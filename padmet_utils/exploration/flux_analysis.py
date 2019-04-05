@@ -1,8 +1,21 @@
     # -*- coding: utf-8 -*-
 """
 Description:
-    Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
-    and return result in standard output
+    1./ Run flux balance analyse with cobra package on an already defined reaction.
+    Need to set in the sbml the value 'objective_coefficient' to 1.
+    If the reaction is reachable by flux: return the flux value and the flux value
+    for each reactant of the reaction.
+    If not: only return the flux value for each reactant of the reaction.
+    If a reactant has a flux of '0' this means that it is not reachable by flux
+    (and maybe topologically). To unblock the reaction it is required to fix the
+    metabolic network by adding/removing reactions until all reactant are reachable.
+    
+    2./If seeds and targets given as sbml files with only compounds.
+    Will also try to use the Menetools library to make a topologicall analysis.
+    Topological reachabylity of the targets compounds from the seeds compounds.
+    
+    3./ If --all_species: will test flux reachability of all the compounds in the
+    metabolic network (may take several minutes)
 
 ::
     
@@ -36,8 +49,21 @@ def main():
 
 def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species = False):
     """
-    Run flux balance analyse with cobra package. If the flux is >0. Run also FVA
-    and return result in standard output
+    1./ Run flux balance analyse with cobra package on an already defined reaction.
+    Need to set in the sbml the value 'objective_coefficient' to 1.
+    If the reaction is reachable by flux: return the flux value and the flux value
+    for each reactant of the reaction.
+    If not: only return the flux value for each reactant of the reaction.
+    If a reactant has a flux of '0' this means that it is not reachable by flux
+    (and maybe topologically). To unblock the reaction it is required to fix the
+    metabolic network by adding/removing reactions until all reactant are reachable.
+    
+    2./If seeds and targets given as sbml files with only compounds.
+    Will also try to use the Menetools library to make a topologicall analysis.
+    Topological reachabylity of the targets compounds from the seeds compounds.
+    
+    3./ If --all_species: will test flux reachability of all the compounds in the
+    metabolic network (may take several minutes)
 
     Parameters
     ----------
@@ -54,12 +80,6 @@ def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species
     if targets_file:
         targets = create_cobra_model_from_sbml_file(targets_file).metabolites
     model=create_cobra_model_from_sbml_file(sbml_file)
-    try:
-        biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
-        biomassname = biomassrxn.id
-    except IndexError:
-        print("Need to set OBJECTIVE COEFFICIENT to '1.0' for the reaction to test")
-        exit()
     
     #nb metabolites
     real_metabolites = set([i.id.replace("_"+i.compartment,"") for i in model.metabolites])
@@ -91,6 +111,13 @@ def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species
         print("#Flux Balance Analysis on all model metabolites (long process...)")
         fba_on_targets(targets, model)
         return
+    try:
+        biomassrxn = [rxn for rxn in model.reactions if rxn.objective_coefficient == 1.0][0]
+        biomassname = biomassrxn.id
+    except IndexError:
+        print("Need to set OBJECTIVE COEFFICIENT to '1.0' for the reaction to test")
+        exit()
+
     print("#############")
     print("Computing optimization")
     solution= model.optimize()
