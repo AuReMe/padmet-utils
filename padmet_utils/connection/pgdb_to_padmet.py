@@ -2,10 +2,34 @@
 """
 Description:
 
+    Read a PGDB folder (from BIOCYC/PATHWAYTOOLS) and create a padmet.
+    1./ To create a padmet without any genes information extracted use the first usage with:
+        pgdb: path to pgdb folder
+        output: path to the padmet to create
+        version: to specify the version of the pgdb (20.0, 22.0)
+        db: to sepcify the name of the database (METACYC, ECOCYC, ...)
+        enhance: to also read the file metabolic-reaction.xml and add the to the padmet
+    2./ To create a padmet and add only reactions from pgdb if they are in padmetRef specifie.
+        Copy information of the reaction not from the pgdb but from the padmetRef.
+        This allow to uniform reaction to the same version of metacyc represented in the padmetRef
+        For example, in some case 2 pgdb from different version can contain different information for a same reaction,pathway...
+        In this case use:
+            padmetRef: path to the padmet of reference
+    3./ To create a padmet wth genes information extracted use:
+        --extract-gene
+    3.1/ To remove from the final padmet all reactions without genes associated use:
+        --no-orphan
+    4./ To read the metabolic-reaction.xml file, a sbml with some missing reactions in PGDB use:
+        --enhance
+
+    For more information of the parsing process read information below.
+
+    
+    
     classes.dat:
     For each class:
     create new node / class = class
-    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    UNIQUE-ID (1) => node.id = UNIQUE-ID
     COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
     TYPES (0-n) => for each, check or create new node class, create rlt (node is_a_class types)
     SYNONYMS (0-n) => for each, create new node name, create rlt (node has_name synonyms)
@@ -13,7 +37,7 @@ Description:
     compounds.dat:
     for each compound:
     create new node / class = compound
-    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    UNIQUE-ID (1) => node.id = UNIQUE-ID
     COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
     INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
     MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
@@ -25,7 +49,7 @@ Description:
     proteins.dat:
     for each protein:
     create new node / class = protein
-    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    UNIQUE-ID (1) => node.id = UNIQUE-ID
     COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
     INCHI-KEY (0-1) {InChIKey=XXX} => node.misc['INCHI_KEY': XXX]
     MOLECULAR-WEIGHT (0-1) => node.misc()['MOLECULAR_WEIGHT'] = MOLECULAR-WEIGHT
@@ -38,7 +62,7 @@ Description:
     reactions.dat:
     for each reaction:
     create new node / class = reaction + node.misc()["DIRECTION"] = "UNKNOWN" by default
-    UNIQUE-ID (1) => node._id = UNIQUE-ID
+    UNIQUE-ID (1) => node.id = UNIQUE-ID
     COMMON-NAME (0-n) => node.Misc['COMMON-NAME'] = COMMON-NAME
     EC-NUMBER (0-n) => node.Misc['EC-NUMBER'] = EC-NUMBER
     REACTION-DIRECTION (0-1) => node.Misc['DIRECTION'] = reaction-direction, if REVERSIBLE, else: LEFT-TO-RIGHT
@@ -71,8 +95,6 @@ Description:
     IN-PATHWAY (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
     REACTION-LIST (0-n) => check or create new node pathway, create rlt (node is_in_pathway name)
     
-    metabolic-reaction.xml: optional
-    for each reaction:
 
 ::
 
@@ -123,7 +145,34 @@ def main():
     padmet = from_pgdb_to_padmet(pgdb_folder, db , version, source, extract_gene, no_orphan, enhanced_db, padmetRef_file, verbose)
     padmet.generateFile(output)
 
-def from_pgdb_to_padmet(pgdb_folder, db = 'NA', version = 'NA', source = 'GENOME', extract_gene = False, no_orphan = False, enhanced_db = False, padmetRef_file = None, verbose = False):
+def from_pgdb_to_padmet(pgdb_folder, db='NA', version='NA', source='GENOME', extract_gene=False, no_orphan=False, enhanced_db=False, padmetRef_file=None, verbose=False):
+    """
+    Parameters
+    ----------
+    pgdb_folder: str
+        path to pgdb
+    db: str
+        pgdb name, default is 'NA'
+    version: str
+        pgdb version, default is 'NA'
+    source: str
+        tag reactions for traceability, default is 'GENOME'
+    extract_gene: bool
+        if true extract genes information
+    no_orphan: bool
+        if true, remove reactions without genes associated
+    enhanced_db: bool
+        if true, read metabolix-reactions.xml sbml file and add information in final padmet
+    padmetRef_file: str
+        path to padmetRef corresponding to metacyc in padmet format
+    verbose: bool
+        if True print information
+    
+    Returns
+    -------
+    padmet.padmetRef:
+        padmet instance with pgdb within pgdb data
+    """
     global regex_purge, regex_xref, list_of_relation, def_compart_in, def_compart_out
     regex_purge = re.compile("<.*?>|\|")
     regex_xref = re.compile('^\((?P<DB>\S*)\s*"(?P<ID>\S*)"')
@@ -224,7 +273,7 @@ def from_pgdb_to_padmet(pgdb_folder, db = 'NA', version = 'NA', source = 'GENOME
     
         if metabolic_reactions is not None:
             if verbose: print("enhancing db from metabolic-reactions.xml")
-            enhance_db(metabolic_reactions, padmet, extract_gene, verbose)
+            padmet = enhance_db(metabolic_reactions, padmet, extract_gene, verbose)
     
     for rlt in list_of_relation:
         try:
@@ -280,6 +329,15 @@ def classes_parser(filePath, padmet, verbose = False):
     this information is stocked in padmet as: has_xref relation btw a node and a xref_node
     create a new xref_node with xref_node.id = class_id+"_xrefs" and xref_node.misc = {db:[id]}
     Create a relation current node has_xref xref_node.id
+
+    Parameters
+    ----------
+    filePath: str
+        path to classes.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
     """
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
@@ -350,6 +408,15 @@ def reactions_parser(filePath, padmet, extract_gene, source, verbose = False):
     this information is stocked in padmet as: has_xref relation btw a node and a xref_node
     create a new xref_node with xref_node.id = reaction_id+"_xrefs" and xref_node.misc = {db:[id]}
     Create a relation current node has_xref xref_node.id
+
+    Parameters
+    ----------
+    filePath: str
+        path to reactions.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
     """
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
@@ -517,6 +584,16 @@ def reactions_parser(filePath, padmet, extract_gene, source, verbose = False):
     if verbose: print("")
 
 def pathways_parser(filePath, padmet, verbose = False):
+    """
+    Parameters
+    ----------
+    filePath: str
+        path to pathways.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
+    """        
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -589,6 +666,16 @@ def pathways_parser(filePath, padmet, verbose = False):
     if verbose: print("")
 
 def compounds_parser(filePath, padmet, verbose = False):
+    """
+    Parameters
+    ----------
+    filePath: str
+        path to compounds.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
+    """        
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -654,6 +741,16 @@ def compounds_parser(filePath, padmet, verbose = False):
     
 
 def genes_parser(filePath, padmet, verbose = False):
+    """
+    Parameters
+    ----------
+    filePath: str
+        path to genes.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
+    """        
     dict_data = {}
     #k='ACCESSION-1', v ='PRODUCT'
     with open(filePath, 'r', encoding='windows-1252') as f:
@@ -724,6 +821,16 @@ def genes_parser(filePath, padmet, verbose = False):
     if verbose: print("")
 
 def proteins_parser(filePath, padmet, verbose = False):
+    """
+    Parameters
+    ----------
+    filePath: str
+        path to proteins.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
+    """        
     dict_data = {}
     dict_protein_component_id = {}
     dict_protein_gene_id = {}
@@ -772,6 +879,16 @@ def proteins_parser(filePath, padmet, verbose = False):
     return dict_protein_gene_id
 
 def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = False):
+    """
+    Parameters
+    ----------
+    filePath: str
+        path to enzrxns.dat
+    padmet: padmet.PadmetRef
+        padmet instance
+    verbose: bool
+        if True print information
+    """        
     dict_data = {}
     with open(filePath, 'r', encoding='windows-1252') as f:
         data = (line for line in f.read().splitlines() if not line.startswith("#") and not line == "//")
@@ -829,6 +946,18 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = Fal
 
 
 def _setType(types, current_id, padmet):
+    """
+    For id current_id, create relation 'is_a_class' to each id in types
+    add new nodes in padmet and relation in list_of_relation
+    Parameters
+    ----------
+    types: list
+        list of classe id associated to id 'current_id'
+    current_id: str
+        element id to link to all classe id in types
+    padmet: padmet.PadmetRef
+        padmet instance
+    """        
     for subClass_id in types:
         #Type allow the hierachization of the current
         #XX is_a_class type
@@ -844,6 +973,20 @@ def _setType(types, current_id, padmet):
         list_of_relation.append(is_a_class_rlt)
     
 def _setSyns(syns, current_id, padmet):
+    """
+    For id current_id, create relation 'has_name' to a node name 'current_id'_names
+    store a list of synonymous from syns list in the node name 'current_id'_names
+    add new node in padmet and relation in list_of_relation
+
+    Parameters
+    ----------
+    syns: list
+        list of synonymous of current_id
+    current_id: str
+        element id to link to node name 'current_id'_names
+    padmet: padmet.PadmetRef
+        padmet instance
+    """        
     name_id = current_id+"_names"
     try:
         name_node = padmet.dicOfNode[name_id]
@@ -857,6 +1000,21 @@ def _setSyns(syns, current_id, padmet):
     if syn not in name_node.misc["LABEL"]]
 
 def _setXrefs(xrefs, current_id, padmet):
+    """
+    For id current_id, create relation 'has_xref' to a node xref 'current_id'_xrefs
+    store a list of external reference from xrefs list in the node xref 'current_id'_xrefs
+    parse each external reference with regex_xref
+    add new node in padmet and relation in list_of_relation
+
+    Parameters
+    ----------
+    xrefs: list
+        list of external reference of current_id
+    current_id: str
+        element id to link to node xref 'current_id'_xref
+    padmet: padmet.PadmetRef
+        padmet instance
+    """        
     xref_id = current_id+"_xrefs"
     try:
         xref_node = padmet.dicOfNode[xref_id]
@@ -886,6 +1044,25 @@ def _setXrefs(xrefs, current_id, padmet):
             xref_node.misc[db] = [_id]
 
 def enhance_db(metabolic_reactions, padmet, with_genes, verbose = False):
+    """
+    Parse sbml metabolic_reactions and add reactions in padmet
+    if with_genes: add also genes information
+
+    Parameters
+    ----------
+    metabolic_reactions: str
+        path to sbml metabolic-reactions.xml
+    padmet: padmet.PadmetRef
+        padmet instance
+    with_genes: bool
+        if true alos add genes information.
+
+    Returns
+    -------
+    padmet.padmetRef:
+        padmet instance with pgdb within pgdb + metabolic-reactions.xml data
+    """        
+    
     print("loading sbml file: %s" %metabolic_reactions)
     reader = libsbml.SBMLReader()
     document = reader.readSBML(metabolic_reactions)
@@ -948,6 +1125,7 @@ def enhance_db(metabolic_reactions, padmet, with_genes, verbose = False):
                             padmet.dicOfNode[gene] = gene_node
                         is_linked_rlt = Relation(reaction_id, "is_linked_to", gene)
                         list_of_relation.append(is_linked_rlt)
+    return padmet
 
 
 
