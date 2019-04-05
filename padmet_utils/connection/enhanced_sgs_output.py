@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    1./ extract all data from sgs output
+    Extract all data from sgs output
 
-    2./ If needed, convert reaction id to metacyc id
 
 ::
 
     usage:
-        enhanced_sgs_output.py --sgs_output=FILE --padmetRef=FILE --output=FILE [--db=ID] [--mnx=FILE] [-v]
+        enhanced_sgs_output.py --sgs_output=FILE --padmetRef=FILE --output=FILE [-v]
     
     options:
         -h --help     Show help.
-        --sgs_output=FILE    path of a sgs run' result
-        --db=ID    database origin of the reactions. will be converted to metacyc
+        --sgs_output=FILE    path of a sgs run result
         --padmetRef=FILE    path to padmet file corresponding to the database of reference (the repair network)
-        --mnx=FILE    path to metanetx file for reactions (reac_xref.tsv)
         --output=FILE    path to tsv output file
+        -v   print info
 """
 from padmet.classes import PadmetRef
 import csv
@@ -31,10 +29,24 @@ def main():
     verbose = args["-v"]
     padmetRef = PadmetRef(args["--padmetRef"])
     output = args["--output"]
-    mnx_file = args["--mnx"]
-    db_origin = args["--db"]
-    
+    enhanced_sgs_output(sgs_output, padmetRef, output, verbose)
 
+def enhanced_sgs_output(sgs_output, padmetRef, output, verbose=False):
+    """
+    Extract all data from sgs output
+
+    Parameters
+    ----------
+    sgs_output: str
+        path of a sgs run result
+    padmetRef: padmet.classes.PadmetRef
+        padmet containing the database of reference, need to calculat pathway completion rate
+    output: str
+        pathname of the output folder
+    verbose: bool
+        if True print information
+    
+    """
     #k = sgs_id, v = set of genes
     assoc_sgs_id_genes = {}
     #k = sgs_id, v = set of reactions
@@ -67,72 +79,17 @@ def main():
         if rlt.type == "is_in_pathway" and padmetRef.dicOfNode[rlt.id_in].type == "reaction"]
         assoc_pathways_reactions[pwy_id] = set(rxns_assoc)
     
-    #3:extract db ref from mnxref
-    if mnx_file:
-        if verbose: print("extract association %s to metacyc from mnxref" %db_origin)
-        with open(mnx_file,'r') as f:
-            data = [line.split("\t")[:2] for line in f.read().splitlines() if not line.startswith("#")]
-        #k = mnxref, v: dict k' in [bigg,metacyc], v = [list]
-        dict_mnxref = dict([(v[1],dict()) for v in data])
-        for value in data:
-            xref, mnx = value
-            if (xref.startswith(db_origin) or xref.startswith("metacyc")):
-                db, _id = xref.split(":")
-                try:
-                    dict_mnxref[mnx][db].add(_id)
-                except KeyError:
-                    dict_mnxref[mnx].update({db: set([_id])})
-        for k,v in list(dict_mnxref.items()):
-            if len(list(v.keys())) < 2:
-                dict_mnxref.pop(k)
-                
-        
-        #map reactions id
-        assoc_sgs_id_reactions_mapped = {}
-        for sgs_id, set_rxn in assoc_sgs_id_reactions.items():
-            for assoc_dict in list(dict_mnxref.values()):
-                for _id in assoc_dict[db_origin]:
-                    if _id in set_rxn:
-                        try:
-                            assoc_sgs_id_reactions_mapped[sgs_id].update(assoc_dict["metacyc"])
-                        except KeyError:
-                            assoc_sgs_id_reactions_mapped[sgs_id] = assoc_dict["metacyc"]
      
-        """
-        for each set of reactions associated to a sgs, get the intersection of reactions associated to each pathways.
-        if an intersection length is > 0 ==> the sgs covere a part of this pwy.
-        Extract which reactions and the ratio on all the reactions in the pathways.
-        """
-        for sgs_id, rxns_in_sgs in assoc_sgs_id_reactions_mapped.items():
-            for pwy_id, rxns_in_pwy in assoc_pathways_reactions.items():
-                rxns_inter = rxns_in_sgs.intersection(rxns_in_pwy)
-                len_rxns_inter = len(rxns_inter)
-                if len_rxns_inter > 0 and float(len_rxns_inter)/float(len(rxns_in_pwy)) > float(1)/float(3):
-                    data = str(len_rxns_inter)+"/"+str(len(rxns_in_pwy))+": "
-                    data += ";".join([rxn_id for rxn_id in rxns_inter])
-                    try:
-                        assoc_pathways_sgs[pwy_id][sgs_id] = data
-                    except KeyError:
-                        assoc_pathways_sgs[pwy_id] = {sgs_id:data}
-    
-   
-
     if verbose: print("creating output %s" %output)
     with open(output, 'w') as f:
-        header = "\t".join(["SGS ID","GENES ID","RXN ID_"+db_origin ,"RXN ID_metacyc"])+"\n"
+        header = "\t".join(["SGS ID","GENES ID","RXN ID"])+"\n"
         f.write(header)
         for sgs_id in all_sgs: 
             genes_id = assoc_sgs_id_genes[sgs_id]
             line = [sgs_id,";".join(genes_id)]
             rxns_id_bigg = ";".join(assoc_sgs_id_reactions[sgs_id])
             line.append(rxns_id_bigg)
-            if mnx_file:
-                try:
-                    rxns_id_metacyc = ";".join(assoc_sgs_id_reactions_mapped[sgs_id])
-                except KeyError:
-                    rxns_id_metacyc = "NA"
-            else:
-                rxns_id_metacyc = ";".join(assoc_sgs_id_reactions[sgs_id])
+            rxns_id_metacyc = ";".join(assoc_sgs_id_reactions[sgs_id])
             line.append(rxns_id_metacyc)
             line = "\t".join(line)+"\n"
             f.write(line)
