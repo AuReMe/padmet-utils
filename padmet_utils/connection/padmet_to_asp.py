@@ -2,7 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    This module contains functions to convert a padmet file to predicats for ASP
+    Convert PADMet to ASP following these predicats:
+    common_name({reaction_id or enzyme_id or pathway_id or compound_id} , common_name)
+    direction(reaction_id, reaction_direction). reaction_direction in[LEFT-TO-RIGHT,REVERSIBLE]
+    ec_number(reaction_id, ec(x,x,x)).
+    catalysed_by(reaction_id, enzyme_id).
+    uniprotID(enzyme_id, uniprot_id). #if has has_xref and db = "UNIPROT"
+    in_pathway(reaction_id, pathway_id).
+    reactant(reaction_id, compound_id, stoechio_value).
+    product(reaction_id, compound_id, stoechio_value).
+    is_a(compound_id, class_id).
+    is_a(pathway_id, pathway_id).
 
 ::
     
@@ -26,29 +36,6 @@ def main():
     verbose = args["-v"]
 
     padmet_to_asp(padmet_file, output, verbose)
-
-def asp_synt(pred, list_args):
-    """
-    create a predicat for asp
-    
-    example: asp_synt("direction",["R1","REVERSIBLE"]) => "direction('R1','reversible')."
-
-    Parameters
-    ----------
-    pred: str
-        the predicat
-    list_args: list
-        list of atoms to put in the predicat
-
-    Returns
-    -------
-    str
-        the predicat 'pred(''list_args[0]'',''list_args[1]'',...,''list_args[n]'').'
-    """
-    list_args = ["\""+str(i)+"\"" for i in list_args]
-    rez = str(pred)+"("+",".join(list_args)+")."
-    return rez
-
 
 def padmet_to_asp(padmet_file, output, verbose = False):
     """
@@ -238,6 +225,28 @@ def padmet_to_asp(padmet_file, output, verbose = False):
                 line = asp_synt("is_a",[pathway_id, sub_pathway_id])
                 line += "\n"
                 f.write(line)
+
+def asp_synt(pred, list_args):
+    """
+    create a predicat for asp
+    
+    example: asp_synt("direction",["R1","REVERSIBLE"]) => "direction('R1','reversible')."
+
+    Parameters
+    ----------
+    pred: str
+        the predicat
+    list_args: list
+        list of atoms to put in the predicat
+
+    Returns
+    -------
+    str
+        the predicat 'pred(''list_args[0]'',''list_args[1]'',...,''list_args[n]'').'
+    """
+    list_args = ["\""+str(i)+"\"" for i in list_args]
+    rez = str(pred)+"("+",".join(list_args)+")."
+    return rez
 
 
 if __name__ == "__main__":
