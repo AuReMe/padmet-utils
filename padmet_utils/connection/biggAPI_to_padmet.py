@@ -5,7 +5,7 @@ Description:
 
     Allows to extract the bigg database from the API to create a padmet.
 
-    1./ Get all reactions universal id from http://bigg.ucsd.edu/api/v2/universal/reactions
+    1./ Get all reactions universal id from http://bigg.ucsd.edu/api/v2/universal/reactions, escape reactions of biomass.
 
     2./ Using async_list, extract all the informations for each reactions (compounds, stochio, name ...)
 
@@ -31,7 +31,6 @@ Description:
 from padmet.classes import Relation
 from padmet.classes import PadmetRef
 from datetime import datetime
-from time import time
 
 import docopt
 import requests
@@ -39,12 +38,38 @@ import grequests
 
 def main():
     global list_of_relation
-    chronoDepart = time()
     #parsing args
     args = docopt.docopt(__doc__)
     output = args["--output"]
     verbose = args["-v"]
     pwy_file = args["--pwy_file"]
+    biggAPI_to_padmet(output, pwy_file, verbose)
+    
+def biggAPI_to_padmet(output, pwy_file=None, verbose=False):
+    """
+    Extract BIGG database using the api. Create a padmet file.
+    Escape reactions of biomass.
+    Require internet access !
+
+    Allows to extract the bigg database from the API to create a padmet.
+
+    1./ Get all reactions universal id from http://bigg.ucsd.edu/api/v2/universal/reactions, escape reactions of biomass.
+    2./ Using async_list, extract all the informations for each reactions (compounds, stochio, name ...)
+    3./ Need to use sleep time to avoid to lose the server access.
+    4./ Because the direction fo the reaction is not set by default in bigg. 
+    We get all the models where the reaction is and the final direction will the one found
+    in more than 75%
+    5./ Also extract xrefs
+
+    Parameters
+    ----------
+    output: str
+        path to output, the padmet file.
+    pwy_file: str
+        path to pathway file, add kegg pathways, line:'pwy_id, pwy_name, x, rxn_id'.
+    verbose: bool
+        if True print information
+    """
     now = datetime.now()
     today_date = now.strftime("%Y-%m-%d")
     #print(verbose,today_date,version, output, classes_file, compounds_file, proteins_file, reactions_file, enzrxns_file, pathways_file)
@@ -57,7 +82,7 @@ def main():
                     ['reaction','consumes','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','compound','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                     ['reaction','consumes','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], ['reaction','produces','protein','STOICHIOMETRY','X','COMPARTMENT','Y'], 
                     ['reaction','is_linked_to','gene','SOURCE:ASSIGNMENT','X:Y']]
-    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.6"}, "DB_info":{"DB":"BIGG", "version":"2.0"}}
+    dbNotes = {"PADMET":{"Creation":today_date, "version":"2.6"}, "DB_info":{"DB":"BIGG", "version":"1.5"}}
     padmetRef = PadmetRef()
     if verbose: print("setting policy")
     padmetRef.setPolicy(policyInArray)
@@ -103,6 +128,7 @@ def main():
     """
     if verbose: print("updating padmet")
     count = 0
+    all_reactions_ids = [i for i in all_reactions_ids if 'biomass' not in i.upper()]
     for rxn_id in [i for i in all_reactions_ids if not i.startswith("BIOMASS")]:
         count += 1
         if verbose: print("reaction: %s, %s/%s" %(rxn_id, count, len(all_reactions_ids)))
@@ -183,10 +209,6 @@ def main():
         add_kegg_pwy(pwy_file, padmetRef, verbose)
     if verbose: print("Generating file: %s" %output)
     padmetRef.generateFile(output)
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: ", chrono, "s !")
 
 def add_kegg_pwy(pwy_file, padmetRef, verbose = False):
     global list_of_relation
