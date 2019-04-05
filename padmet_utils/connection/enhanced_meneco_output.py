@@ -40,6 +40,33 @@ def main():
     output = args["--output"]
     verbose = args["-v"]
     padmetRef = PadmetRef(args["--padmetRef"])
+    enhanced_meneco_output(meneco_output_file, padmetRef, output, verbose)
+
+def enhanced_meneco_output(meneco_output_file, padmetRef, output, verbose=False):
+    """
+    The standard output of meneco return ids of reactions corresponding to the solution for gapfilling.
+    The ids are those from the sbml and so they are encoded.
+    This script extract the solution corresponding to the union of reactions
+    "Computing union of reactions from all completion"
+    Based on padmetRef return a file with more information for each reaction.
+
+    ex: RXN__45__5
+    RXN-5, common_name, ec-number, Formula (with id),Formula (with cname),Action,Comment
+    Also, the output can be used as input for manual_curation
+    In the column Action: 'add' => To add the reaction, '' => to do nothing
+    Comment: the reason of adding the reaction (ex: added for gap-filling by meneco)
+    
+    Parameters
+    ----------
+    meneco_output_file: str
+        pathname of a meneco run' result
+    padmetRef: padmet.padmetRef
+        path to padmet file corresponding to the database of reference (the repair network)
+    output: str
+        path to tsv output file
+    verbose: bool
+        if True print information    
+    """
     with open(meneco_output_file,'r') as f:
         #recovering union reactions
         file_in_array = f.read().splitlines()
