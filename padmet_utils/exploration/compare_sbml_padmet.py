@@ -22,15 +22,14 @@ def main():
     args = docopt.docopt(__doc__)
     sbml_file = args["--sbml"]
     reader = libsbml.SBMLReader()
-    document = reader.readSBML(sbml_file)
-    for i in range(document.getNumErrors()):
-        print(document.getError(i).getMessage())
-    sbml_model = document.getModel()
+    sbml_document = reader.readSBML(sbml_file)
+    for i in range(sbml_document.getNumErrors()):
+        print(sbml_document.getError(i).getMessage())
 
     padmet = PadmetSpec(args["--padmet"])
-    compare_sbml_padmet(sbml_model, padmet)
+    compare_sbml_padmet(sbml_document, padmet)
     
-def compare_sbml_padmet(sbml_model, padmet):
+def compare_sbml_padmet(sbml_document, padmet):
     """
     compare reactions ids in sbml vs padmet, return nb of reactions in both
     and reactions id not in sbml or not in padmet
@@ -39,10 +38,10 @@ def compare_sbml_padmet(sbml_model, padmet):
     ----------
     padmet: padmet.classes.PadmetSpec
         padmet to udpate
-    sbml_file: libsbml.document.model
-        sbml model
-
+    sbml_file: libsbml.document
+        sbml document
     """
+    sbml_model = sbml_document.getModel()
 
     sbml_listOfReactions = set([sp.convert_from_coded_id(r.getId())[0] for r in sbml_model.getListOfReactions()])
     padmet_reaction = set([node.id for node in padmet.dicOfNode.values() if node.type == "reaction"])
