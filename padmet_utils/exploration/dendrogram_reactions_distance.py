@@ -10,18 +10,20 @@ Apply a hierarchical clustering on these data with a complete linkage. Then crea
 Apply also intervene to create an upset graph on the data.
 
 usage:
-    dendrogram_reactions_distance.py --reactions=FILE --output=FILE [--padmetRef] [--upset=INT] [-v]
+    dendrogram_reactions_distance.py --reactions=FILE --output=FILE [--padmetRef=STR] [--pvclust] [--upset=INT] [-v]
 
 option:
     -h --help    Show help.
     -r --reactions=FILE    pathname of the file containing reactions in each species of the comparison.
     -o --output=FOLDER    path to the output folder.
-    --padmetRef    path to the padmet Ref file
+    --pvclust    launch pvclust dendrogram using R
+    --padmetRef=STR    path to the padmet Ref file
     -u --upset=INT    number of cluster in the upset graph.
     -v    verbose mode.
 
 """
 
+import csv
 import docopt
 import pandas as pa
 import matplotlib.pyplot as plt
@@ -392,7 +394,7 @@ def comparison_cluster(reactions_clust, output_folder_comparison):
         test.close()
 
 
-def absent_and_specific_reactions(reactions_dataframe, output_folder_specific, output_folder_absent, organisms):
+def absent_and_specific_reactions(reactions_dataframe, output_folder_tree_cluster, output_folder_specific, output_folder_absent, organisms):
     """
     Compare all cluster one against another.
 
@@ -400,6 +402,8 @@ def absent_and_specific_reactions(reactions_dataframe, output_folder_specific, o
     ----------
     reactions_dataframe: pandas.DataFrame
         dataframe containing absence/presence of reactions in organism
+    output_folder_tree_cluster: str
+        path to output tree cluster folder
     output_folder_specific: str
         path to output folder with specific reactions for each species
     output_folder_absent: str
@@ -407,7 +411,11 @@ def absent_and_specific_reactions(reactions_dataframe, output_folder_specific, o
     organisms: list
         organisms names
     """
-    for species in organisms:
+    specific_file = output_folder_tree_cluster + 'absent_specific_reactions.tsv'
+    specific_output = open(specific_file, 'w')
+    specific_writer = csv.writer(specific_output, delimiter='\t')
+    specific_writer.writerow(['Organism', 'NB reactions', 'Unique reactions', 'Absent reactions'])
+    for species in sorted(organisms):
         reactions_in_species = set(reactions_dataframe[reactions_dataframe[species]==True].index.tolist())
         reactions_absent_in_others = set(reactions_dataframe[reactions_dataframe[list(set(organisms)-{species})].any(1)==False].index.tolist())
         reactions_only_in_species = list(reactions_in_species.intersection(reactions_absent_in_others))
@@ -419,9 +427,12 @@ def absent_and_specific_reactions(reactions_dataframe, output_folder_specific, o
         reactions_only_not_in_species = list(reactions_not_in_species.intersection(reactions_in_others))
         tmp_reactions_dataframe = reactions_dataframe.loc[reactions_only_not_in_species]
         tmp_reactions_dataframe.to_csv(output_folder_absent+species+'.tsv', sep='\t')
+        specific_writer.writerow([species, len(reactions_in_species),
+                                        len(list(reactions_in_species.intersection(reactions_absent_in_others))),
+                                        len(list(reactions_not_in_species.intersection(reactions_in_others)))])
+    specific_output.close()
 
-
-def reaction_figure_creation(reaction_file, upset_cluster, output_folder, padmet_ref_file=None):
+def reaction_figure_creation(reaction_file, upset_cluster, output_folder, padmet_ref_file=None, pvclust=None):
     """
     Create dendrogram, upset figure (if upset argument) and compare reactiosn in species.
 
@@ -433,6 +444,10 @@ def reaction_figure_creation(reaction_file, upset_cluster, output_folder, padmet
         the number of cluster you want in the intervene figure
     output_folder: str
         path to output folder
+    padmet_ref_file: str
+        path to padmet ref file
+    pvclust: bool
+        boolean to launch or not R pvclust dendrogram
     """
     # Check if output_folder exists, if not create it.
     output_folder_tree_cluster = output_folder + '/tree_cluster/'
@@ -483,10 +498,11 @@ def reaction_figure_creation(reaction_file, upset_cluster, output_folder, padmet
     organisms = absence_presence_matrix.index.tolist()
 
     # Specific reactions for each species.
-    absent_and_specific_reactions(reactions_dataframe, output_folder_specific, output_folder_absent, organisms)
+    absent_and_specific_reactions(reactions_dataframe, output_folder_tree_cluster, output_folder_specific, output_folder_absent, organisms)
 
-    # Create pvclust dendrogram.
-    pvclust_dendrogram(condensed_distance_matrix_jaccard, organisms, output_folder)
+    if pvclust:
+        # Create pvclust dendrogram.
+        pvclust_dendrogram(condensed_distance_matrix_jaccard, organisms, output_folder)
 
     # Extract all the nodes inside the clustering. 
     _, node_list = to_tree(linkage_matrix, rd=True)
@@ -558,13 +574,14 @@ def main():
     upset_cluster = int(args['--upset']) if args['--upset'] else None
     output_pathname = args['--output']
     padmet_ref_file = args['--padmetRef']
+    pvclust = args['--pvclust']
 
     if args['-v']:
         verbose = args['-v']
     else:
         verbose = None
 
-    reaction_figure_creation(reaction_pathname, upset_cluster, output_pathname, padmet_ref_file)
+    reaction_figure_creation(reaction_pathname, upset_cluster, output_pathname, padmet_ref_file, pvclust)
 
 
 if __name__ == '__main__':
