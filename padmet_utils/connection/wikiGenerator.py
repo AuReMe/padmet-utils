@@ -8,15 +8,14 @@ Description:
 ::
 
     usage:
-        wikiGenerator.py --padmetSpec=FILE --output=DIR --model_id=STR --model_name=STR [--padmetRef=FILE] [--log_file=FILE] [-v]
+        wikiGenerator.py --padmet=FILE/DIR --output=DIR --wiki_id=STR [--database=STR] [--padmetRef=FILE] [--log_file=FILE] [-v]
         wikiGenerator.py --aureme_run=DIR --padmetSpec=ID -v
     
     options:
         -h --help     Show help.
-        --padmetSpec=FILE    path to padmet file.
+        --padmet=FILE    path to padmet file.
         --output=DIR    path to folder to create with all wikipages in subdir.
-        --model_id=STR    id of the model to use in mainpage of wiki.
-        --model_name=FILE    name of the model to use in mainpage of wiki.
+        --wiki_id=STR    id of the wiki.
         --padmetRef=FILE    path to padmet of reference, ex: metacyc_xx.padmet, if given, able to calcul pathway rate completion.
         --log_file=FILE    log file from an aureme run, use this file to create a wikipage with all the command used during the aureme run.
         --aureme_run=DIR    can use an aureme run as input, will use from config file information for model_id and log_file and padmetRef.
@@ -27,7 +26,6 @@ from padmet.classes import PadmetSpec
 import os
 import shutil
 from itertools import chain
-from collections import Iterable
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -38,584 +36,956 @@ import docopt
 import re
 
 def main(): 
-    global padmetSpec, padmetRef, wiki_folder, full_sources_dict, all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id, all_rxns, all_genes, all_pwys, all_cpds, verbose, ext_link
-    all_categories, all_tools, all_sources, total_pwy_id, total_cpd_id = set(), set(), set(), set(), set()
-    full_sources_dict = dict()
     #files to upload: folder genomic_data, all sbml in output ortho, annot, external, seeds, targets
     args = docopt.docopt(__doc__)
-    padmetSpec = PadmetSpec(args["--padmetSpec"])
-    try:
-        db = padmetSpec.info["DB_info"]["DB"].lower()
-        if db == "metacyc":
-            ext_link = {"Reaction": "http://metacyc.org/META/NEW-IMAGE?object=",
-                        "Pathway": "http://metacyc.org/META/NEW-IMAGE?object=",
-                        "Metabolite": "http://metacyc.org/META/NEW-IMAGE?object="}
-        elif db == "bigg":
-            ext_link = {"Reaction":"http://bigg.ucsd.edu/universal/reactions/",
-                        "Metabolite":"http://bigg.ucsd.edu/universal/metabolites/",
-                        "Pathway":"http://www.genome.jp/dbget-bin/www_bget?"}
-        else:
-            raise KeyError
-    except KeyError:
-        ext_link = {}
-    if args["--padmetRef"]:#TODO: finir case aureme_run vs all args given in param
+    padmet = args["--padmet"]
+    verbose = args["-v"]
+    if args["--padmetRef"]:
         padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
-    verbose = args["-v"]
-    model_id, model_name = args["--model_id"], args["--model_name"]
-    wiki_folder = args["--output"]
-    if not wiki_folder.endswith("/"): wiki_folder += "/"  
+    wiki_id = args["--wiki_id"]
+    output = args["--output"]
     log_file = args["--log_file"]
-    createDirectory()
-    all_rxns = [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reaction"]
-    all_genes = [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "gene"]
-    for rxn_node in all_rxns:
-        create_biological_page("Reaction", rxn_node, wiki_folder+"reactions/")
-    for gene_node in all_genes:    
-        create_biological_page("Gene", gene_node, wiki_folder+"genes/")
-    all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_pwy_id]
-    all_cpds = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_cpd_id]
-    for pwy_node in all_pwys:
-        create_biological_page("Pathway", pwy_node, wiki_folder+"pathways/")
-    for cpd_node in all_cpds:
-        create_biological_page("Metabolite", cpd_node, wiki_folder+"metabolites/")
+    database = args["--database"]
+    
+    """
+    #TODO REMOVE TEST
+    padmet="/home/maite/x/networks"
+    verbose=True
+    wiki_id="test"
+    output="/home/maite/x/wiki"
+    database="METACYC"
+    padmetRef=PadmetRef("/home/maite/Aureme_project/aureme_docker/database/BIOCYC/METACYC/22.0/metacyc_22.0_enhanced.padmet")
+    """
+    wikiGenerator(padmet, output, wiki_id, padmetRef, database, log_file, verbose)
 
-    create_navigation_page(wiki_folder+"/navigation/")
+def wikiGenerator(padmet, output, wiki_id, padmetRef=None, database=None, log_file=None, verbose=False):
+    """
+    
+    """
+    #if padmet is a directory: padmetFiles = list of padmet path, a padmet file must end with .padmet extension
+    #padmetFiles = [/path/padmet_a.padmet, /path/padmet_b.padmet]
+    #else: padmet could be many path separated by ';', ex: padmet  = "/path_a/padmet_a.padmet;/path_b/padmet_b.padmet"
+    #padmetFiles = [/path_a/padmet_a.padmet, /path_b/padmet_b.padmet]
+    if os.path.isdir(padmet):
+        path = padmet
+        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
+        padmetFiles = [os.path.join(path, i) for i in all_files if i.endswith(".padmet")]
+        if len(padmetFiles) == 0:
+            raise IOError("No padmet found in %s" %path)
+        
+    else:
+        padmetFiles = padmet.split(";")
+    
+    #if padmetRef given, extract all pathways associated to reactions (dont take in account pathways linked to pathway)
+    #create a dict global_pwy_rxn_dict with k = pathway id, v = set of rxn_id
+    global_pwy_rxn_dict = dict()
+    if padmetRef:
+        for rlt in [rlt for rlt in padmetRef.getAllRelation() if rlt.type == "is_in_pathway" and padmetRef.dicOfNode[rlt.id_in].type == "reaction"]:
+            pwy_id = rlt.id_out
+            rxn_id = rlt.id_in
+            try:
+                global_pwy_rxn_dict[pwy_id].add(rxn_id)
+            except KeyError:
+                global_pwy_rxn_dict[pwy_id] = set([rxn_id])
+
+    #if database given, will add external links to specific database.
+    #For example if database == metacyc, then will add external link to page title to metacyc website
+    #Work only for 'metacyc' or 'bigg'
+    if database: database = database.lower()
+    if database == "metacyc":
+        ext_link = {"reaction": "http://metacyc.org/META/NEW-IMAGE?object=",
+                    "pathway": "http://metacyc.org/META/NEW-IMAGE?object=",
+                    "metabolite": "http://metacyc.org/META/NEW-IMAGE?object="}
+    elif database == "bigg":
+        ext_link = {"reaction":"http://bigg.ucsd.edu/universal/reactions/",
+                    "metabolite":"http://bigg.ucsd.edu/universal/metabolites/",
+                    "pathway":"http://www.genome.jp/dbget-bin/www_bget?"}
+    else:
+        ext_link = {}
+
+    #create all folder archi in output folder
+    createDirectory(output, verbose)
+    #total_padmet_data will store all the information from one to n padmet to finally use this data to create the pages
+    """
+    total_padmet_data["reaction"] = {'rxn-1':{"basic_attrib": dict(),
+                                             "formula":dict(),
+                                             "padmet_source": set(),
+                                             "gene_assoc": dict(),
+                                             "padmet_gene": dict(),
+                                             "pathway_assoc":dict(),
+                                             "reconstruction_data":dict(),
+                                             "xref":dict(),
+                                             "misc": dict()}}
+    total_padmet_data["gene"] = {'gene-1':{"basic_attrib": dict(),
+                                           "padmet_source":set(),
+                                           "reac_assoc": dict(),
+                                           "pathway_assoc":dict()}
+    total_padmet_data["pathway"] = {'pwy-1':{"basic_attrib": dict(),
+                                             "padmet_source":set(),
+                                             "reac_assoc": dict(),
+                                             "completion_rate":dict(),
+                                             "total_reac_assoc":set()}
+    total_padmet_data["metabolite"] = {'cpd-1':{"basic_attrib": dict(),
+                                                "consumed_by": dict(),
+                                                "produced_by": dict(),
+                                                "unknown_dir_by": dict()}
+    total_padmet_data["padmet_source"] = {"reaction":dict(),
+                                          "gene": dict(),
+                                          "pathway": dict(),
+                                          "misc":dict()}
+    total_padmet_data["reconstruction"] = {"category":dict(),
+                                           "tool": dict(),
+                                           "comment": dict(),
+                                           "source": dict()}
+    """
+    total_padmet_data = {"reaction":{},
+                         "gene":{},
+                         "pathway":{},
+                         "metabolite":{},
+                         "padmet_source":{},
+                         "reconstruction":{"category":dict(), "tool": dict(), "comment": dict(), "source": dict()},
+                         "misc":{}
+                         }
+    #For each padmet file path in padmetFiles, extract all data with extract_padmet_data and add them to the dict total_padmet_data
+    for padmetFile in padmetFiles:
+        if verbose: print("Reading %s" %padmetFile)
+        total_padmet_data = extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict, padmetRef, verbose)
+
+    #Use reduce_padmet_data function to compress information. For example if all reactions have same values, remplace the list of padmet to tags
+    total_padmet_data = reduce_padmet_data(total_padmet_data, verbose)
+
+    #Create each categories pages
+    for rxn_id, rxn_dict_data in total_padmet_data["reaction"].items():
+        output_file = os.path.join(output, "reactions", rxn_id)
+        create_biological_page("reaction", rxn_id, rxn_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
+    for gene_id, gene_dict_data in total_padmet_data["gene"].items():
+        output_file = os.path.join(output, "genes", gene_id)
+        create_biological_page("gene", gene_id, gene_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
+    for pwy_id, pwy_dict_data in total_padmet_data["pathway"].items():
+        output_file = os.path.join(output, "pathways", pwy_id)
+        create_biological_page("pathway", pwy_id, pwy_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
+    for cpd_id, cpd_dict_data in total_padmet_data["metabolite"].items():
+        output_file = os.path.join(output, "metabolites", cpd_id)
+        create_biological_page("metabolite", cpd_id, cpd_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
+    for org_id, org_dict_data in total_padmet_data["padmet_source"].items():
+        output_file = os.path.join(output, "organisms", org_id)
+        create_biological_page("organism", org_id, org_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
+    #Create navigation pages
+    navigation_folder = os.path.join(output, "navigation")
+    create_navigation_page(total_padmet_data, navigation_folder, verbose)
+
+    """
     #create_venn()
-    create_main(model_id, model_name)
+    create_main(wiki_id)
     if log_file:
         create_log_page(log_file, wiki_folder+"/navigation/")
+    """
+
+def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None, padmetRef=None, verbose=False):
+    """
+    total_padmet_data: k in ['reaction', 'gene', 'organism', 'pathway', ...]
+    if k = 'reaction', v = {'misc':{},'gene_assoc':}
     
+    For reaction in padmetFile:
+        if reaction_id not in total_padmet_data["reaction"].keys():
+            add total_padmet_data["reaction"][reaction_id][padmet_source] = dict()
+            
+    else, add data only if differents from first
+    """
+    #name of current padmet
+    padmet_source = os.path.basename(padmetFile).replace(".padmet","")
+    total_padmet_data["padmet_source"][padmet_source] = {"reaction":dict(), "gene": dict(), "pathway": dict(), "misc":dict()}
+    current_padmet_dict = total_padmet_data["padmet_source"][padmet_source]
+    padmet = PadmetSpec(padmetFile)
 
-def createDirectory():
-    """
-    create the folders genes, reactions, metabolites, pathways in the folder dirPath/
-    if already exist, it will replace old folders (and delete old files)
-    """
-    global wiki_folder
-    #simple check that dirPath is a dir:
-    dirNames = ["genes","reactions","metabolites","pathways","navigation","files"]
-    #creatings the directory which will contains the wiki pages
-    for d in dirNames:
-        if not os.path.exists(wiki_folder+d):
-            if verbose: print("Creating directory: "+wiki_folder+d)
-            os.makedirs(wiki_folder+d)
-        else:
-            if verbose: print("The directory "+wiki_folder+d+" already exist. Old pages will be deleted")
-            shutil.rmtree(wiki_folder+d)
-            os.makedirs(wiki_folder+d)
+    all_rxns = [node for node in padmet.dicOfNode.values() if node.type == "reaction"]
+    count = 0
     
-def create_venn():
-    """
-    
-    """
-    if verbose: print("Venn Diagramm")
-    #'ARGSUCCINSYN-RXN'
-    categories_dict ={}
-    """
-    all_categories = ["orthology","annotation","gap-filling","manual","microbiont"]
-    for category in all_categories:
-        categories_dict[category] = set()
-    """
-    for rxn_id, rxn_src_dict in list(full_sources_dict.items()):
-        for category in list(rxn_src_dict.keys()):
-            try:
-                categories_dict[category].add(rxn_id)
-            except KeyError:
-                categories_dict[category] = set(rxn_id)
-                
-    
-    labels = get_labels(list(categories_dict.values()))
-    fig, ax = venn4(labels, names=list(categories_dict.keys()))
-    fig.savefig(wiki_folder+"files/venn.png")
+    for rxn_node in all_rxns[:100]:
+        count += 1
+        rxn_id = rxn_node.id
+        #rxn_id = '1-ACYLGLYCEROL-3-P-ACYLTRANSFER-RXN'
+        #rxn_node = padmet.dicOfNode[rxn_id]
+        if verbose:
+            print("Extracting reaction:%s/%s %s" %(count, len(all_rxns), rxn_id), end='\r')
+            
+        current_padmet_dict["reaction"][rxn_id] = dict()
 
-def copy_io_files():
-    """
-    """
-    #toDo in futur
-        
-def create_main(model_id, model_name):
-    if verbose: print("Main page")
-    ### create main page
-    for line in main_template:
-        main_template[main_template.index(line)] = line.replace("MODEL_ID",model_id).replace("MODEL_NAME",model_name)
-    final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
-    main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
-    reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0,"MICROBIONT":0,"HOST":0}
-    for rec_node in [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reconstructionData"]:
-        cat = rec_node.misc["CATEGORY"][0]
-        if cat == "ORTHOLOGY":
-            source = rec_node.misc["SOURCE"][0].replace("OUTPUT_PANTOGRAPH_","")
-            try:
-                reconstruct_summary["ORTHOLOGY"][source] += 1
-            except KeyError:
-                reconstruct_summary["ORTHOLOGY"][source] = 1
-        else:
-            reconstruct_summary[cat] += 1
-    index = 1
-    if reconstruct_summary["ANNOTATION"] != 0:
-        main_template.insert(final_network_index+index, "* Based on annotation data:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [http://bioinformatics.ai.sri.com/ptools/ Pathway tools]")
-        index += 1
-        main_template.insert(final_network_index+index, "*** Creation of a metabolic network containing "+str(reconstruct_summary["ANNOTATION"])+" reactions")
-        index += 1
-    if reconstruct_summary["ORTHOLOGY"]:
-        main_template.insert(final_network_index+index, "* Based on orthology data:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [http://pathtastic.gforge.inria.fr Pantograph]")
-        index += 1        
-        for k,v in list(reconstruct_summary["ORTHOLOGY"].items()):
-            main_template.insert(final_network_index+index, "*** From template ''"+k+"'' creation of a metabolic network containing: "+str(v)+" reactions")
-            index += 1
-    if reconstruct_summary["MANUAL"] != 0:
-        main_template.insert(final_network_index+index, "* Based on expertise:")
-        index += 1
-        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["MANUAL"])+" reaction(s) added")
-        index += 1
-    if reconstruct_summary["GAP-FILLING"] != 0:
-        main_template.insert(final_network_index+index, "* Based on gap-filling:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [https://pypi.python.org/pypi/meneco meneco]")
-        index += 1
-        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["GAP-FILLING"])+" reaction(s) added")
+        #if first occurrenc, dict instantiation, in total_padmet_data["reaction"]
+        if rxn_id not in total_padmet_data["reaction"].keys():
+            total_padmet_data["reaction"][rxn_id] = {"basic_attrib": dict(), "formula":dict(), "padmet_source": set(), "gene_assoc": dict(), "padmet_gene": dict(), "pathway_assoc":dict(), "reconstruction_data":dict(), "xref":dict(), "misc": dict()}
+            #If padmetRef given, search for external links ex ID in bigg, kegg, etc...
+            if padmetRef:
+                try:
+                    xref_node = [padmetRef.dicOfNode[rlt.id_out] for rlt in padmetRef.dicOfRelationIn[rxn_id] if rlt.type == "has_xref"][0]
+                    total_padmet_data["reaction"][rxn_id]["xref"] = dict(xref_node.misc)
+                except (IndexError, KeyError) as e:
+                    pass
 
-    fileName = wiki_folder+"/navigation/Main_Page"
-    with open(fileName,'w') as f:
-        for line in main_template:
-            f.write(line+"\n")                
+        current_rxn_dict = total_padmet_data["reaction"][rxn_id]
+        current_rxn_dict["padmet_source"].add(padmet_source)
+        current_rxn_dict["reconstruction_data"][padmet_source] = list()
 
-def create_navigation_page(output_folder):
-    """
-    
-    """
-    sideBarData = ["* navigation","** mainpage|mainpage-description","** workflow|workflow command history","** randompage-url|randompage","** Special:ListFiles|Files","* Metabolic network components"]
+        #Use update_basic_attrib to extract data from node.misc and add them to 'basic_attrib'
+        current_rxn_dict = update_basic_attrib(rxn_node, current_rxn_dict, padmet_source)                    
+        list_names = [padmet.dicOfNode[rlt.id_out].misc["LABEL"] for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type == "has_name"]
+        if list_names:
+            current_names = set()
+            [current_names.update(i) for i in list_names]
+            if "synonymous" not in current_rxn_dict["basic_attrib"].keys():
+                current_rxn_dict["basic_attrib"]["synonymous"] = dict()
+            for name in current_names:
+                name = name.lower()
+                try:
+                    current_rxn_dict["basic_attrib"]["synonymous"][name].add(padmet_source)
+                except KeyError:
+                    current_rxn_dict["basic_attrib"]["synonymous"][name] = set([padmet_source])
 
-    category = "Reaction"
-    sideBarData.append("** Category:"+category+"|"+category)
-    fileName = output_folder+"Category:Reaction"
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Reaction]]","| ?common name","| ?ec number",
-                      "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?gene associated","| ?in pathway","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
+        #get all relations where reaction consumes or produces X
+        consume_produce_rlts = [rlt for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type in ["consumes","produces"]]
+        for rlt in consume_produce_rlts:
+            cpd_id = rlt.id_out
+            cpd_node = padmet.dicOfNode[cpd_id]
+            #For each compound, update total_padmet_data["metabolite"]
+            if cpd_id not in total_padmet_data["metabolite"].keys():
+                total_padmet_data["metabolite"][cpd_id] = {"basic_attrib": dict(), "consumed_by": dict(), "produced_by": dict(), "unknown_dir_by": dict()}
+            #extract basic attrib of cpd
+            current_cpd_dict = total_padmet_data["metabolite"][cpd_id]
+            current_cpd_dict = update_basic_attrib(cpd_node, current_cpd_dict, padmet_source)                    
 
-    category = "Gene"
-    sideBarData.append("** Category:"+category+"|"+category)
-    fileName = output_folder+"Category:Gene"
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Gene]]", "| ?reaction associated", "| ?pathway associated","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
+            #store compound depending on the direction of reaction
+            if rxn_node.misc['DIRECTION'][0] == "LEFT-TO-RIGHT":
+                direction_str = " '''=>''' "
+                if rlt.type == "consumes":
+                    try:
+                        current_cpd_dict['consumed_by'][rxn_id].add(padmet_source)
+                    except KeyError:
+                        current_cpd_dict['consumed_by'][rxn_id] = set([padmet_source])
+                elif rlt.type == "produces":
+                    try:
+                        current_cpd_dict['produced_by'][rxn_id].add(padmet_source)
+                    except KeyError:
+                        current_cpd_dict['produced_by'][rxn_id] = set([padmet_source])
 
-    category = "Pathway"
-    sideBarData.append("** Category:"+category+"|"+category)
-    fileName = output_folder+"Category:Pathway"
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Pathway]]","| ?common name","| ?reaction found","| ?total reaction","| ?completion rate","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-    category = "Metabolite"
-    sideBarData.append("** Category:"+category+"|"+category)
-    fileName = output_folder+"Category:Metabolite"
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:Metabolite]]","| ?common name","| ?consumed by","| ?produced by","| ?reversible reaction associated","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-
-
-
-    sideBarData.append("* Reconstruction categories")
-    [sideBarData.append("** "+rec_category+"|"+rec_category) for rec_category in sorted(all_categories)]
-    for rec_category in all_categories:
-        fileName = output_folder+rec_category
-        if verbose: print("Reconstruction category: %s" %rec_category)
-        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction category::"+rec_category+"]]","| ?common name","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-
-    sideBarData.append("* Reconstruction tools")
-    [sideBarData.append("** "+rec_tool+"|"+rec_tool) for rec_tool in sorted(all_tools)]
-    for rec_tool in all_tools:
-        fileName = output_folder+rec_tool
-        if verbose: print("Reconstruction tool: %s" %rec_tool)
-        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction tool::"+rec_tool+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-
-    sideBarData.append("* Reconstruction sources")
-    [sideBarData.append("** "+rec_source+"|"+rec_source) for rec_source in sorted(all_sources)]
-    for rec_source in all_sources:
-        fileName = output_folder+rec_source
-        if verbose: print("Reconstruction source: %s" %rec_source)
-        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction source::"+rec_source+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-
-    if verbose: print("SideBar page")
-    with open(output_folder+"MediaWiki:Sidebar", 'w') as f:
-        for line in sideBarData:
-            f.write(line+"\n")
-
-def create_biological_page(category, page_node, output_folder):
-    """
-    
-    """
-    global padmetSpec, all_pwy_id, all_cpd_id
-
-    if "/" in page_node.id:
-        print("%s contains not allowed caractere" %page_node.id)
-        fileName = output_folder + page_node.id.replace("/","__47__")
-    else:
-        fileName = output_folder + page_node.id
-    if verbose: print("%s: %s" %(category, page_node.id))
-    #stock in properties: all properties associated to the current page.
-    #properties = [{{#set PROPERTY_X:VALUE_1|...|VALUE_N}}, ...]
-    properties = []
-    #ext_link is used to create external link to the database of reference if known
-    if ext_link.get(category):
-        dataInArray = ['[[Category:'+category+']]',
-        '== '+category+' ['+ext_link.get(category)+page_node.id+' '+page_node.id+'] ==']
-    else:
-        dataInArray = ['[[Category:'+category+']]',
-        '== '+category+' '+page_node.id+' ==']
-    #extracting all data in dict misc of node. ex: misc= {"A":["X","Y"]}
-    #adding in page: ** A: *X *Y
-    for k,v in page_node.misc.items():
-        k = k.replace("-"," ").lower()
-        line = '* '+k+':'
-        dataInArray.append(line)
-        for i in v:
-            if k == "ec number":
-                line = "** [http://enzyme.expasy.org/EC/"+i.replace("EC-","")+" "+i+"]"
-            elif k == "taxonomic range" and ext_link.get(category):
-                line = "** ["+ext_link.get(category)+i+" "+i+"]"
+            elif rxn_node.misc['DIRECTION'][0] == "REVERSIBLE":
+                direction_str = " '''<=>''' "
+                for by_type in ["consumed_by", "produced_by"]:
+                    try:
+                        current_cpd_dict[by_type][rxn_id].add(padmet_source)
+                    except KeyError:
+                        current_cpd_dict[by_type][rxn_id] = set([padmet_source])
             else:
-                line = '** '+i
-            #add_property is used to stock all added properties and add them at the end of the page
-            add_property(properties, k, [i])
-            dataInArray.append(line)
-    #if node is linked to a name node, extracts synonyms from name node misc dict, k = 'LABEL'
-    #keyError: no relations in for current node [node => X]
-    #names is empty: bool(names) == False
-    try:
-        names = [padmetSpec.dicOfNode[rlt.id_out].misc["LABEL"] for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "has_name"]
-        if names:
-            names = names[0]
-        else:
-            raise KeyError
-    except KeyError:
-        names = None
-    line = "* Synonym(s):"
-    dataInArray.append(line)
-    if names:
-        add_property(properties, "common name", names)
-        for name in names:
-            line = "** "+name
-            dataInArray.append(line)
+                direction_str = " '''=>/<=>''' "
+                try:
+                    current_cpd_dict['unknown_dir_by'][rxn_id].add(padmet_source)
+                except KeyError:
+                    current_cpd_dict['unknown_dir_by'][rxn_id] = set([padmet_source])
+            
 
-    #For each category, extract in a specific way the information
-    dataInArray.append("")
-    if category == "Reaction":
-        #extract direction information
-        direction = page_node.misc["DIRECTION"][0]
-        if direction == "UNKNOWN":
-            direction = " '''=>/<=>''' "
-        elif direction == "REVERSIBLE":
-            direction = " '''<=>''' "
-        elif direction == "LEFT-TO-RIGHT":
-            direction = " '''=>''' "
-        
-        #global var total_cpd_id will contains all ids of compounds involved in a reaction
-        total_cpd_id.update([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type in ["consumes","produces"]])
         # Recovering the formula
-        dataInArray.append('== Reaction Formula ==', )
         #reactants and products: list of str: ['stoichio [[cpd_id]][cpd_compart]',...]
-        reactants = [rlt.misc["STOICHIOMETRY"][0]+" [["+rlt.id_out+"]]["+rlt.misc["COMPARTMENT"][0]+"]"
-        for rlt in padmetSpec.dicOfRelationIn.get(page_node.id, None) if rlt.type == "consumes"]
-        products = [rlt.misc["STOICHIOMETRY"][0]+" [["+rlt.id_out+"]]["+rlt.misc["COMPARTMENT"][0]+"]"
-        for rlt in padmetSpec.dicOfRelationIn.get(page_node.id, None) if rlt.type == "produces"]
-        #join each list with '+' and direction in center
-        formula_id = " '''+''' ".join(reactants)+direction+" '''+''' ".join(products)
-        dataInArray.append("* With identifiers:")
-        dataInArray.append("** "+formula_id)            
-        dataInArray.append("* With common name(s):")
-        #if all involved compounds have a common name, creating the same formula but with common name
-        try:
-            reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetSpec.dicOfNode[rlt.id_out].misc["COMMON-NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]" 
-            for rlt in padmetSpec.dicOfRelationIn.get(page_node.id, None) if rlt.type == "consumes"]
-            products = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetSpec.dicOfNode[rlt.id_out].misc["COMMON-NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]"
-            for rlt in padmetSpec.dicOfRelationIn.get(page_node.id, None) if rlt.type == "produces"]
-            formula_cname = " '''+''' ".join(reactants)+direction+" '''+''' ".join(products)+"\n"
-            dataInArray.append("** "+formula_cname)
-        except KeyError:
-            dataInArray.append("**")
+        reactants = set([(rlt.misc["STOICHIOMETRY"][0], rlt.id_out, rlt.misc["COMPARTMENT"][0])
+        for rlt in padmet.dicOfRelationIn.get(rxn_id, None) if rlt.type == "consumes"])
+        products = set([(rlt.misc["STOICHIOMETRY"][0], rlt.id_out, rlt.misc["COMPARTMENT"][0])
+        for rlt in padmet.dicOfRelationIn.get(rxn_id, None) if rlt.type == "produces"])
 
-        dataInArray.append('== Genes associated with this reaction  ==')
-        #get all relations, type == "is_linked_to"
-        linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "is_linked_to"]
+        reactants_id_str = [reac_tuple[0]+" [["+reac_tuple[1]+"]]["+reac_tuple[2]+"]"
+                            for reac_tuple in  sorted(reactants, key=lambda reac_tuple: reac_tuple[1])]
+        products_id_str = [prod_tuple[0]+" [["+prod_tuple[1]+"]]["+prod_tuple[2]+"]"
+                            for prod_tuple in  sorted(products, key=lambda prod_tuple: prod_tuple[1])]
+        #join each list with '+' and direction in center
+        formula_id = " '''+''' ".join(reactants_id_str)+direction_str+" '''+''' ".join(products_id_str)
+        try:
+            current_rxn_dict["formula"][formula_id].add(padmet_source)
+        except KeyError:
+            current_rxn_dict["formula"][formula_id] = set([padmet_source])
+            
+        #get all pathways assocaited to the reaction    
+        pathways_ids = [rlt.id_out for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type == "is_in_pathway"]
+        for pwy_id in pathways_ids:
+            pwy_node = padmet.dicOfNode[pwy_id]
+            current_padmet_dict["pathway"][pwy_id] = dict()
+
+            #for each pathway update total_padmet_data["pathway"]
+            if pwy_id not in current_rxn_dict["pathway_assoc"].keys():
+                current_rxn_dict["pathway_assoc"][pwy_id] = dict()
+            if pwy_id not in total_padmet_data["pathway"].keys():
+                total_padmet_data["pathway"][pwy_id] = {"basic_attrib": dict(), "padmet_source":set(), "reac_assoc": dict(), "completion_rate":dict(), "total_reac_assoc":set()}
+            current_pwy_dict = total_padmet_data["pathway"][pwy_id]
+            current_pwy_dict = update_basic_attrib(pwy_node, current_pwy_dict, padmet_source)      
+            current_pwy_dict["padmet_source"].add(padmet_source)
+            if rxn_id not in current_pwy_dict["reac_assoc"].keys():
+                current_pwy_dict["reac_assoc"][rxn_id] = set()
+
+            #recovering the nb of reactions associated to the pathway and the completion rate if global_pwy_rxn_dict given (if padmetRef given)
+            total_reac_assoc = set()
+            nb_total_reac_assoc = "N.A"
+            if global_pwy_rxn_dict:
+                if pwy_id in global_pwy_rxn_dict.keys():
+                    total_reac_assoc = global_pwy_rxn_dict[pwy_id]
+                    nb_total_reac_assoc = len(total_reac_assoc)
+                try:
+                    current_pwy_dict["completion_rate"][padmet_source].add(rxn_id)
+                except KeyError:
+                    current_pwy_dict["completion_rate"][padmet_source]= set([rxn_id])
+
+            current_pwy_dict["total_reac_assoc"] = total_reac_assoc
+            reac_assoc = [rlt.id_in for rlt in padmet.dicOfRelationOut[pwy_id] if rlt.type == "is_in_pathway"]
+            nb_reac_assoc = len(reac_assoc)
+            current_rxn_dict["pathway_assoc"][pwy_id][padmet_source] = {"nb_total_rxn": nb_total_reac_assoc, "nb_found_rxn": nb_reac_assoc}
+            current_pwy_dict["reac_assoc"][rxn_id].add(padmet_source)
+                
+        #get all genes associated to the reaction
+        linked_rlt = [rlt for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
         if linked_rlt:
-            dataInArray.append('Genes have been associated with this reaction based on different elements listed below.')
-            add_property(properties, "gene associated", [rlt.id_out for rlt in linked_rlt])
             for rlt in linked_rlt:
                 gene_id = rlt.id_out
-                dataInArray.append("* Gene: [[%s]]" %gene_id)
+                gene_node = padmet.dicOfNode[gene_id]
+                current_padmet_dict["gene"][gene_id] = dict()
+
+                if gene_id not in current_rxn_dict["gene_assoc"].keys():
+                    current_rxn_dict["gene_assoc"][gene_id] = {padmet_source: dict()}
+                if gene_id not in total_padmet_data["gene"].keys():
+                    total_padmet_data["gene"][gene_id] = {"basic_attrib": dict(), "padmet_source":set(), "reac_assoc": dict(), "pathway_assoc":dict()}
+                current_gene_dict = total_padmet_data["gene"][gene_id]
+                current_gene_dict = update_basic_attrib(gene_node, current_gene_dict, padmet_source)      
+                current_gene_dict["padmet_source"].add(padmet_source)
+                
+                
+                for pwy_id, pwy_dict in current_rxn_dict["pathway_assoc"].items():
+                    if padmet_source in pwy_dict.keys():
+                        pwy_current_source = pwy_dict[padmet_source]
+                        if pwy_id not in current_gene_dict["pathway_assoc"].keys():
+                            current_gene_dict["pathway_assoc"][pwy_id] = {padmet_source: dict()}
+                        current_gene_dict["pathway_assoc"][pwy_id][padmet_source] = dict(pwy_current_source)
+
+                if rxn_id not in current_gene_dict["reac_assoc"].keys():
+                    current_gene_dict["reac_assoc"][rxn_id] = {padmet_source: dict()}
                 #a is_linked_to rlt have in misc a key "SOURCE:ASSIGNMENT"
                 #the value can be only the source, ex: OUTPUT_PANTOGRAPH_X
                 #or the source and the known assignment: SILI_ANNOTATION:EC-NUMBER
                 sources = rlt.misc["SOURCE:ASSIGNMENT"]
-                for src_data in sources:
+                for source_data in sources:
                     #ValueError: can't split and get 2 value == no known assignment
                     try:
-                        src, assignment = src_data.split(":")
+                        source, assignment = source_data.split(":")
                     except ValueError:
-                        src = src_data
-                        assignment = None
-                    category = next(node.misc["CATEGORY"][0] for node in list(padmetSpec.dicOfNode.values()) if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src))
-                    src = src.lower()
-                    category = category.lower()
-                    if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
-                    src = "-".join([category, src])
-                    dataInArray.append("** Source: [[%s]]" %src)
-                    if assignment:
-                        dataInArray.append("*** Assignment: %s" %assignment)
-        
-        dataInArray.append('== Pathways  ==')
-        #set of pathways id associated to the reaction
-        pathways_ids = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[page_node.id]
-        if rlt.type == "is_in_pathway"])
-        #update global var total_pwy_id containing all pathways involved in the metabolic network
-        total_pwy_id.update(pathways_ids)
-        for pwy_id in pathways_ids:
-            #recovering the nb of reactions associated to the pathway
-            if padmetRef is not None:
-                try:
-                    nbReactionsTotal = len([rlt for rlt in padmetRef.dicOfRelationOut[pwy_id] if rlt.type == "is_in_pathway"])
-                # If keyError: pathway not in padmetRef, pathway added manualy
-                except KeyError: 
-                    nbReactionsTotal = "NA"
-            else:
-                nbReactionsTotal = "NA"
-            nbReactionsFound = len([rlt for rlt in padmetSpec.dicOfRelationOut[pwy_id] if rlt.type == "is_in_pathway"])
+                        source = source_data
+                        assignment = "n.a"
+                    rec_data_node = next(node for node in list(padmet.dicOfNode.values()) if (node.type == "reconstructionData" and node.misc.get("SOURCE",["unknown-source"])[0] == source))
+                    category = rec_data_node.misc.get("CATEGORY",["unknown-category"])[0].lower()
+                    tool = rec_data_node.misc.get("TOOL",["unknown-tool"])[0].lower()
+                    comment = rec_data_node.misc.get("COMMENT",["n.a"])[0].lower()
+                    source = source.lower()
+                    assignment = assignment.lower()
+                    if re.findall("^output_.*_from_", source):
+                        source = re.sub("^output_.*_from_", "", source)
 
-            #extract pwy common name
-            pwy_cname = padmetSpec.dicOfNode[pwy_id].misc.get("COMMON-NAME",[None])[0]
-            if pwy_cname:
-                line = "* [["+pwy_id+"]], "+pwy_cname+":"
+                    #special patch for aureme workflow, if source start with 'output_*_"
+                    dict_src_data = {"source": source, "assignment":assignment, "tool": tool, "comment": comment}
+                    try:
+                        current_rxn_dict["gene_assoc"][gene_id][padmet_source][category].append(dict_src_data)
+                    except KeyError:
+                        current_rxn_dict["gene_assoc"][gene_id][padmet_source][category] = list([dict_src_data])
+                    try:
+                        current_rxn_dict["padmet_gene"][padmet_source].add(gene_id)
+                    except KeyError:
+                        current_rxn_dict["padmet_gene"][padmet_source] = set([gene_id])
+
+                    try:
+                        current_gene_dict["reac_assoc"][rxn_id][padmet_source][category].append(dict_src_data)
+                    except KeyError:
+                        current_gene_dict["reac_assoc"][rxn_id][padmet_source][category] = list([dict_src_data])
+                        
+        reconstruction_data = [padmet.dicOfNode[rlt.id_out] for rlt in padmet.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]
+        #src_data = {category:{source:{comment:comment, tool:tool}}}
+        
+        for rec_data_node in reconstruction_data:
+            #if found, lower to standardize
+            category = rec_data_node.misc.get("CATEGORY",["unknown-category"])[0].lower()
+            tool = rec_data_node.misc.get("TOOL",["unknown-tool"])[0].lower()
+            comment = rec_data_node.misc.get("COMMENT",["n.a"])[0].lower()
+            source = rec_data_node.misc.get("SOURCE",["unknown-source"])[0].lower()
+            if re.findall("^output.*_from_", source):
+                source = re.sub("^output_.*_from_", "", source)
+            if category not in total_padmet_data["reconstruction"]["category"].keys():
+                total_padmet_data["reconstruction"]["category"][category] = dict()
+            if tool not in total_padmet_data["reconstruction"]["tool"].keys():
+                total_padmet_data["reconstruction"]["tool"][tool] = dict()
+            if comment not in total_padmet_data["reconstruction"]["comment"].keys():
+                total_padmet_data["reconstruction"]["comment"][comment] = dict()
+            if source not in total_padmet_data["reconstruction"]["source"].keys():
+                total_padmet_data["reconstruction"]["source"][source] = dict()
+            dict_src_data = {"category": category, "source": source, "tool": tool, "comment": comment}
+            current_rxn_dict["reconstruction_data"][padmet_source].append(dict_src_data)
+
+            try:
+                total_padmet_data["reconstruction"]["category"][category][rxn_id].add(padmet_source)
+            except KeyError:
+                total_padmet_data["reconstruction"]["category"][category][rxn_id] = set([padmet_source])
+            try:
+                total_padmet_data["reconstruction"]["tool"][tool][rxn_id].add(padmet_source)
+            except KeyError:
+                total_padmet_data["reconstruction"]["tool"][tool][rxn_id] = set([padmet_source])
+            try:
+                total_padmet_data["reconstruction"]["comment"][comment][rxn_id].add(padmet_source)
+            except KeyError:
+                total_padmet_data["reconstruction"]["comment"][comment][rxn_id] = set([padmet_source])
+            try:
+                total_padmet_data["reconstruction"]["source"][source][rxn_id].add(padmet_source)
+            except KeyError:
+                total_padmet_data["reconstruction"]["source"][source][rxn_id] = set([padmet_source])
+
+    return total_padmet_data
+
+def update_basic_attrib(node, current_node_dict, padmet_source):
+    """
+    #TODO
+    """
+    for tag, list_of_v in node.misc.items():
+        tag = tag.lower()
+        if tag not in current_node_dict["basic_attrib"].keys():
+            current_node_dict["basic_attrib"][tag] = dict()
+        global_v = current_node_dict["basic_attrib"][tag]
+        for v in list_of_v:
+            v = v.lower()
+            if tag == "molecular-weight": v = v.replace(" ","")
+            try:
+                global_v[v].add(padmet_source)
+            except KeyError:
+                global_v[v] = set([padmet_source])
+    return current_node_dict
+
+def reduce_padmet_data(total_padmet_data, verbose=False):
+    """
+    #TODO
+    """
+    all_padmet_source = set(total_padmet_data["padmet_source"].keys())
+    if len(all_padmet_source) == 1:
+        global_val = "_1_IN_1_"
+    else:
+        global_val = "_1_IN_ALL_"
+    for rxn_id, rxn_data in total_padmet_data["reaction"].items():
+        basic_attrib_dict = rxn_data["basic_attrib"]
+        for tag, dict_val_padmet_source in basic_attrib_dict.items():
+            for val, set_padmet_source in dict_val_padmet_source.items():
+                if set_padmet_source == all_padmet_source:
+                    dict_val_padmet_source[val] = global_val
+        formula_dict = rxn_data["formula"]
+        if len(formula_dict.keys()) == 1:
+            formula_dict[list(formula_dict.keys())[0]] = global_val
+            
+                        
+
+    for cpd_id, cpd_data in total_padmet_data["metabolite"].items():
+        basic_attrib_dict = cpd_data["basic_attrib"]
+        for tag, dict_val_padmet_source in basic_attrib_dict.items():
+            for val, set_padmet_source in dict_val_padmet_source.items():
+                if set_padmet_source == all_padmet_source:
+                    dict_val_padmet_source[val] = global_val
+        for key in ["consumed_by", "produced_by", "unknown_dir_by"]:
+            set_padmet_source = cpd_data[key]
+            if set_padmet_source == all_padmet_source:
+                cpd_data[key] = global_val
+
+    for gene_id, gene_data in total_padmet_data["gene"].items():
+        basic_attrib_dict = gene_data["basic_attrib"]
+        for tag, dict_val_padmet_source in basic_attrib_dict.items():
+            for val, set_padmet_source in dict_val_padmet_source.items():
+                if set_padmet_source == all_padmet_source:
+                    dict_val_padmet_source[val] = global_val
+        
+    for pwy_id, pwy_data in total_padmet_data["pathway"].items():
+        basic_attrib_dict = pwy_data["basic_attrib"]
+        for tag, dict_val_padmet_source in basic_attrib_dict.items():
+            for val, set_padmet_source in dict_val_padmet_source.items():
+                if set_padmet_source == all_padmet_source:
+                    dict_val_padmet_source[val] = global_val
+        reac_assoc_dict = pwy_data["reac_assoc"]
+        for rxn_id, set_padmet_source in reac_assoc_dict.items():
+            if set_padmet_source == all_padmet_source:
+                reac_assoc_dict[rxn_id] = global_val
+        completion_rate_dict = pwy_data["completion_rate"]
+        for padmet_source in all_padmet_source:
+            try:
+                rxn_assoc = completion_rate_dict[padmet_source]
+            except KeyError:
+                rxn_assoc = []
+
+            try:
+                rate = round(float(len(rxn_assoc))/float(len(pwy_data["total_reac_assoc"])),2)
+            except ZeroDivisionError:
+                rate = None
+            completion_rate_dict[padmet_source] = rate
+            
+            
+
+    return total_padmet_data
+                    
+    
+
+def createDirectory(output, verbose=False):
+    """
+    create the folders genes, reactions, metabolites, pathways in the folder dirPath/
+    if already exist, it will replace old folders (and delete old files)
+
+    Parameters
+    ----------
+    output: str
+        path to output folder
+    """
+    #simple check that dirPath is a dir:
+    dirNames = ["genes","reactions","metabolites","pathways","organisms","navigation","files","misc"]
+    #creatings the directory which will contains the wiki pages
+    for d in dirNames:
+        d_path = os.path.join(output,d)
+        if not os.path.exists(d_path):
+            if verbose: print("Creating directory: %s" %d_path)
+            os.makedirs(d_path)
+        else:
+            if verbose: print("The directory %s already exist. Old pages will be deleted" %d_path)
+            shutil.rmtree(d_path)
+            os.makedirs(d_path)
+    
+    
+
+def create_biological_page(category, page_id, page_dict_data, total_padmet_data, ext_link, output_file, padmetRef=None, verbose=False):
+    """
+    #TODO
+    """
+    total_padmet_source = list(total_padmet_data["padmet_source"].keys())
+    to_collapse_cutoff = 20
+    if verbose: print("%s: %s" %(category, page_id), end='\r')
+    #stock in properties: all properties associated to the current page for semantic mediawiki
+    #properties = [{{#set PROPERTY_X:VALUE_1|...|VALUE_N}}, ...]
+    properties = []
+
+    #ext_link is used to create external link to the database of reference if known
+    if ext_link.get(category):
+        dataInArray = ['[[Category:'+category+']]',
+        '== '+category.capitalize()+' ['+ext_link.get(category)+page_id+' '+page_id+'] ==']
+    else:
+        dataInArray = ['[[Category:'+category+']]',
+        '== '+category.capitalize()+' '+page_id+' ==']
+
+    #basic_attrib contains data from misc dict of nodes ex for reaction: common-name, ec-number ...
+    #page_dict_data["basic_attrib"] = {tag*: dict_val_padmet_source}
+    #dict_va_padmet_source = {value: set_padmet_source}
+    #ex: {'ec-number':{'ec-1.2.2: set([padmet_a, padmet_b])}}
+    if "basic_attrib" in page_dict_data.keys():
+        for tag, dict_val_padmet_source in page_dict_data["basic_attrib"].items():
+            line = '* '+tag+':'
+            dataInArray.append(line)
+            #dont add smile as propertie because of invalid characters for SemanticMediaWiki
+            if tag not in ["smiles"]:
+                add_property(properties, tag, dict_val_padmet_source.keys())
+            for val, set_padmet_source in dict_val_padmet_source.items():
+                #for ec-number, remove 'ec-' and add external link to expasy
+                if tag == "ec-number":
+                    line = "** [http://enzyme.expasy.org/EC/"+val.replace("ec-","")+" "+val+"]"
+                #for taxonomic-range from metacyc, add external link to biocyc
+                elif tag == "taxonomic-range" and ext_link.get(category):
+                    line = "** ["+ext_link.get(category)+val+" "+val+"]"
+                #for inchi-key, remove "inchikey="
+                elif tag == "inchi-key":
+                    line = "** %s" %(val.replace("inchikey=",""))
+                else:
+                    line = "** %s" %val
+                dataInArray.append(line)
+                #when set_padmet_source == '_1_IN_ALL_': code means that the value is in all padmet/organisms
+                if set_padmet_source == "_1_IN_ALL_":
+                    line = "*** Value found in all organisms"
+                    dataInArray.append(line)
+                #when set_padmet_source != '_1_IN_ALL_' or '_1_IN_1': its a real set of padmet sources
+                if set_padmet_source not in ["_1_IN_ALL_", "_1_IN_1_"]:
+                    
+                    line = "*** Value found in %s organism(s): %s" %(len(set_padmet_source), ";".join(["[[%s]]"%src for src in set_padmet_source]))
+                    dataInArray.append(line)
+
+    #For each category, extract in a specific way the information
+
+    if category == "reaction":
+        dataInArray.append("== Reaction formula ==")
+        #add_property(properties, "formula", page_dict_data["formula"].keys())
+        for formula, set_padmet_source in page_dict_data["formula"].items():
+            line = "* "+formula
+            dataInArray.append(line)
+            if set_padmet_source == "_1_IN_ALL_":
+                line = "** Same formula in all organisms"
+                dataInArray.append(line)
+            if set_padmet_source not in ["_1_IN_ALL_", "_1_IN_1_"]:
+                line = "** Formula found in %s organism(s): %s" %(len(set_padmet_source), ";".join(set_padmet_source))
+                dataInArray.append(line)
+
+        if len(total_padmet_source) > 1:
+            add_property(properties, "nb organism associated", [len(total_padmet_source)])
+            min_gene_assoc = min([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])
+            max_gene_assoc = max([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])
+            avg_gene_assoc = sum([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])/len(page_dict_data["padmet_gene"].values())
+            add_property(properties, "min gene associated", [min_gene_assoc])
+            add_property(properties, "max gene associated", [max_gene_assoc])
+            add_property(properties, "avg gene associated", [avg_gene_assoc])
+            dataInArray.append('== Organism(s) associated with this reaction  ==')
+            [dataInArray.append("* [["+padmet_source+"]]") for padmet_source in page_dict_data["padmet_source"]]
+        else:
+            add_property(properties, "nb gene associated", [len(page_dict_data["gene_assoc"].keys())])
+            
+        dataInArray.append('== Gene(s) associated with this reaction  ==')
+        for gene_id, gene_dict in page_dict_data["gene_assoc"].items():
+            line = "* Gene: [[%s]]" %gene_id
+            dataInArray.append(line)
+            if len(total_padmet_source) > 1:
+                for padmet_source, category_dict in gene_dict.items():
+                    line = "** In organism: [[%s]]" %padmet_source
+                    dataInArray.append(line)
+                    for category, category_data in category_dict.items():
+                        line = "*** Category: [[%s]]" %category
+                        dataInArray.append(line)
+                        for data in category_data:
+                            line = "**** Source: [[%s]], Tool: [[%s]], Assignment: %s, Comment: %s" %(data["source"], data["tool"], data["assignment"], data["comment"])
+                            dataInArray.append(line)
+            else:
+                for category_dict in gene_dict.values():
+                    for category, category_data in category_dict.items():
+                        line = "** Category: [[%s]]" %category
+                        dataInArray.append(line)
+                        for data in category_data:
+                            line = "*** Source: [[%s]], Tool: [[%s]], Assignment: %s, Comment: %s" %(data["source"], data["tool"], data["assignment"], data["comment"])
+                            dataInArray.append(line)
+        
+        dataInArray.append('== Pathway(s)  ==')
+        #set of pathways id associated to the reaction
+        add_property(properties, "nb pathway associated", [len(page_dict_data["pathway_assoc"].keys())])
+        for pwy_id, pwy_dict in page_dict_data["pathway_assoc"].items():
+            if padmetRef:
+                pwy_cname = padmetRef.dicOfNode[pwy_id].misc.get("COMMON-NAME",[None])[0]
+                if pwy_cname:
+                    line = "* [["+pwy_id+"]], "+pwy_cname+":"
             else:
                 line = "* [["+pwy_id+"]]:"
 
             #if external link known, adding external link to the pathway
             #line: PWY_ID, common name, extern link to PWY
-            if ext_link.get("Pathway"):
-                line += ' ['+ext_link.get("Pathway")+pwy_id+' '+pwy_id+']'
+            if ext_link.get("pathway"):
+                line += ' ['+ext_link.get("pathway")+pwy_id+' '+pwy_id+']'
             dataInArray.append(line)
-            dataInArray.append("** '''"+str(nbReactionsFound)+"''' reactions found over '''"+str(nbReactionsTotal)+"''' reactions in the full pathway")
-        add_property(properties, "in pathway", pathways_ids)
+
+            if len(total_padmet_source) > 1:
+                for padmet_source, pwy_rxn in pwy_dict.items():
+                    line = "** In organism: [[%s]]" %padmet_source
+                    dataInArray.append(line)
+                    line = "*** '''"+str(pwy_rxn["nb_found_rxn"])+"''' reactions found over '''"+str(pwy_rxn["nb_total_rxn"])+"''' reactions in the full pathway"
+                    dataInArray.append(line)
+            else:
+                pwy_rxn = list(pwy_dict.values())[0]
+                line = "** '''"+str(pwy_rxn["nb_found_rxn"])+"''' reactions found over '''"+str(pwy_rxn["nb_total_rxn"])+"''' reactions in the full pathway"
+                dataInArray.append(line)
 
         dataInArray.append('== Reconstruction information  ==')
-        reconstruction_data = [padmetSpec.dicOfNode[rlt.id_out] for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "has_reconstructionData"]
-        #src_data = {category:{source:{comment:comment, tool:tool}}}
-        src_data = {}
-        for category in set([rec_data_node.misc["CATEGORY"][0].lower() for rec_data_node in reconstruction_data]):
-            src_data[category] = dict()
-        rxn_srcs, rxn_tools, rxn_comments, rxn_categories = set(), set(), set(), set()
-        for rec_data_node in reconstruction_data:
-            #if found, lower to standardize
-            category = rec_data_node.misc.get("CATEGORY",[None])[0]
-            if category: 
-                category = category.lower()
-                rxn_categories.add(category)
-            tool = rec_data_node.misc.get("TOOL",[None])[0]
-            if tool: 
-                tool = tool.lower()
-                rxn_tools.add(tool)
-            comment = rec_data_node.misc.get("COMMENT",[None])[0]
-            if comment: 
-                comment = comment.lower()
-                rxn_comments.add(comment)
+        if len(total_padmet_source) > 1:
+            for tool, tool_org_list in [(tool, tool_dict[page_id]) for tool, tool_dict in total_padmet_data["reconstruction"]["tool"].items() if page_id in tool_dict.keys()]:
+                add_property(properties, "nb organism associated based on %s tool"%tool, [len(tool_org_list)])
+          
+            for padmet_source, rec_data in page_dict_data["reconstruction_data"].items():
+                line="* In organism: [[%s]]" %padmet_source
+                dataInArray.append(line)
 
-            source = rec_data_node.misc.get("SOURCE",[None])[0]
-            source = source.lower()
-            if source.startswith("output_pantograph_"):
-                source = source.replace("output_pantograph_","")
-            source = category+"-"+source
-            rxn_srcs.add(source)
-            src_data[category][source] = {"comment":comment,"tool":tool}
-        all_categories.update(rxn_categories)
-        add_property(properties, "reconstruction category", rxn_categories)
-        if rxn_srcs:
-            all_sources.update(rxn_srcs)
-            add_property(properties, "reconstruction source", rxn_srcs)
-        if rxn_tools:
-            all_tools.update(rxn_tools)
-            add_property(properties, "reconstruction tool", rxn_tools)
-        if rxn_comments:
-            add_property(properties, "reconstruction comment", rxn_comments)
-
-        #udpating global var full_sources_dict: k = rxn_id, v = previous src_data dict
-        full_sources_dict[page_node.id] = src_data
-        for category, category_data in list(src_data.items()):
-            dataInArray.append("* Category: [["+category+"]]")
-            for source, source_data in list(category_data.items()):
-                dataInArray.append("** Source: [["+source+"]]")
-                if source_data["tool"]:
-                    dataInArray.append("*** Tool: [["+source_data["tool"]+"]]")
-                    if source_data["comment"]:
-                        dataInArray.append("**** Comment: [["+source_data["comment"]+"]]")
-                elif source_data["comment"]:
-                    dataInArray.append("*** Comment: [["+source_data["comment"]+"]]")
-
-    elif category == "Gene":
-        dataInArray.append("== Reactions associated ==")
-        linked_rlt = [rlt for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_linked_to"]
-        if linked_rlt:
-            pwy_assoc = set()
-            add_property(properties, "reaction associated", [rlt.id_in for rlt in linked_rlt])
-            for rlt in linked_rlt:
-                rxn_id = rlt.id_in
-                [pwy_assoc.add(rlt_pwy.id_out) for rlt_pwy in padmetSpec.dicOfRelationIn[rxn_id] if rlt_pwy.type == "is_in_pathway"]
-                dataInArray.append("* Reaction: [[%s]]" %rxn_id)
-                sources = rlt.misc["SOURCE:ASSIGNMENT"]
-                for src_data in sources:
-                    try:
-                        src, assignment = src_data.split(":")
-                    except ValueError:
-                        src = src_data
-                        assignment = None
-                    category = next(node.misc["CATEGORY"][0] for node in list(padmetSpec.dicOfNode.values()) if (node.type == "reconstructionData" and node.misc.get("SOURCE",[None])[0] == src))
-                    src = src.lower()
-                    category = category.lower()
-                    if src.startswith("output_pantograph_"): src = src.replace("output_pantograph_","")
-                    src = "-".join([category, src])
-                    dataInArray.append("** Source: [[%s]]" %src)
-                    if assignment:
-                        assignment = assignment.lower()
-                        dataInArray.append("*** Assignment: "+assignment)
-            dataInArray.append("== Pathways associated ==")
-            if pwy_assoc :
-                add_property(properties, "pathway associated", pwy_assoc)
-                for pwy_id in pwy_assoc:
-                    dataInArray.append("* [["+pwy_id+"]]")
-
-    elif category == "Pathway":
-        dataInArray.append("== Reaction(s) found ==")
-        #recovering the nb of reactions associated to the pathway
-        if padmetRef is not None:
-            try:
-                reactionsTotal = [rlt.id_in for rlt in padmetRef.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
-            # If keyError: pathway not in padmetRef, pathway added manualy
-            except KeyError: 
-                reactionsTotal = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
+                for rec_dict in rec_data:
+                    line = "** category: [[%s]]; source: [[%s]]; tool: [[%s]]; comment: %s" %(rec_dict["category"], rec_dict["source"], rec_dict["tool"], rec_dict["comment"])
+                    dataInArray.append(line)
         else:
-                reactionsTotal = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
-        reactionsFound = [rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_in_pathway"]
-        reactionsMissing = [rxn_id for rxn_id in reactionsTotal if rxn_id not in reactionsFound]
-        pwy_ratio = round(float(len(reactionsFound))/float(len(reactionsTotal)),2)*100
-        dataInArray.append(" '''%s''' reactions found over '''%s''' reactions in the full pathway" %(len(reactionsFound), len(reactionsTotal)))
+            rec_data = list(page_dict_data["reconstruction_data"].values())[0]
+            add_property(properties, "reconstruction category", [rec_dict["category"] for rec_dict in rec_data])
+            add_property(properties, "reconstruction tool", [rec_dict["tool"] for rec_dict in rec_data])
+            add_property(properties, "reconstruction comment", [rec_dict["comment"] for rec_dict in rec_data])
+            add_property(properties, "nb reconstruction source", [len([rec_dict["source"] for rec_dict in rec_data])])
+            for rec_dict in rec_data:
+                line = "* category: [[%s]]; source: [[%s]]; tool: [[%s]]; comment: %s" %(rec_dict["category"], rec_dict["source"], rec_dict["tool"], rec_dict["comment"])
+                dataInArray.append(line)
 
-        add_property(properties, "reaction found", [len(reactionsFound)])
-        add_property(properties, "total reaction", [len(reactionsTotal)])
-        add_property(properties, "completion rate", [pwy_ratio])
-        for rxn_id in reactionsFound:
-            gene_assoc = [rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"]
-            dataInArray.append("* [["+rxn_id+"]]")
-            if gene_assoc:
-                dataInArray.append("** %s associated gene(s):" %(len(gene_assoc)))
-                for gene_id in gene_assoc:
-                    dataInArray.append("*** [["+gene_id+"]]")
+    elif category == "gene":
+        dataInArray.append('== Organism(s) associated with this gene  ==')
+        add_property(properties, "organism associated", page_dict_data["padmet_source"])
+        for padmet_source in page_dict_data["padmet_source"]:
+            line = "* [[%s]]" %padmet_source
+            dataInArray.append(line)
+        dataInArray.append("== Reaction(s) associated ==")
+        add_property(properties, "nb reaction associated", [len(page_dict_data["reac_assoc"].keys())])
+        for rxn_id, rxn_dict in page_dict_data["reac_assoc"].items():
+            line = "* [[%s]]" %rxn_id
+            dataInArray.append(line)
+            if len(total_padmet_source) > 1:
+                for padmet_source, link_data in rxn_dict.items():
+                    line = "** In organism: [[%s]]" %padmet_source
+                    dataInArray.append(line)
+                    for category, category_dict in link_data.items():
+                        line = "*** Category: [[%s]]" %category
+                        dataInArray.append(line)
+                        for source_dict in category_dict:
+                            line = "**** source: [[%s]]; tool: [[%s]]; comment: %s" %(source_dict["source"], source_dict["tool"], source_dict["comment"])
+                            dataInArray.append(line)
             else:
-                dataInArray.append("** 0 associated gene:")
+                link_data = list(rxn_dict.values())[0]
+                for category, category_dict in link_data.items():
+                    line = "** Category: [[%s]]" %category
+                    dataInArray.append(line)
+                    for source_dict in category_dict:
+                        line = "*** source: [[%s]]; tool: [[%s]]; comment: %s" %(source_dict["source"], source_dict["tool"], source_dict["comment"])
+                        dataInArray.append(line)
 
+        if page_dict_data["pathway_assoc"]:
+            add_property(properties, "nb pathway associated", [len(page_dict_data["pathway_assoc"].keys())])
+            dataInArray.append("== Pathway(s) associated ==")
+            for pwy_id, pwy_dict in page_dict_data["pathway_assoc"].items():
+                line = "* [[%s]]" %pwy_id
+                dataInArray.append(line)
+                if len(total_padmet_source) > 1:
+                    for padmet_source, pwy_rxn in pwy_dict.items():
+                        line = "** In organism [[%s]]: '''%s''' reactions found over '''%s''' reactions in the full pathway" %(padmet_source, pwy_rxn["nb_found_rxn"], pwy_rxn["nb_total_rxn"])
+                else:
+                    pwy_rxn = list(pwy_dict.values())[0]
+                    line = "** '''%s''' reactions found over '''%s''' reactions in the full pathway" %(pwy_rxn["nb_found_rxn"], pwy_rxn["nb_total_rxn"])
+                dataInArray.append(line)
+
+    elif category == "pathway":
+        if len(total_padmet_source) > 1:
+            dataInArray.append('== Organism(s) associated with this pathway  ==')
+            add_property(properties,"nb organism associated", [len(page_dict_data["padmet_source"])])
+            rate_list = [rate for rate in page_dict_data["completion_rate"].values()]
             try:
-                src_data = full_sources_dict[rxn_id]
-                sources = set()
-                [sources.update(list(category_data.keys())) for category_data in list(src_data.values())]
-                if sources:
-                    dataInArray.append("** %s reconstruction source(s) associated:" %(len(sources)))
-                    for src in sources:
-                        dataInArray.append("*** [["+src+"]]")
-            except KeyError:
-                #if keyError, not a reaction but a pathway in a pathway
-                pass
+                min_completion_rate = min(rate_list)
+                max_completion_rate = max(rate_list)
+                avg_completion_rate = round(sum(rate_list)/len(rate_list),2)
+            except TypeError:
+                min_completion_rate = "N.A"
+                max_completion_rate = "N.A"
+                avg_completion_rate = "N.A"
+            add_property(properties,"min completion rate", [min_completion_rate])
+            add_property(properties,"max completion rate", [max_completion_rate])
+            add_property(properties,"avg completion rate", [avg_completion_rate])
+            for padmet_source in page_dict_data["padmet_source"]:
+                line = "* [[%s]]" %padmet_source
+                dataInArray.append(line)
+        else:
+            nb_reaction_found = len(page_dict_data["reac_assoc"].keys())
+            completion_rate = page_dict_data["completion_rate"][total_padmet_source[0]]
+            if completion_rate is None:
+                completion_rate = "N.A"
+            add_property(properties,"nb reaction found", [nb_reaction_found])
+            add_property(properties,"completion rate", [completion_rate])
 
-        dataInArray.append("== Reaction(s) not found ==")
-        if reactionsMissing:
-            if ext_link.get("Reaction"):
-                for rxn_id in reactionsMissing:
-                    dataInArray.append("* ["+ext_link.get("Reaction")+rxn_id+" "+rxn_id+"]")
+
+        dataInArray.append("== Reaction(s) found ==")
+        for rxn_id, set_padmet_source in page_dict_data["reac_assoc"].items():
+            line = "* [[%s]]" %rxn_id
+            dataInArray.append(line)
+            if set_padmet_source == "_1_IN_ALL_":
+                line = "** Reaction found in all organisms"
+                dataInArray.append(line)
+            if set_padmet_source not in ["_1_IN_ALL_", "_1_IN_1_"]:
+                line = "** Reaction found in %s organism(s): %s" %(len(set_padmet_source), ";".join(set_padmet_source))
+                dataInArray.append(line)
+        total_rxn_assoc = page_dict_data["total_reac_assoc"]
+        if len(total_padmet_source) > 1:
+            dataInArray.append("== Reaction(s) not found in any organism ==")
+        else:
+            dataInArray.append("== Reaction(s) not found ==")
+        if total_rxn_assoc:
+            add_property(properties,"nb total reaction", [len(total_rxn_assoc)])
+            rxn_not_found = page_dict_data["total_reac_assoc"].difference(page_dict_data["reac_assoc"].keys())
+            if rxn_not_found:
+                for rxn_id in rxn_not_found:
+                    line = "* [{0}{1} {1}]".format(ext_link.get(category), rxn_id)
+                    dataInArray.append(line)
             else:
-                for rxn_id in reactionsMissing:
-                    dataInArray.append("* "+rxn_id)
+                line = "All reactions of this pathways are in present"
+                dataInArray.append(line)
+        else:
+            add_property(properties,"nb total reaction", ["N.A"])
+            line = "No padmetRef was given during wikipage creation or pathway not in metacyc, data not available"
+            dataInArray.append(line)
 
     elif category == "Metabolite":
-        rxn_cp = {"c":set(), "p": set(), "cp": set()}
-        for rlt in [rlt for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type in ["consumes", "produces"]]:
-            rxn_dir = padmetSpec.dicOfNode[rlt.id_in].misc["DIRECTION"][0]
-            if rxn_dir == "REVERSIBLE":
-                rxn_cp["cp"].add(rlt.id_in)
-            else:
-                if rlt.type == "consumes":
-                    rxn_cp["c"].add(rlt.id_in)
-                elif rlt.type == "produces":
-                    rxn_cp["p"].add(rlt.id_in)
-        
         dataInArray.append("== Reaction(s) known to consume the compound ==")
-        if rxn_cp["c"]:
-            add_property(properties, "consumed by",rxn_cp["c"])
-            for rxn_id in rxn_cp["c"]:
-                dataInArray.append("* [["+rxn_id+"]]")
+        if page_dict_data["consumed_by"]:
+            #add_property(properties, "consumed by", page_dict_data["consumed_by"].keys())
+            for rxn_id, set_padmet_source in page_dict_data["consumed_by"].items():
+                line = "* [[%s]]" %rxn_id
+                dataInArray.append(line)
+                if len(total_padmet_source) > 1:
+                    for padmet_source in set_padmet_source:
+                        line = "** In organism [[%s]]" %padmet_source
+                        dataInArray.append(line)
+                        
         dataInArray.append("== Reaction(s) known to produce the compound ==")
-        if rxn_cp["p"]:
-            add_property(properties, "produced by",rxn_cp["p"])
-            for rxn_id in rxn_cp["p"]:
-                dataInArray.append("* [["+rxn_id+"]]")
-        dataInArray.append("== Reaction(s) of unknown directionality ==")
-        if rxn_cp["cp"]:
-            add_property(properties, "reversible reaction associated",rxn_cp["cp"])
-            for rxn_id in rxn_cp["cp"]:
-                dataInArray.append("* [["+rxn_id+"]]")
+        if page_dict_data["produced_by"]:
+            #add_property(properties, "produced by", page_dict_data["produced_by"].keys())
+            for rxn_id, set_padmet_source in page_dict_data["produced_by"].items():
+                line = "* [[%s]]" %rxn_id
+                dataInArray.append(line)
+                if len(total_padmet_source) > 1:
+                    for padmet_source in set_padmet_source:
+                        line = "** In organism [[%s]]" %padmet_source
+                        dataInArray.append(line)
 
-            
-    dataInArray.append('== External links  ==')
-    try:
-        xref_node = [padmetSpec.dicOfNode[rlt.id_out] for rlt in padmetSpec.dicOfRelationIn[page_node.id] if rlt.type == "has_xref"][0]
-        for db, ids in list(xref_node.misc.items()):
+        dataInArray.append("== Reaction(s) of unknown directionality ==")
+        if page_dict_data["unknown_dir_by"]:
+            #add_property(properties, "associated to unknown reaction direction", page_dict_data["unknown_dir_by"].keys())
+            for rxn_id, set_padmet_source in page_dict_data["unknown_dir_by"].items():
+                line = "* [[%s]]" %rxn_id
+                dataInArray.append(line)
+                if len(total_padmet_source) > 1:
+                    for padmet_source in set_padmet_source:
+                        line = "** In organism [[%s]]" %padmet_source
+                        dataInArray.append(line)
+
+    elif category == "organism":
+        dataInArray.append("== Summary ==")
+        nb_rxn, nb_gene, nb_pwy = [len(page_dict_data[i].keys()) for i in ["reaction","gene","pathway"]]
+        add_property(properties, "nb reactions associated", [nb_rxn])
+        add_property(properties, "nb genes associated", [nb_gene])
+        add_property(properties, "nb pathways associated", [nb_pwy])
+        dataInArray.append("* %s reactions" %nb_rxn)
+        dataInArray.append("* %s genes" %nb_gene)
+        dataInArray.append("* %s pathways" %nb_pwy)
+        dataInArray.append("== Reaction(s) associated ==")
+        for rxn_id in page_dict_data["reaction"].keys():
+            line = "* [[%s]]" %rxn_id
+            dataInArray.append(line)
+        dataInArray.append("== Gene(s) associated ==")
+        for gene_id in page_dict_data["gene"].keys():
+            line = "* [[%s]]" %gene_id
+            dataInArray.append(line)
+        dataInArray.append("== Pathway(s) associated ==")
+        for pwy_id in page_dict_data["pathway"].keys():
+            line = "* [[%s]]" %pwy_id
+            dataInArray.append(line)
+        
+    """
+    elif category == "diffCondition":
+        genes_up = set([rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_de_in" and float(rlt.misc["LOG2FC"][0]) > float(0)])
+        genes_down = set([rlt.id_in for rlt in padmetSpec.dicOfRelationOut[page_node.id] if rlt.type == "is_de_in" and float(rlt.misc["LOG2FC"][0]) < float(0)])
+        rxns_up = set()
+        rxns_down = set()
+        rxns_unknown = set()
+        pwys_up = set()
+        pwys_down = set()
+        pwys_unknown = set()
+        dataInArray.append("== %s Gene(s) up-regulated ==" %len(genes_up))
+        for gene_id in genes_up:
+            dataInArray.append("* [[%s]]" %gene_id)
+            rxns = set([rlt.id_in for rlt in padmetSpec.dicOfRelationOut[gene_id] if rlt.type == "is_linked_to"])
+            rxns_up.update(rxns)
+        dataInArray.append("== %s Gene(s) down-regulated ==" %len(genes_down))
+        for gene_id in genes_down:
+            dataInArray.append("* [[%s]]" %gene_id)
+            rxns = set([rlt.id_in for rlt in padmetSpec.dicOfRelationOut[gene_id] if rlt.type == "is_linked_to"])
+            rxns_down.update(rxns)
+
+        rxns_unknown = rxns_up.intersection(rxns_down)
+        if rxns_unknown:
+            rxns_up.difference_update(rxns_down)
+            rxns_down.difference_update(rxns_up)
+
+        dataInArray.append("== %s Reaction(s) exclusively linked to up-regulated gene(s) ==" %len(rxns_up))
+        for rxn_id in rxns_up:
+            dataInArray.append("* [[%s]]" %rxn_id)
+            pwys = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_in_pathway" and rlt.id_out in total_pwy_id])
+            pwys_up.update(pwys)
+        dataInArray.append("== %s Reaction(s) exclusively linked to down-regulated gene(s) ==" %len(rxns_down))
+        for rxn_id in rxns_down:
+            dataInArray.append("* [[%s]]" %rxn_id)
+            pwys = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_in_pathway" and rlt.id_out in total_pwy_id])
+            pwys_down.update(pwys)
+        dataInArray.append("== %s Reaction(s) linked to up and down regulated genes ==" %len(rxns_unknown))
+        for rxn_id in rxns_unknown:
+            dataInArray.append("* [[%s]]" %rxn_id)
+            pwys = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_id] if rlt.type == "is_in_pathway" and rlt.id_out in total_pwy_id])
+            pwys_unknown.update(pwys)
+
+        pwys_unknown.update(pwys_up.intersection(pwys_down))
+        if pwys_unknown:
+            pwys_up.difference_update(pwys_down)
+            pwys_down.difference_update(pwys_up)
+
+        dataInArray.append("== %s Pathway(s) only with reactions exclusively linked to up-regulated gene(s) ==" %len(pwys_up))
+        for pwy_id in pwys_up:
+            dataInArray.append("* [[%s]]" %pwy_id)
+        dataInArray.append("== %s Pathway(s) only with reactions exclusively linked to down-regulated gene(s) ==" %len(pwys_down))
+        for pwy_id in pwys_down:
+            dataInArray.append("* [[%s]]" %pwy_id)
+        dataInArray.append("== %s Pathway(s) with reactions linked to up and donw regulated genes ==" %len(pwys_unknown))
+        for pwy_id in pwys_unknown:
+            dataInArray.append("* [[%s]]" %pwy_id)
+
+        add_property(properties, "gene up-regulated", genes_up)
+        add_property(properties, "gene down-regulated", genes_down)
+        add_property(properties, "reaction up-regulated", rxns_up)
+        add_property(properties, "reaction down-regulated", rxns_down)
+        add_property(properties, "reaction up-and-down-regulated", rxns_down)
+        add_property(properties, "pathway up-regulated", pwys_up)
+        add_property(properties, "pathway down-regulated", pwys_down)
+        add_property(properties, "pathway up-and-down-regulated", pwys_unknown)
+    """
+    if "xref" in page_dict_data.keys():
+        dataInArray.append('== External links  ==')
+        for db, ids in page_dict_data["xref"].items():
             xrefLink(dataInArray, db, ids)
-    except (IndexError, KeyError) as e:
-        pass
-    
+
+    #to_collapse_cutoff = 4
+    #dataInArray = ["==",1,2,3,4,5,6,7,8,9,10,"==",1,2,"==",1,2,3,4,5,"==",1,2,"==",1,2,3,4,5,6]
+    title_indices = [i for i, x in enumerate(dataInArray) if str(x).startswith("==")]
+    for i in range(len(title_indices)):
+        try:
+            if title_indices[i+1] - title_indices[i] > to_collapse_cutoff:
+                dataInArray[title_indices[i]+1: title_indices[i+1]] = add_collapsible(dataInArray[title_indices[i]+1: title_indices[i+1]])
+                title_indices = [i for i, x in enumerate(dataInArray) if str(x).startswith("==")]
+        except IndexError:
+            if len(dataInArray) - title_indices[i] > to_collapse_cutoff:
+                dataInArray[title_indices[i]+1:] = add_collapsible(dataInArray[title_indices[i]+1:])
+        
+
     dataInArray.extend(properties)
-    with open(fileName,'w', encoding="utf8") as f:
+    with open(output_file,'w', encoding="utf8") as f_handler:
         for line in dataInArray:
-            f.write(line+"\n")
+            f_handler.write(line+"\n")
     """                
     for i in dataInArray:
         print(i)
     print("\n")
     """
 def add_property(properties, prop_id, prop_values):
-    prop_values = [str(i) for i in prop_values]
+    """
+    #TODO
+    """
+    prop_values = set([str(i) for i in prop_values])
     start_line = "{{#set: "+prop_id+"="
     values_part = "|".join(prop_values)
     end_line = "}}"
     toInsert = start_line + values_part + end_line
     properties.append(toInsert)
 
+def add_collapsible(text_array, title=None):
+    """
+    #TODO
+    """
+    collapsible = ['<div class="toccolours mw-collapsible mw-collapsed" style="width:100%; overflow:auto;">']
+    if title:
+        collapsible.append('<div style="font-weight:bold;line-height:1.6;">%s</div>' %title)
+        collapsible.append('<div class="mw-collapsible-content">')
+        collapsible.extend(text_array)
+        collapsible.append('</div></div>')
+    else:
+        collapsible.extend(text_array)
+        collapsible.append('</div>')
+    return collapsible        
+
 def xrefLink(dataInArray, db, ids):
+    """
+    #TODO
+    """
     if db == "METACYC":
         dataInArray.append("* "+db+":")
         for _id in ids:
@@ -703,6 +1073,210 @@ def xrefLink(dataInArray, db, ids):
         for _id in ids:
             toInsert = "* "+db+" : "+_id
             dataInArray.append(toInsert)
+
+
+def create_venn():
+    """
+    #TODO
+    """
+    if verbose: print("Venn Diagramm")
+    #'ARGSUCCINSYN-RXN'
+    categories_dict ={}
+    """
+    all_categories = ["orthology","annotation","gap-filling","manual","microbiont"]
+    for category in all_categories:
+        categories_dict[category] = set()
+    """
+    for rxn_id, rxn_src_dict in list(full_sources_dict.items()):
+        for category in list(rxn_src_dict.keys()):
+            try:
+                categories_dict[category].add(rxn_id)
+            except KeyError:
+                categories_dict[category] = set(rxn_id)
+                
+    
+    labels = get_labels(list(categories_dict.values()))
+    fig, ax = venn4(labels, names=list(categories_dict.keys()))
+    fig.savefig(wiki_folder+"files/venn.png")
+
+def copy_io_files():
+    """
+    """
+    #toDo in futur
+        
+def create_main(wiki_id):
+    """
+    #TODO
+    """
+    if verbose: print("Main page")
+    ### create main page
+    for line in main_template:
+        main_template[main_template.index(line)] = line.replace("MODEL_ID",wiki_id)
+    final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
+    main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
+    reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0,"MICROBIONT":0,"HOST":0}
+    for rec_node in [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reconstructionData"]:
+        cat = rec_node.misc["CATEGORY"][0]
+        if cat == "ORTHOLOGY":
+            source = rec_node.misc["SOURCE"][0].replace("OUTPUT_PANTOGRAPH_","")
+            try:
+                reconstruct_summary["ORTHOLOGY"][source] += 1
+            except KeyError:
+                reconstruct_summary["ORTHOLOGY"][source] = 1
+        else:
+            reconstruct_summary[cat] += 1
+    index = 1
+    if reconstruct_summary["ANNOTATION"] != 0:
+        main_template.insert(final_network_index+index, "* Based on annotation data:")
+        index += 1
+        main_template.insert(final_network_index+index, "** Tool: [http://bioinformatics.ai.sri.com/ptools/ Pathway tools]")
+        index += 1
+        main_template.insert(final_network_index+index, "*** Creation of a metabolic network containing "+str(reconstruct_summary["ANNOTATION"])+" reactions")
+        index += 1
+    if reconstruct_summary["ORTHOLOGY"] != 0:
+        main_template.insert(final_network_index+index, "* Based on orthology data:")
+        index += 1
+        main_template.insert(final_network_index+index, "** Tool: [http://pathtastic.gforge.inria.fr Pantograph]")
+        index += 1        
+        for k,v in list(reconstruct_summary["ORTHOLOGY"].items()):
+            main_template.insert(final_network_index+index, "*** From template ''"+k+"'' creation of a metabolic network containing: "+str(v)+" reactions")
+            index += 1
+    if reconstruct_summary["MANUAL"] != 0:
+        main_template.insert(final_network_index+index, "* Based on expertise:")
+        index += 1
+        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["MANUAL"])+" reaction(s) added")
+        index += 1
+    if reconstruct_summary["GAP-FILLING"] != 0:
+        main_template.insert(final_network_index+index, "* Based on gap-filling:")
+        index += 1
+        main_template.insert(final_network_index+index, "** Tool: [https://pypi.python.org/pypi/meneco meneco]")
+        index += 1
+        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["GAP-FILLING"])+" reaction(s) added")
+
+    fileName = wiki_folder+"/navigation/Main_Page"
+    with open(fileName,'w') as f:
+        for line in main_template:
+            f.write(line+"\n")                
+
+def create_navigation_page(total_padmet_data, navigation_folder, verbose=False):
+    """
+    #TODO
+    """
+    total_padmet_source = total_padmet_data["padmet_source"].keys()
+    sideBarData = ["* navigation","** mainpage|mainpage-description","** workflow|workflow command history","** randompage-url|randompage","** Special:ListFiles|Files","* Metabolic network components"]
+
+    category = "organism"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]" %category,"| ?nb reactions associated","| ?nb genes associated", "| ?nb pathways associated","}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "reaction"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    
+    if len(total_padmet_source) > 1:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?ec-number", "| ?nb organism associated",
+                          "| ?min gene associated", "| ?max gene associated", "| ?avg gene associated"]
+        dataInArray.extend(["| ?nb organism associated based on %s tool"%tool for tool in total_padmet_data["reconstruction"]["tool"].keys()]+["}}"])
+    else:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?ec-number","| ?nb gene associated","| ?nb pathway associated",
+                          "| ?nb reconstruction source","| ?reconstruction category","| ?reconstruction tool","| ?reconstruction comment","}}"]
+        
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "gene"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]"%category, "| ?organism associated", "| ?nb reaction associated", "| ?nb pathway associated","}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "pathway"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    if len(total_padmet_source) > 1:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?nb organism associated","| ?nb total reaction","| ?min completion rate","| ?max completion rate","| ?avg completion rate","}}"]
+    else:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?nb reaction found","| ?nb total reaction","| ?completion rate","}}"]
+        
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "metabolite"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+    """
+    if all_diffCdt:
+        category = "diffCondition"
+        sideBarData.append("* Transcriptomic data")
+        sideBarData.append("** Category:"+category+"|"+category)
+        fileName = output_folder+"Category:diffCondition"
+        if verbose: print("Category: %s" %category)
+        dataInArray = ["{{#ask: [[Category:diffCondition]]","| ?gene up-regulated","| ?reaction up-regulated","| ?pathway up-regulated","| ?gene down-regulated","| ?reaction down-regulated","| ?pathway down-regulated","| ?reaction up-and-down-regulated","| ?pathway up-and-down-regulated""}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+    """
+    sideBarData.append("* Reconstruction categories")
+    all_categories = total_padmet_data["reconstruction"]["category"].keys()
+    [sideBarData.append("** "+rec_category+"|"+rec_category) for rec_category in sorted(all_categories)]
+    for rec_category in all_categories:
+        fileName = os.path.join(navigation_folder, rec_category)
+        if verbose: print("Reconstruction category: %s" %rec_category)
+        dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction category::"+rec_category+"]]","| ?common name","| ?ec number",
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+
+    sideBarData.append("* Reconstruction tools")
+    all_tools = total_padmet_data["reconstruction"]["tool"].keys()
+    [sideBarData.append("** "+rec_tool+"|"+rec_tool) for rec_tool in sorted(all_tools)]
+    for rec_tool in all_tools:
+        fileName = os.path.join(navigation_folder, rec_tool)
+        if verbose: print("Reconstruction tool: %s" %rec_tool)
+        dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction tool::"+rec_tool+"]]","| ?COMMON NAME","| ?ec number",
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+
+    """
+    sideBarData.append("* Reconstruction sources")
+    all_sources = total_padmet_data["reconstruction"]["source"].keys()
+    [sideBarData.append("** "+rec_source+"|"+rec_source) for rec_source in sorted(all_sources)]
+
+    for rec_source in set(all_sources).difference(total_padmet_data["padmet_source"].keys()):
+        fileName = os.path.join(navigation_folder, rec_source)
+        if verbose: print("Reconstruction source: %s" %rec_source)
+        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction source::"+rec_source+"]]","| ?COMMON NAME","| ?ec number",
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+    """
+    if verbose: print("SideBar page")
+    fileName = os.path.join(navigation_folder, "MediaWiki:Sidebar")
+    with open(fileName, 'w') as f:
+        for line in sideBarData:
+            f.write(line+"\n")
+
 
 def get_labels(data, fill=["number"]):
     """    
@@ -873,7 +1447,7 @@ main_template = ["== MODEL_IDGEM description ==",
 
 def create_log_page(log_file, output_folder):
     """
-    
+    #TODO
     """
     cmd_regex = '--cmd=\"(.*)\"'
     fileName = output_folder+"workflow"
@@ -902,6 +1476,7 @@ def create_log_page(log_file, output_folder):
 
 def get_cmd_label(cmd):
     """
+    #TODO
     """
     cmd_label_dict = {'getdb':{'CMD_LABEL':'Get database','DESC':"Display the available reference databases"},
                       'check_input':{'CMD_LABEL':'Check input','DESC':"Check the validity, consistency and presence of input files"},
