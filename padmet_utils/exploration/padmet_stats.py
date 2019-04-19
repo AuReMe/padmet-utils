@@ -9,9 +9,18 @@ Description:
     
     Create a tsv file named padmet_stats.tsv where the script have been
     launched.
+
+usage:
+    padmet_stats.py --padmet=FILE
+
+option:
+    -h --help    Show help.
+    -p --padmet=FILE    padmet file or folder containing padmet(s).
+
 """
 
 import argparse
+import docopt
 import csv
 import os
 import pandas as pa
@@ -19,15 +28,25 @@ import sys
 
 from padmet.classes import PadmetSpec
 
-def main():
 
-    parser = argparse.ArgumentParser(usage="python padmet_stats.py -p padmet_file_folder")
-    parser.add_argument("-p", "--padmet", dest = "padmet_file_folder", help = "Padmet file or folder containing padmet.")
+def run_padmet_stats():
+    args = docopt.docopt(__doc__)
 
-    parser_args = parser.parse_args(sys.argv[1:])
+    padmet_file_folder = args['--padmet']
 
-    padmet_file_folder = parser_args.padmet_file_folder
+    compute_stats(padmet_file_folder)
 
+
+def compute_stats(padmet_file_folder):
+    """
+    Count reactions/pathways/compounds/genes in padmet(s).
+
+    Parameters
+    ----------
+    padmet_file_folder: str
+        path to the padmet file/folder to analyze
+
+    """
     if os.path.isdir(padmet_file_folder):
         padmet_type = "dir"
     elif os.path.isfile(padmet_file_folder):
@@ -46,23 +65,36 @@ def main():
             padmet_path = padmet_file_folder + '/' + padmet_file
             stats = padmet_stat(padmet_path)
             output_writer.writerow(stats)
-            padmet_name = padmet_file.replace('.padmet', '').upper()
-            df_temp = orthology_result(padmet_path, padmet_names, padmet_name)
-            df_orthologs = df_orthologs.append(df_temp)
+            df_temp = orthology_result(padmet_path, padmet_names)
+            df_orthologs = df_orthologs.append(df_temp, sort=True)
 
     if padmet_type == "file":
         stats = padmet_stat(padmet_file_folder)
         output_writer.writerow(stats)
         padmet_name = padmet_file_folder.replace('.padmet', '').upper()
         padmet_names = [padmet_name]
-        df_temp = orthology_result(padmet_file_folder, padmet_names, padmet_name)
-        df_orthologs = df_orthologs.append(df_temp)
+        df_temp = orthology_result(padmet_file_folder, padmet_names)
+        df_orthologs = df_orthologs.append(df_temp, sort=True)
 
     df_orthologs.to_csv('padmet_orthologs_stats.tsv', sep='\t')
 
     output_file.close()
 
+
 def padmet_stat(padmet_file):
+    """
+    Count reactions/pathways/compounds/genes in a padmet file.
+
+    Parameters
+    ----------
+    padmet_file: str
+        path to a padmet file
+
+    Returns
+    -------
+    list:
+        [path to padmet, number of pathways, number of reactions, number of genes, number of compounds]
+    """
     padmetSpec = PadmetSpec(padmet_file)
 
     total_pwy_id = set()
@@ -81,22 +113,42 @@ def padmet_stat(padmet_file):
 
     return [padmet_file, len(all_pwys), len(all_rxns), len(all_genes), len(all_cpds)] 
 
-def orthology_result(padmet_file, padmet_names, padmet_name):
-    ortholog_species_counts = dict.fromkeys(padmet_names)
-    for species, count in ortholog_species_counts.items():
-        if count is None:
-            ortholog_species_counts[species] = 0
+
+def orthology_result(padmet_file, padmet_names):
+    """
+    Count reactions/pathways/compounds/genes in a padmet file.
+
+    Parameters
+    ----------
+    padmet_file: str
+        path to a padmet file
+    padmet_names: list
+        all the padmet filenames
+
+    Returns
+    -------
+    pandas.DataFrame:
+        Number of reactions given by the other species
+    """
+    ortholog_species_counts = {}
 
     padmetSpec = PadmetSpec(padmet_file)
     
     for node in padmetSpec.dicOfNode.values():
         if node.type == 'suppData':
             ortholog_species = node.id.split('FROM_')[1]
-            ortholog_species_counts[ortholog_species] += 1
+            if ortholog_species in ortholog_species_counts:
+                ortholog_species_counts[ortholog_species] += 1
+            else:
+                ortholog_species_counts[ortholog_species] = 1
 
-    df = pa.DataFrame([ortholog_species_counts],columns=ortholog_species_counts.keys(), index=[padmet_name])
+    for species in padmet_names:
+        if species not in ortholog_species_counts:
+            ortholog_species_counts[species] = 0
+
+    df = pa.DataFrame([ortholog_species_counts], columns=ortholog_species_counts.keys(), index=[padmet_file.replace('.padmet', '').upper()])
 
     return df
 
 if __name__ == "__main__":
-    main()
+    run_padmet_stats()
