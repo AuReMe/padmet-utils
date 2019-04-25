@@ -49,15 +49,6 @@ def main():
     log_file = args["--log_file"]
     database = args["--database"]
     
-    """
-    #TODO REMOVE TEST
-    padmet="/home/maite/x/networks"
-    verbose=True
-    wiki_id="test"
-    output="/home/maite/x/wiki"
-    database="METACYC"
-    padmetRef=PadmetRef("/home/maite/Aureme_project/aureme_docker/database/BIOCYC/METACYC/22.0/metacyc_22.0_enhanced.padmet")
-    """
     wikiGenerator(padmet, output, wiki_id, padmetRef, database, log_file, verbose)
 
 def wikiGenerator(padmet, output, wiki_id, padmetRef=None, database=None, log_file=None, verbose=False):
@@ -203,13 +194,13 @@ def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None,
     all_rxns = [node for node in padmet.dicOfNode.values() if node.type == "reaction"]
     count = 0
     
-    for rxn_node in all_rxns[:100]:
+    for rxn_node in all_rxns:
         count += 1
         rxn_id = rxn_node.id
         #rxn_id = '1-ACYLGLYCEROL-3-P-ACYLTRANSFER-RXN'
         #rxn_node = padmet.dicOfNode[rxn_id]
         if verbose:
-            print("Extracting reaction:%s/%s %s" %(count, len(all_rxns), rxn_id), end='\r')
+            print("Extracting reaction:%s/%s\t%s" %(count, len(all_rxns), rxn_id), end='\r')
             
         current_padmet_dict["reaction"][rxn_id] = dict()
 
@@ -321,7 +312,7 @@ def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None,
 
             #recovering the nb of reactions associated to the pathway and the completion rate if global_pwy_rxn_dict given (if padmetRef given)
             total_reac_assoc = set()
-            nb_total_reac_assoc = "N.A"
+            nb_total_reac_assoc = "n.a"
             if global_pwy_rxn_dict:
                 if pwy_id in global_pwy_rxn_dict.keys():
                     total_reac_assoc = global_pwy_rxn_dict[pwy_id]
@@ -620,10 +611,10 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
                 dataInArray.append(line)
 
         if len(total_padmet_source) > 1:
-            add_property(properties, "nb organism associated", [len(total_padmet_source)])
+            add_property(properties, "nb organism associated", [len(page_dict_data["padmet_source"])])
             min_gene_assoc = min([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])
             max_gene_assoc = max([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])
-            avg_gene_assoc = sum([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])/len(page_dict_data["padmet_gene"].values())
+            avg_gene_assoc = round(sum([len(genes_set) for genes_set in page_dict_data["padmet_gene"].values()])/len(page_dict_data["padmet_gene"].values()),2)
             add_property(properties, "min gene associated", [min_gene_assoc])
             add_property(properties, "max gene associated", [max_gene_assoc])
             add_property(properties, "avg gene associated", [avg_gene_assoc])
@@ -685,8 +676,18 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
 
         dataInArray.append('== Reconstruction information  ==')
         if len(total_padmet_source) > 1:
-            for tool, tool_org_list in [(tool, tool_dict[page_id]) for tool, tool_dict in total_padmet_data["reconstruction"]["tool"].items() if page_id in tool_dict.keys()]:
+            for tool, tool_dict in total_padmet_data["reconstruction"]["tool"].items():
+                try:
+                    tool_org_list = tool_dict[page_id]
+                except KeyError:
+                    tool_org_list = list()
                 add_property(properties, "nb organism associated based on %s tool"%tool, [len(tool_org_list)])
+            for category, category_dict in total_padmet_data["reconstruction"]["category"].items():
+                try:
+                    category_org_list = category_dict[page_id]
+                except KeyError:
+                    category_org_list = list()
+                add_property(properties, "nb organism associated based on %s category"%category, [len(category_org_list)])
           
             for padmet_source, rec_data in page_dict_data["reconstruction_data"].items():
                 line="* In organism: [[%s]]" %padmet_source
@@ -700,7 +701,7 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
             add_property(properties, "reconstruction category", [rec_dict["category"] for rec_dict in rec_data])
             add_property(properties, "reconstruction tool", [rec_dict["tool"] for rec_dict in rec_data])
             add_property(properties, "reconstruction comment", [rec_dict["comment"] for rec_dict in rec_data])
-            add_property(properties, "nb reconstruction source", [len([rec_dict["source"] for rec_dict in rec_data])])
+            add_property(properties, "reconstruction source", [rec_dict["source"] for rec_dict in rec_data])
             for rec_dict in rec_data:
                 line = "* category: [[%s]]; source: [[%s]]; tool: [[%s]]; comment: %s" %(rec_dict["category"], rec_dict["source"], rec_dict["tool"], rec_dict["comment"])
                 dataInArray.append(line)
@@ -759,9 +760,9 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
                 max_completion_rate = max(rate_list)
                 avg_completion_rate = round(sum(rate_list)/len(rate_list),2)
             except TypeError:
-                min_completion_rate = "N.A"
-                max_completion_rate = "N.A"
-                avg_completion_rate = "N.A"
+                min_completion_rate = "n.a"
+                max_completion_rate = "n.a"
+                avg_completion_rate = "n.a"
             add_property(properties,"min completion rate", [min_completion_rate])
             add_property(properties,"max completion rate", [max_completion_rate])
             add_property(properties,"avg completion rate", [avg_completion_rate])
@@ -772,7 +773,7 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
             nb_reaction_found = len(page_dict_data["reac_assoc"].keys())
             completion_rate = page_dict_data["completion_rate"][total_padmet_source[0]]
             if completion_rate is None:
-                completion_rate = "N.A"
+                completion_rate = "n.a"
             add_property(properties,"nb reaction found", [nb_reaction_found])
             add_property(properties,"completion rate", [completion_rate])
 
@@ -803,11 +804,11 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
                 line = "All reactions of this pathways are in present"
                 dataInArray.append(line)
         else:
-            add_property(properties,"nb total reaction", ["N.A"])
+            add_property(properties,"nb total reaction", ["n.a"])
             line = "No padmetRef was given during wikipage creation or pathway not in metacyc, data not available"
             dataInArray.append(line)
 
-    elif category == "Metabolite":
+    elif category == "metabolite":
         dataInArray.append("== Reaction(s) known to consume the compound ==")
         if page_dict_data["consumed_by"]:
             #add_property(properties, "consumed by", page_dict_data["consumed_by"].keys())
@@ -844,12 +845,12 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
     elif category == "organism":
         dataInArray.append("== Summary ==")
         nb_rxn, nb_gene, nb_pwy = [len(page_dict_data[i].keys()) for i in ["reaction","gene","pathway"]]
-        add_property(properties, "nb reactions associated", [nb_rxn])
-        add_property(properties, "nb genes associated", [nb_gene])
-        add_property(properties, "nb pathways associated", [nb_pwy])
-        dataInArray.append("* %s reactions" %nb_rxn)
-        dataInArray.append("* %s genes" %nb_gene)
-        dataInArray.append("* %s pathways" %nb_pwy)
+        add_property(properties, "nb reaction associated", [nb_rxn])
+        add_property(properties, "nb gene associated", [nb_gene])
+        add_property(properties, "nb pathway associated", [nb_pwy])
+        dataInArray.append("* %s reaction(s)" %nb_rxn)
+        dataInArray.append("* %s gene(s)" %nb_gene)
+        dataInArray.append("* %s pathway(s)" %nb_pwy)
         dataInArray.append("== Reaction(s) associated ==")
         for rxn_id in page_dict_data["reaction"].keys():
             line = "* [[%s]]" %rxn_id
@@ -934,8 +935,6 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
         for db, ids in page_dict_data["xref"].items():
             xrefLink(dataInArray, db, ids)
 
-    #to_collapse_cutoff = 4
-    #dataInArray = ["==",1,2,3,4,5,6,7,8,9,10,"==",1,2,"==",1,2,3,4,5,"==",1,2,"==",1,2,3,4,5,6]
     title_indices = [i for i, x in enumerate(dataInArray) if str(x).startswith("==")]
     for i in range(len(title_indices)):
         try:
@@ -1075,6 +1074,222 @@ def xrefLink(dataInArray, db, ids):
             dataInArray.append(toInsert)
 
 
+def create_navigation_page(total_padmet_data, navigation_folder, verbose=False):
+    """
+    #TODO
+    """
+    total_padmet_source = total_padmet_data["padmet_source"].keys()
+    sideBarData = ["* navigation",
+                   "** mainpage|mainpage-description",
+                   "** Special:Ask|SMW-Ask",
+                   "** workflow|workflow command history",
+                   "** randompage-url|randompage",
+                   "** Special:ListFiles|Files",
+                   "* Metabolic network components"]
+
+    category = "organism"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]" %category,
+                   "| ?nb reaction associated",
+                   "| ?nb gene associated", 
+                   "| ?nb pathway associated",
+                   "|sort=nb reaction associated", 
+                   "|order=descending",
+                   "}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "reaction"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    
+    if len(total_padmet_source) > 1:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                       "| ?common-name",
+                       "| ?ec-number",
+                       "| ?nb organism associated",
+                       "| ?min gene associated",
+                       "| ?max gene associated",
+                       "| ?avg gene associated",
+                       "|sort=nb organism associated", 
+                       "|order=descending"]
+
+        dataInArray.extend(["| ?nb organism associated based on %s tool"%tool for tool in total_padmet_data["reconstruction"]["tool"].keys()]+["}}"])
+    else:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                       "| ?common-name",
+                       "| ?ec-number",
+                       "| ?nb gene associated",
+                       "| ?nb pathway associated",
+                       "| ?nb reconstruction source",
+                       "| ?reconstruction category",
+                       "| ?reconstruction tool",
+                       "| ?reconstruction comment",
+                       "}}"]
+        
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "gene"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                   "| ?organism associated",
+                   "| ?nb reaction associated",
+                   "| ?nb pathway associated",
+                   "|sort=nb reaction associated", 
+                   "|order=descending",
+                   "}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "pathway"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    if len(total_padmet_source) > 1:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                       "| ?common-name",
+                       "| ?nb organism associated",
+                       "| ?nb total reaction",
+                       "| ?min completion rate",
+                       "| ?max completion rate",
+                       "| ?avg completion rate",
+                       "|sort=avg completion rate", 
+                       "|order=descending",
+                       "}}"]
+    else:
+        dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                       "| ?common-name",
+                       "| ?nb reaction found",
+                       "| ?nb total reaction",
+                       "| ?completion rate",
+                       "|sort=completion rate, nb total reaction", 
+                       "|order=descending",
+                       "}}"]
+        
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+
+    category = "metabolite"
+    sideBarData.append("** Category:{0}|{0}".format(category))
+    fileName = os.path.join(navigation_folder, "Category:%s" %category)
+    if verbose: print("Category: %s" %category)
+    dataInArray = ["{{#ask: [[Category:%s]]"%category,
+                   "| ?common-name",
+                   "}}"]
+    with open(fileName,'w') as f:
+        for line in dataInArray:
+            f.write(line+"\n")
+    """
+    if all_diffCdt:
+        category = "diffCondition"
+        sideBarData.append("* Transcriptomic data")
+        sideBarData.append("** Category:"+category+"|"+category)
+        fileName = output_folder+"Category:diffCondition"
+        if verbose: print("Category: %s" %category)
+        dataInArray = ["{{#ask: [[Category:diffCondition]]","| ?gene up-regulated","| ?reaction up-regulated","| ?pathway up-regulated","| ?gene down-regulated","| ?reaction down-regulated","| ?pathway down-regulated","| ?reaction up-and-down-regulated","| ?pathway up-and-down-regulated""}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+    """
+    sideBarData.append("* Reconstruction categories")
+    all_categories = total_padmet_data["reconstruction"]["category"].keys()
+    [sideBarData.append("** "+rec_category+"|"+rec_category) for rec_category in sorted(all_categories)]
+    for rec_category in all_categories:
+        fileName = os.path.join(navigation_folder, rec_category)
+        if verbose: print("Reconstruction category: %s" %rec_category)
+        if len(total_padmet_source) > 1:
+            dataInArray = ["{{#ask: [[Category:reaction]]",
+                           "[[nb organism associated based on %s category::>1]]"%rec_category,
+                           "| ?common-name",
+                           "| ?ec-number",
+                           "| ?nb organism associated",
+                           "| ?min gene associated",
+                           "| ?max gene associated",
+                           "| ?avg gene associated",
+                           "| ?nb organism associated based on %s category"%rec_category, 
+                           "|sort=nb organism associated based on %s category"%rec_category, 
+                           "|order=descending",
+                           "}}"]
+        else:
+            dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction category::%s]]" %rec_category,
+                           "| ?common-name",
+                           "| ?ec-number",
+                           "| ?reconstruction tool",
+                           "| ?reconstruction source",
+                           "| ?reconstruction comment",
+                           "| ?nb gene associated",
+                           "| ?nb pathway associated",
+                           "}}"]
+
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+
+    sideBarData.append("* Reconstruction tools")
+    all_tools = total_padmet_data["reconstruction"]["tool"].keys()
+    [sideBarData.append("** "+rec_tool+"|"+rec_tool) for rec_tool in sorted(all_tools)]
+    for rec_tool in all_tools:
+        fileName = os.path.join(navigation_folder, rec_tool)
+        if verbose: print("Reconstruction tool: %s" %rec_tool)
+        if len(total_padmet_source) > 1:
+            dataInArray = ["{{#ask: [[Category:reaction]]",
+                           "[[nb organism associated based on %s tool::>1]]"%rec_tool,
+                           "| ?common-name",
+                           "| ?ec-number",
+                           "| ?nb organism associated",
+                           "| ?min gene associated",
+                           "| ?max gene associated",
+                           "| ?avg gene associated",
+                           "| ?nb organism associated based on %s tool"%rec_tool, 
+                           "|sort=nb organism associated based on %s tool"%rec_tool, 
+                           "|order=descending",
+                           "}}"]
+        else:
+            dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction tool::%s]]" %rec_tool,
+                           "| ?common-name",
+                           "| ?ec-number",
+                           "| ?reconstruction category",
+                           "| ?reconstruction source",
+                           "| ?reconstruction comment",
+                           "| ?nb gene associated",
+                           "| ?nb pathway associated",
+                           "}}"]
+
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+
+    """
+    sideBarData.append("* Reconstruction sources")
+    all_sources = total_padmet_data["reconstruction"]["source"].keys()
+    [sideBarData.append("** "+rec_source+"|"+rec_source) for rec_source in sorted(all_sources)]
+
+    for rec_source in set(all_sources).difference(total_padmet_data["padmet_source"].keys()):
+        fileName = os.path.join(navigation_folder, rec_source)
+        if verbose: print("Reconstruction source: %s" %rec_source)
+        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction source::"+rec_source+"]]","| ?COMMON NAME","| ?ec number",
+                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
+        with open(fileName,'w') as f:
+            for line in dataInArray:
+                f.write(line+"\n")
+    """
+    if verbose: print("SideBar page")
+    fileName = os.path.join(navigation_folder, "MediaWiki:Sidebar")
+    with open(fileName, 'w') as f:
+        for line in sideBarData:
+            f.write(line+"\n")
+
+
 def create_venn():
     """
     #TODO
@@ -1157,125 +1372,6 @@ def create_main(wiki_id):
     with open(fileName,'w') as f:
         for line in main_template:
             f.write(line+"\n")                
-
-def create_navigation_page(total_padmet_data, navigation_folder, verbose=False):
-    """
-    #TODO
-    """
-    total_padmet_source = total_padmet_data["padmet_source"].keys()
-    sideBarData = ["* navigation","** mainpage|mainpage-description","** workflow|workflow command history","** randompage-url|randompage","** Special:ListFiles|Files","* Metabolic network components"]
-
-    category = "organism"
-    sideBarData.append("** Category:{0}|{0}".format(category))
-    fileName = os.path.join(navigation_folder, "Category:%s" %category)
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:%s]]" %category,"| ?nb reactions associated","| ?nb genes associated", "| ?nb pathways associated","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-    category = "reaction"
-    sideBarData.append("** Category:{0}|{0}".format(category))
-    fileName = os.path.join(navigation_folder, "Category:%s" %category)
-    if verbose: print("Category: %s" %category)
-    
-    if len(total_padmet_source) > 1:
-        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?ec-number", "| ?nb organism associated",
-                          "| ?min gene associated", "| ?max gene associated", "| ?avg gene associated"]
-        dataInArray.extend(["| ?nb organism associated based on %s tool"%tool for tool in total_padmet_data["reconstruction"]["tool"].keys()]+["}}"])
-    else:
-        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?ec-number","| ?nb gene associated","| ?nb pathway associated",
-                          "| ?nb reconstruction source","| ?reconstruction category","| ?reconstruction tool","| ?reconstruction comment","}}"]
-        
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-    category = "gene"
-    sideBarData.append("** Category:{0}|{0}".format(category))
-    fileName = os.path.join(navigation_folder, "Category:%s" %category)
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:%s]]"%category, "| ?organism associated", "| ?nb reaction associated", "| ?nb pathway associated","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-    category = "pathway"
-    sideBarData.append("** Category:{0}|{0}".format(category))
-    fileName = os.path.join(navigation_folder, "Category:%s" %category)
-    if verbose: print("Category: %s" %category)
-    if len(total_padmet_source) > 1:
-        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?nb organism associated","| ?nb total reaction","| ?min completion rate","| ?max completion rate","| ?avg completion rate","}}"]
-    else:
-        dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","| ?nb reaction found","| ?nb total reaction","| ?completion rate","}}"]
-        
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-
-    category = "metabolite"
-    sideBarData.append("** Category:{0}|{0}".format(category))
-    fileName = os.path.join(navigation_folder, "Category:%s" %category)
-    if verbose: print("Category: %s" %category)
-    dataInArray = ["{{#ask: [[Category:%s]]"%category,"| ?common-name","}}"]
-    with open(fileName,'w') as f:
-        for line in dataInArray:
-            f.write(line+"\n")
-    """
-    if all_diffCdt:
-        category = "diffCondition"
-        sideBarData.append("* Transcriptomic data")
-        sideBarData.append("** Category:"+category+"|"+category)
-        fileName = output_folder+"Category:diffCondition"
-        if verbose: print("Category: %s" %category)
-        dataInArray = ["{{#ask: [[Category:diffCondition]]","| ?gene up-regulated","| ?reaction up-regulated","| ?pathway up-regulated","| ?gene down-regulated","| ?reaction down-regulated","| ?pathway down-regulated","| ?reaction up-and-down-regulated","| ?pathway up-and-down-regulated""}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-    """
-    sideBarData.append("* Reconstruction categories")
-    all_categories = total_padmet_data["reconstruction"]["category"].keys()
-    [sideBarData.append("** "+rec_category+"|"+rec_category) for rec_category in sorted(all_categories)]
-    for rec_category in all_categories:
-        fileName = os.path.join(navigation_folder, rec_category)
-        if verbose: print("Reconstruction category: %s" %rec_category)
-        dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction category::"+rec_category+"]]","| ?common name","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-
-    sideBarData.append("* Reconstruction tools")
-    all_tools = total_padmet_data["reconstruction"]["tool"].keys()
-    [sideBarData.append("** "+rec_tool+"|"+rec_tool) for rec_tool in sorted(all_tools)]
-    for rec_tool in all_tools:
-        fileName = os.path.join(navigation_folder, rec_tool)
-        if verbose: print("Reconstruction tool: %s" %rec_tool)
-        dataInArray = ["{{#ask: [[Category:reaction]] [[reconstruction tool::"+rec_tool+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-
-    """
-    sideBarData.append("* Reconstruction sources")
-    all_sources = total_padmet_data["reconstruction"]["source"].keys()
-    [sideBarData.append("** "+rec_source+"|"+rec_source) for rec_source in sorted(all_sources)]
-
-    for rec_source in set(all_sources).difference(total_padmet_data["padmet_source"].keys()):
-        fileName = os.path.join(navigation_folder, rec_source)
-        if verbose: print("Reconstruction source: %s" %rec_source)
-        dataInArray = ["{{#ask: [[Category:Reaction]] [[reconstruction source::"+rec_source+"]]","| ?COMMON NAME","| ?ec number",
-                          "| ?reconstruction category","| ?reconstruction tool","| ?reconstruction source","| ?reconstruction comment","| ?gene associated","| ?in pathway","}}"]
-        with open(fileName,'w') as f:
-            for line in dataInArray:
-                f.write(line+"\n")
-    """
-    if verbose: print("SideBar page")
-    fileName = os.path.join(navigation_folder, "MediaWiki:Sidebar")
-    with open(fileName, 'w') as f:
-        for line in sideBarData:
-            f.write(line+"\n")
 
 
 def get_labels(data, fill=["number"]):
