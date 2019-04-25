@@ -19,17 +19,15 @@ option:
 
 """
 
-import argparse
 import docopt
 import csv
 import os
 import pandas as pa
-import sys
 
 from padmet.classes import PadmetSpec
 
 
-def run_padmet_stats():
+def main():
     args = docopt.docopt(__doc__)
 
     padmet_file_folder = args['--padmet']
@@ -151,4 +149,4 @@ def orthology_result(padmet_file, padmet_names):
     return df
 
 if __name__ == "__main__":
-    run_padmet_stats()
+    main()
