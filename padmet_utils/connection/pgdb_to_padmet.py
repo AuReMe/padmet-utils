@@ -104,16 +104,16 @@ Description:
     
     options:
         -h --help     Show help.
-        --version=V    Xcyc version
-        --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...)
-        --output=FILE    padmet file corresponding to the DB
-        --pgdb=DIR    directory containg all the .dat files of metacyc (data)
-        --padmetRef=FILE    padmet of reference
-        --source=STR    Tag associated to the source of the reactions, used to ensure traceability
-        --enhance    use the metabolic-reactions.xml file to enhance the database
-        --extract-gene    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
-        --no-orhpan    use the genes_file (use if its a specie's pgdb, if metacyc, do not use)
-        -v   print info
+        --version=V    Xcyc version [default: N.A].
+        --db=ID    Biocyc database corresponding to the pgdb (metacyc, ecocyc, ...) [default: N.A].
+        --output=FILE    padmet file corresponding to the DB.
+        --pgdb=DIR    directory containg all the .dat files of metacyc (data).
+        --padmetRef=FILE    padmet of reference.
+        --source=STR    Tag associated to the source of the reactions, used to ensure traceability [default: GENOME].
+        --enhance    use the metabolic-reactions.xml file to enhance the database.
+        --extract-gene    use the genes_file (use if its a specie's pgdb, if metacyc, do not use).
+        --no-orhpan    use the genes_file (use if its a specie's pgdb, if metacyc, do not use).
+        -v   print info.
 
 """
 import re
@@ -130,11 +130,8 @@ def main():
     #parsing args
     args = docopt.docopt(__doc__)
     version = args["--version"]
-    if not version: version = 'NA'
     db = args["--db"]
-    if not db: db = 'NA'
     source = args["--source"]
-    if not source: source = 'GENOME'
     output = args["--output"]
     pgdb_folder = args["--pgdb"]
     enhanced_db = args["--enhance"]
