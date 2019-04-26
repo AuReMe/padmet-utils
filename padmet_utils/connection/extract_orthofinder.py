@@ -40,7 +40,7 @@ Description:
         -h --help    Show help.
         --orthology_based=DIR   Folder with sub folder named as models name within sbml file name as model_name.sbml
         --orthgroups=FILE   Output file of Orthofinder run Orthogroups.csv
-        --study_id   name of the studied organism
+        --study_id=ID   name of the studied organism
         --output=DIR   folder where to create all sbml output files
         -v   print info
 
