@@ -16,11 +16,11 @@ Description:
         In this case use:
             padmetRef: path to the padmet of reference
     3./ To create a padmet wth genes information extracted use:
-        --extract-gene
+        extract-gene
     3.1/ To remove from the final padmet all reactions without genes associated use:
-        --no-orphan
+        no-orphan
     4./ To read the metabolic-reaction.xml file, a sbml with some missing reactions in PGDB use:
-        --enhance
+        enhance
 
     For more information of the parsing process read information below.
 
@@ -204,7 +204,7 @@ def from_pgdb_to_padmet(pgdb_folder, db='NA', version='NA', source='GENOME', ext
         padmet.setInfo(dbNotes)
 
         padmet.setPolicy(padmetRef)
-        with open(reactions_file, 'rU') as f:
+        with open(reactions_file, 'r') as f:
             rxns_id = [line.split(" - ")[1] for line in f.read().splitlines() if line.startswith("UNIQUE-ID")]
         count = 0
         for rxn_id in rxns_id:
@@ -221,7 +221,7 @@ def from_pgdb_to_padmet(pgdb_folder, db='NA', version='NA', source='GENOME', ext
                 padmet._addRelation(reconstructionData_rlt)
 
             except TypeError:
-                if verbose: print("%s not in padmetRef" %(rxn_id))
+                print("%s not in padmetRef" %(rxn_id))
 
         if extract_gene:
             if verbose: print("parsing genes")
