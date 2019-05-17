@@ -866,11 +866,19 @@ def proteins_parser(filePath, padmet, verbose = False):
             dict_protein_gene_id[protein_id] = dict_values["GENE"]
         except KeyError:
             pass
-            
+
+    # First extract protein associated with one component.
     for protein_id, list_of_components in dict_protein_component_id.items():
-        genes_associated = set()
-        [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
-        dict_protein_gene_id[protein_id] = genes_associated
+        if len(list_of_components) == 1:
+            gene_associated = set(dict_protein_gene_id[list_of_components[0]])
+            dict_protein_gene_id[protein_id] = gene_associated
+
+    # Then extract protein with more than one components, because we have complex that can contain other proteins.
+    for protein_id, list_of_components in dict_protein_component_id.items():
+        if len(list_of_components) > 1:
+            genes_associated = set()
+            [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
+            dict_protein_gene_id[protein_id] = genes_associated
     if verbose: print("")
            
     return dict_protein_gene_id
