@@ -222,11 +222,12 @@ def from_pgdb_to_padmet(pgdb_folder, db='NA', version='NA', source='GENOME', ext
 
         if extract_gene:
             if verbose: print("parsing genes")
-            genes_parser(genes_file, padmet, verbose)
+            map_gene_ids = genes_parser(genes_file, padmet, verbose)
             if verbose: print("parsing proteins")
             dict_protein_gene_id = proteins_parser(proteins_file, padmet, verbose)
+            mapped_dict_protein_gene_id = map_gene_id(dict_protein_gene_id, map_gene_ids)
             if verbose: print("parsing association enzrxns")
-            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id, source, verbose)
+            enzrxns_parser(enzrxns_file, padmet, mapped_dict_protein_gene_id, source, verbose)
 
     else:
         POLICY_IN_ARRAY = [['class','is_a_class','class'], ['class','has_name','name'], ['class','has_xref','xref'], ['class','has_suppData','suppData'],
@@ -262,11 +263,12 @@ def from_pgdb_to_padmet(pgdb_folder, db='NA', version='NA', source='GENOME', ext
     
         if extract_gene:
             if verbose: print("parsing genes")
-            genes_parser(genes_file, padmet, verbose)
+            map_gene_ids = genes_parser(genes_file, padmet, verbose)
             if verbose: print("parsing proteins")
             dict_protein_gene_id = proteins_parser(proteins_file, padmet, verbose)
+            mapped_dict_protein_gene_id = map_gene_id(dict_protein_gene_id, map_gene_ids)
             if verbose: print("parsing association enzrxns")
-            enzrxns_parser(enzrxns_file, padmet, dict_protein_gene_id, source, verbose)
+            enzrxns_parser(enzrxns_file, padmet, mapped_dict_protein_gene_id, source, verbose)
     
         if metabolic_reactions is not None:
             if verbose: print("enhancing db from metabolic-reactions.xml")
@@ -771,9 +773,11 @@ def genes_parser(filePath, padmet, verbose = False):
 
     count = 0
     nb_genes = str(len(list(dict_data.keys())))
+    map_gene_ids = {}
     for current_id, dict_values in dict_data.items():
         try:
             gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
+            map_gene_ids[current_id] = gene_id
             count += 1
             if verbose: 
                 print("\r%s/%s" %(count, nb_genes), end="", flush=True)
@@ -816,6 +820,8 @@ def genes_parser(filePath, padmet, verbose = False):
         except KeyError:
             pass
     if verbose: print("")
+
+    return map_gene_ids
 
 def proteins_parser(filePath, padmet, verbose = False):
     """
@@ -1132,7 +1138,21 @@ def enhance_db(metabolic_reactions, padmet, with_genes, verbose = False):
                         list_of_relation.append(is_linked_rlt)
     return padmet
 
+def map_gene_id(dict_protein_gene_id, map_gene_ids):
+    """
+    Map gene ID created by Pathway Tools with gene ID from the data.
+    Automatically Pathway Tools uppercased all the letter in gene ID.
+    So we need to do this mapping to retrieve the unuppercased gene ID.
+    """
+    mapped_dict_protein_gene_id = {}
 
+    for prot_id in dict_protein_gene_id:
+        mapped_gene_ids = set()
+        for gene_id in dict_protein_gene_id[prot_id]:
+            mapped_gene_ids.add(map_gene_ids[gene_id])
+        mapped_dict_protein_gene_id[prot_id] = mapped_gene_ids
+
+    return mapped_dict_protein_gene_id
 
 if __name__ == "__main__":
     main()      
