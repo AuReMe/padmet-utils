@@ -167,11 +167,12 @@ def wikiGenerator(padmet, output, wiki_id, padmetRef=None, database=None, log_fi
     navigation_folder = os.path.join(output, "navigation")
     create_navigation_page(total_padmet_data, navigation_folder, verbose)
 
+    if log_file:
+        create_log_page(log_file, os.path.join(output, "navigation"))
+
     """
     #create_venn()
     create_main(wiki_id)
-    if log_file:
-        create_log_page(log_file, wiki_folder+"/navigation/")
     """
 
 def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None, padmetRef=None, verbose=False):

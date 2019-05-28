@@ -13,7 +13,7 @@ Description:
         --input=FILE    path of the sbml file/folder to convert into sbml
         --output=FILE    path of the sbml file/folder to generate.
         --new_sbml_lvl=STR    level of the new sbml.
-        --cpu=FILE    number of cpu used.
+        --cpu=FILE    number of cpu used [default: 1].
         -v   print info.
 """
 
@@ -30,11 +30,7 @@ def main():
     input_sbml = args["--input"]
     output_sbml = args["--output"]
     new_sbml_level = args["--new_sbml_lvl"]
-
-    if args["--cpu"]:
-        cpu = args['--cpu']
-    else:
-        cpu = 1
+    cpu = args['--cpu']
 
     from_sbml_to_sbml(input_sbml, output_sbml, new_sbml_level, cpu)
 
