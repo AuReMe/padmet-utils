@@ -74,6 +74,10 @@ def compute_stats(padmet_file_folder):
         df_temp = orthology_result(padmet_file_folder, padmet_names)
         df_orthologs = df_orthologs.append(df_temp, sort=True)
 
+    columns = df_orthologs.columns.tolist()
+    columns.remove('Orthology')
+    columns.append('Orthology')
+    df_orthologs = df_orthologs[columns]
     df_orthologs.to_csv('padmet_orthologs_stats.tsv', sep='\t')
 
     output_file.close()
@@ -131,9 +135,13 @@ def orthology_result(padmet_file, padmet_names):
     ortholog_species_counts = {}
 
     padmetSpec = PadmetSpec(padmet_file)
-    
+
+    ortholog_reactions = set()
     for node in padmetSpec.dicOfNode.values():
         if node.type == 'suppData':
+            reaction_id = node.id.split('_SuppData_OUTPUT_ORTHOFINDER_')[0]
+            ortholog_reactions.add(reaction_id)
+
             ortholog_species = node.id.split('FROM_')[1]
             if ortholog_species in ortholog_species_counts:
                 ortholog_species_counts[ortholog_species] += 1
@@ -144,7 +152,9 @@ def orthology_result(padmet_file, padmet_names):
         if species not in ortholog_species_counts:
             ortholog_species_counts[species] = 0
 
-    df = pa.DataFrame([ortholog_species_counts], columns=ortholog_species_counts.keys(), index=[padmet_file.replace('.padmet', '').upper()])
+    columns = list(ortholog_species_counts.keys()).append('Orthology')
+    ortholog_species_counts['Orthology'] = len(ortholog_reactions)
+    df = pa.DataFrame([ortholog_species_counts], columns=columns, index=[padmet_file.replace('.padmet', '').upper()])
 
     return df
 
