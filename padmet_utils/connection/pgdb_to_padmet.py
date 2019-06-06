@@ -883,8 +883,8 @@ def proteins_parser(filePath, padmet, verbose = False):
             try:
                 genes_associated.update(dict_protein_gene_id[component])
             except KeyError:
-                get_gene_id(component, dict_protein_component_id[protein_id])
-                get_gene_id(protein_id, list_of_components)
+                get_gene_id(component, dict_protein_component_id[component])
+                genes_associated.update(dict_protein_gene_id[component])
         dict_protein_gene_id[protein_id] = genes_associated
 
     # Extract protein and complexes.
@@ -892,7 +892,7 @@ def proteins_parser(filePath, padmet, verbose = False):
         get_gene_id(protein_id, list_of_components)
 
     if verbose: print("")
-           
+
     return dict_protein_gene_id
 
 def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = False):
