@@ -651,7 +651,7 @@ def create_biological_page(category, page_id, page_dict_data, total_padmet_data,
         #set of pathways id associated to the reaction
         add_property(properties, "nb pathway associated", [len(page_dict_data["pathway_assoc"].keys())])
         for pwy_id, pwy_dict in page_dict_data["pathway_assoc"].items():
-            if padmetRef:
+            if padmetRef and pwy_id in padmetRef.dicOfNode.keys():
                 pwy_cname = padmetRef.dicOfNode[pwy_id].misc.get("COMMON-NAME",[None])[0]
                 if pwy_cname:
                     line = "* [["+pwy_id+"]], "+pwy_cname+":"
