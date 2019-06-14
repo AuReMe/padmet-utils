@@ -873,20 +873,26 @@ def proteins_parser(filePath, padmet, verbose = False):
         except KeyError:
             pass
 
-    # First extract protein associated with one component.
-    for protein_id, list_of_components in dict_protein_component_id.items():
-        if len(list_of_components) == 1:
-            gene_associated = set(dict_protein_gene_id[list_of_components[0]])
-            dict_protein_gene_id[protein_id] = gene_associated
+    def get_gene_id(protein_id, list_of_components):
+        """
+        Get the gene ID corresponding to the protein or the complex.
+        Some complex contain other complex, so we use recursivity to get the complex required.
+        """
+        genes_associated = set()
+        for component in list_of_components:
+            try:
+                genes_associated.update(dict_protein_gene_id[component])
+            except KeyError:
+                get_gene_id(component, dict_protein_component_id[component])
+                genes_associated.update(dict_protein_gene_id[component])
+        dict_protein_gene_id[protein_id] = genes_associated
 
-    # Then extract protein with more than one components, because we have complex that can contain other proteins.
+    # Extract protein and complexes.
     for protein_id, list_of_components in dict_protein_component_id.items():
-        if len(list_of_components) > 1:
-            genes_associated = set()
-            [genes_associated.update(dict_protein_gene_id[component]) for component in list_of_components]
-            dict_protein_gene_id[protein_id] = genes_associated
+        get_gene_id(protein_id, list_of_components)
+
     if verbose: print("")
-           
+
     return dict_protein_gene_id
 
 def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = False):
@@ -931,8 +937,11 @@ def enzrxns_parser(filePath, padmet, dict_protein_gene_id, source, verbose = Fal
         names = dict_values.get("COMMON-NAME",[])
         for name in names: 
             if name.endswith("_"):
-                names[names.index(name)] = name[:-1] 
-        protein = dict_values["ENZYME"][0]
+                names[names.index(name)] = name[:-1]
+        try:
+            protein = dict_values["ENZYME"][0]
+        except KeyError:
+            pass
         try:
             rxn_node = padmet.dicOfNode[rxn_id]
             try:
