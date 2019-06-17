@@ -62,7 +62,7 @@ def main():
     source_tool = args["--source_tool"]
     source_category = args["--source_category"]
     source_id = args["--source_id"]
-    mapping = args["mapping"]
+    mapping = args["--mapping"]
 
     from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose)
 
