@@ -65,19 +65,16 @@ def main():
     source_id = args["--source_id"]
     mapping = args["--mapping"]
 
-    padmet = from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose)
+    padmet = from_sbml_to_padmet(sbml, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, db, version, verbose)
     if output:
         padmet.generateFile(output)
     else:
         padmet.generateFile(padmetSpec_file)
         
     
-def from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose):
-
-    if not db: db = "NA"
-
-    if not version: version = "NA"
-
+def from_sbml_to_padmet(sbml, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, db="NA", version="NA", verbose=False):
+    """
+    """
     if os.path.isdir(sbml):
         sbml_type = "dir"
     elif os.path.isfile(sbml):
@@ -139,8 +136,6 @@ def from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_
     else:
         sbml_mapping_dict[sbml] = mapping
 
-    chronoDepart = time()
-    #CORE
     for sbml_file, mapping_file in list(sbml_mapping_dict.items()):
         if mapping_file:
             force = False
@@ -163,11 +158,6 @@ def from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_
 
     if len(list(sbml_mapping_dict.keys())) == 0:
         if verbose: print("No sbml found in %s" %sbml)
-
-    chrono = (time() - chronoDepart)
-    partie_entiere, partie_decimale = str(chrono).split('.')
-    chrono = ".".join([partie_entiere, partie_decimale[:3]])
-    if verbose: print("done in: " + chrono + "s !")
 
     return padmetSpec
 
