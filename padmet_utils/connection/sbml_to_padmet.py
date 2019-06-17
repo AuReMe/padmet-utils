@@ -66,7 +66,11 @@ def main():
     mapping = args["--mapping"]
 
     padmet = from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose)
-    padmet.generateFile(output)
+    if output:
+        padmet.generateFile(output)
+    else:
+        padmet.generateFile(padmetSpec_file)
+        
     
 def from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose):
 
