@@ -28,6 +28,7 @@ Description:
 """
 from padmet.classes import PadmetSpec
 import padmet.utils.sbmlPlugin as sp
+from padmet.utils.gbr import compile_input
 import os
 import docopt
 import libsbml
@@ -93,7 +94,7 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
     @rtype: int
     """
     global all_ga
-    dir_path_gbr = os.path.dirname(os.path.realpath(__file__))+"/grammar-boolean-rapsody.py"
+    #dir_path_gbr = os.path.dirname(os.path.realpath(__file__))+"/grammar-boolean-rapsody.py"
     all_ga = []
     #create an empty sbml model
     with_mnx = False
@@ -372,10 +373,10 @@ def padmet_to_sbml(padmet, output, model_id = None, obj_fct = None, sbml_lvl = 3
                     ga_for_gbr = re.sub(r" or " , "|", original_ga)
                     ga_for_gbr = re.sub(r" and " , "&", ga_for_gbr)
                     ga_for_gbr = re.sub(r"\s" , "", ga_for_gbr)
-                    ga_for_gbr = "\"" + ga_for_gbr + "\""
-                    if re.findall("\||\&",ga_for_gbr):
+                    #ga_for_gbr = "\"" + ga_for_gbr + "\""
+                    if re.findall("\||\&",ga_for_gbr) and len(re.findall("\||\&",ga_for_gbr)) < 100:
                         ga_subsets = []
-                        [ga_subsets.append(set(i)) for i in eval(subprocess.check_output("python3 "+dir_path_gbr+" "+ga_for_gbr, shell=True))]
+                        [ga_subsets.append(set(i)) for i in compile_input(ga_for_gbr)]
                         for ga in ga_subsets:
                             if ga not in all_ga_subsets:
                                 all_ga_subsets.append(ga)
