@@ -52,6 +52,7 @@ import docopt
 def main():
     args = docopt.docopt(__doc__)
     padmetRef_file = args["--padmetRef"]
+    sbml = args["--sbml"]
     output = args["--output"]
     verbose = args["-v"]
     db = args["--db"]
@@ -64,8 +65,9 @@ def main():
     source_id = args["--source_id"]
     mapping = args["--mapping"]
 
-    from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose)
-
+    padmet = from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose)
+    padmet.generateFile(output)
+    
 def from_sbml_to_padmet(sbml, db, version, padmetSpec_file, source_tool, source_category, source_id, padmetRef_file, mapping, verbose):
 
     if not db: db = "NA"
