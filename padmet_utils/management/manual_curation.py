@@ -16,8 +16,8 @@ Description:
     
     usage:
         manual_curation.py --padmetSpec=FILE --data=FILE [--padmetRef=FILE] [--output=FILE] [--tool=STR] [--category=STR] [-v]
-        manual_curation.py --template_new_rxn --output=FILE
-        manual_curation.py --template_add_delete --output=FILE
+        manual_curation.py --template_new_rxn=FILE
+        manual_curation.py --template_add_delete_rxn=FILE
     
     option:
         -h --help    Show help.
@@ -28,7 +28,7 @@ Description:
         --tool=STR    specification of the tool used to allow this curation: ex a tool of gapfilling (meneco)
         --category=STR    specification of the category of curation: ex if a reaction is added based on annotation info, use 'annotation'
         --template_new_rxn=FILE    create a form used to create new reaction, use this form as input for 'data' option
-        --template_add_delete=FILE    create a form used to add or delete reaction, use this form as input for 'data' option
+        --template_add_delete_rxn=FILE    create a form used to add or delete reaction, use this form as input for 'data' option
         -v    print info
 """
 import docopt
@@ -44,7 +44,6 @@ def main():
     data_file = args["--data"]
     output = args["--output"]
     verbose = args["-v"]
-
     if data_file:
         filename = os.path.splitext(os.path.basename(data_file))[0]
         source = filename
@@ -52,8 +51,10 @@ def main():
     category = args["--category"]
     tool = args["--tool"]
     if args["--template_new_rxn"]:
+        output = args["--template_new_rxn"]
         template_new_rxn(output)
-    elif args["--template_add_delete"]:
+    elif args["--template_add_delete_rxn"]:
+        output = args["--template_add_delete_rxn"]
         template_add_delete(output)
     else:
         padmetSpec =  PadmetSpec(args["--padmetSpec"])
