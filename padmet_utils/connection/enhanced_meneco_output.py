@@ -29,7 +29,7 @@ Description:
         --output=FILE    path to tsv output file
 """
 from padmet.classes import PadmetRef
-from padmet.utils.sbmlPlugin import convert_from_coded_id
+from padmet.utils.sbmlPlugin import get_all_decoded_version
 import docopt
 
 
@@ -77,20 +77,21 @@ def enhanced_meneco_output(meneco_output_file, padmetRef, output, verbose=False)
         #recover reactions, delete ' " ' and space.
         if start_index is None:
             print("No line starting with: Computing union of reactions from all completion. Enable to extracts reactions")
-            return
+            #return
         encoded_reactions = [line.strip().replace("\"","") 
         for line in file_in_array[start_index:]]
-        reactions_ids = [convert_from_coded_id(r)[0] for r in encoded_reactions]
-        nb_reactions = str(len(reactions_ids))
-    if verbose: print(nb_reactions+" reactions to check")
+        nb_reactions = len(encoded_reactions)
+    if verbose: print("%s reactions to check" %nb_reactions)
     with open(output,'w') as f:
         header = ["idRef","Common name","EC-number","Formula (with id)","Formula (with cname)","Action","Comment", "Genes"]
         header = "\t".join(header)+"\n"
         f.write(header)
-        for reac_id in reactions_ids:
-            #recover the reaction
-            try:
-                reac_node = padmetRef.dicOfNode[reac_id]
+        for encoded_id in encoded_reactions:
+            decoded_reactions = get_all_decoded_version(encoded_id, "reaction")
+            reaction_id = set(decoded_reactions).intersection(set(padmetRef.dicOfNode.keys()))
+            if reaction_id:
+                reaction_id = list(reaction_id)[0]
+                reac_node = padmetRef.dicOfNode[reaction_id]
                 try:
                     ec = reac_node.misc["EC_NUMBER"][0]
                 except KeyError:
@@ -109,29 +110,29 @@ def enhanced_meneco_output(meneco_output_file, padmetRef, output, verbose=False)
                     direction = " =>/<=> "
 
                 id_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out+"["+rlt.misc["COMPARTMENT"][0]+"]"
-                for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
+                for rlt in padmetRef.dicOfRelationIn.get(reaction_id,None) 
                 if rlt.type == "consumes"]
                 id_products = [rlt.misc["STOICHIOMETRY"][0]+" "+rlt.id_out+"["+rlt.misc["COMPARTMENT"][0]+"]"
-                for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
+                for rlt in padmetRef.dicOfRelationIn.get(reaction_id,None) 
                 if rlt.type == "produces"]
                 idRef_formula = " + ".join(id_reactants)+direction+" + ".join(id_products)
                 
                 try:
                     cname_reactants = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]" 
-                    for rlt in padmetRef.dicOfRelationIn.get(reac_id,None) 
+                    for rlt in padmetRef.dicOfRelationIn.get(reaction_id,None) 
                     if rlt.type == "consumes"]
                     cname_products = [rlt.misc["STOICHIOMETRY"][0]+" "+padmetRef.dicOfNode[rlt.id_out].misc["COMMON_NAME"][0]+"["+rlt.misc["COMPARTMENT"][0]+"]"
-                    for rlt in padmetRef.dicOfRelationIn.get(reac_id,None)
+                    for rlt in padmetRef.dicOfRelationIn.get(reaction_id,None)
                     if rlt.type == "produces"]
                     cname_formula = " + ".join(cname_reactants)+direction+" + ".join(cname_products)
                 except KeyError:
                     cname_formula = ""
                     
-                line = [reac_id, common_name, ec, idRef_formula, cname_formula, "add", "Added for gapfilling", ""]
+                line = [reaction_id, common_name, ec, idRef_formula, cname_formula, "add", "Added for gapfilling", ""]
                 line = "\t".join(line)+"\n"
                 f.write(line)
-            except KeyError:
-                print(reac_id + " not found in padmetRef")
+            else:
+                print("%s not found in padmetRef" %reaction_id)
                 pass
 
 if __name__ == "__main__":
