@@ -97,7 +97,7 @@ def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species
             print("#############")
             print("Analyzing targets")
             print("#Topological analysis")
-            cmd = "menecheck.py -d %s -s %s -t %s" %(sbml_file, seeds_file, targets_file)
+            cmd = "menecheck -d %s -s %s -t %s" %(sbml_file, seeds_file, targets_file)
             out = subprocess.check_output(["/bin/bash", "-i", "-c", cmd])
             #prod_targets = (i for i in out.splitlines() if i.endswith(" producible targets:")).next()[:-1]
             print("Number of targets: %s" %(len(targets)))
