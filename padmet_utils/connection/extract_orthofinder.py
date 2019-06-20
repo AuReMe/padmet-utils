@@ -163,7 +163,7 @@ def orthogroups_to_sbml(orthogroups_file, all_model_sbml, output_folder, study_i
         for row in reader:
             orth_id = row['']
             row.pop('')
-            new_dict = dict([(name, set(genes.split(","))) for (name, genes) in list(row.items()) if genes])
+            new_dict = dict([(name, set([gene_id.split("_isoform")[0] for gene_id in set(genes.split(","))])) for (name, genes) in list(row.items()) if genes])
             dict_orthogroups[orth_id] = new_dict
             all_orgs.update(new_dict.keys())
     #check all sbml
@@ -244,8 +244,8 @@ def orthologue_to_sbml(orthologue_folder, all_model_sbml, output_folder, study_i
             orgs.remove('Orthogroup')
             org_A, org_B = orgs
             for row in reader:
-                gene_ids_A = row[org_A].split(", ")
-                gene_ids_B = row[org_B].split(", ")
+                gene_ids_A = [gene_id.split("_isoform")[0] for gene_id in row[org_A].split(", ")]
+                gene_ids_B = [gene_id.split("_isoform")[0] for gene_id in row[org_B].split(", ")]
                 for gene_id_A in gene_ids_A:
                     if gene_id_A not in dict_orthologues[org_A].keys():
                         dict_orthologues[org_A][gene_id_A] = dict()
