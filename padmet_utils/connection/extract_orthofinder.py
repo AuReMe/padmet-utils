@@ -161,8 +161,8 @@ def orthogroups_to_sbml(orthogroups_file, all_model_sbml, output_folder, study_i
     with open(orthogroups_file, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter = "\t")
         for row in reader:
-            orth_id = row['']
-            row.pop('')
+            orth_id = row['Orthogroup']
+            row.pop('Orthogroup')
             new_dict = dict([(name, set(genes.split(","))) for (name, genes) in list(row.items()) if genes])
             dict_orthogroups[orth_id] = new_dict
             all_orgs.update(new_dict.keys())
