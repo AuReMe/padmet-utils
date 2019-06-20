@@ -133,6 +133,7 @@ def flux_analysis(sbml_file, seeds_file = None, targets_file = None, all_species
         print('FVA analysis:')
         print('\tBlocked reactions: %s' %len(blocked))
         print('\tEssential reactions: %s' %len(essRxns))
+        [print(rxn.id) for rxn in essRxns]
         print('\tEssential genes: %s' %len(essGenes))
     
     #get biomass rxn reactants
