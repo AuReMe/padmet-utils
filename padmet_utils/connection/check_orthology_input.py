@@ -48,7 +48,12 @@ def main():
     output = args["--output"]
     verbose = args["-v"]
     cutoff = float(args["--cutoff"])
+    check_orthology_input(model_metabolic, model_faa, dict_ids_file, output, verbose, cutoff)
 
+
+def check_orthology_input(model_metabolic, model_faa, dict_ids_file, output, verbose, cutoff):
+    """
+    """
     if model_metabolic is not None:
         if verbose: print("check genes ids model_metablic vs model_faa")
         #if true: more than cutoff% match

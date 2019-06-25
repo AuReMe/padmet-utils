@@ -44,7 +44,6 @@ Description:
         -v   print info
 """
 from padmet.classes import PadmetSpec, PadmetRef
-from time import time
 from datetime import datetime
 import os
 import docopt

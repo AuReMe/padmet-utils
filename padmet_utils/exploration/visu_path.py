@@ -1,36 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-This file is part of padmet-utils.
-
-padmet-utils is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-padmet-utils is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with padmet-utils. If not, see <http://www.gnu.org/licenses/>.
-
-@author: Meziane AITE, meziane.aite@inria.fr
 Description:
-Allows to visualize a pathway in padmet network.
+    #TODO: not stable version
+    Allows to visualize a pathway in padmet network.
 Color code: 
 reactions associated to the pathway, present in the network: lightGreen
 reactions associated to the pathway, not present in the network: red
 compounds: skyblue
 
-usage:
-    visu_path.py --padmetSpec=FILE --padmetRef=FILE --pathway=ID
-
-options:
-    -h --help     Show help.
-    --padmetSpec=FILE    pathname to the PADMet file of the network.
-    --padmetRef=FILE    pathname to the PADMet file of the db of reference.
-    --pathway=ID    pathway id to visualize.
+::
+    usage:
+        visu_path.py --padmetSpec=FILE --padmetRef=FILE --pathway=ID
+    
+    options:
+        -h --help     Show help.
+        --padmetSpec=FILE    pathname to the PADMet file of the network.
+        --padmetRef=FILE    pathname to the PADMet file of the db of reference.
+        --pathway=ID    pathway id to visualize.
 
 """
 from padmet.classes import PadmetRef, PadmetSpec

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    From a file containing a list of reaction, return the pathways where theses reactions 
+    From a file containing a list of reaction, return the pathways where these reactions 
     are involved.
     ex: if rxn-a in pwy-x => return, pwy-x; all rxn ids in pwy-x; all rxn ids in pwy-x FROM the list; ratio
 

@@ -21,7 +21,6 @@ Description:
         -v   print info
 """
 from padmet.classes import PadmetSpec, PadmetRef
-from datetime import datetime
 import os
 import docopt
 
