@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    #TODO
+    For a given padmet file, check and update compartment.
+    
+    1./ Get all compartment with 1st usage
+    
+    2./ Remove a compartment with 2nd usage.
+    Remove all reactions acting in the given compartment
+    
+    3./ change compartment id with 3rd usage
 
 ::
     

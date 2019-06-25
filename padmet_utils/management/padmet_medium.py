@@ -4,10 +4,10 @@ Description:
     For a given set of compounds representing the growth medium (or seeds). Create 2 reactions
     for each compounds to maintain consistency of the network for flux analysis.
     For each compounds create:
-        
+
         An exchange reaction: this reaction consumes the compound in the
         compartment 'C-BOUNDARY' and produces the compound in the compartment 'e' extracellular
-        
+
         A transport reaction: this reaction consumes the compound in the compartment
         'e' extracellular' and produces the compound in the compartment 'c' cytosol
         ex: for seed 'cpd-a'
@@ -18,15 +18,15 @@ Description:
 
     3/ create transport reaction: TransportSeed_cpd-a_e: 1 cpd-a (e) => 1 cpd-a (c)
 
-    4/ create a new file if output not None, or overwritte padmetSpec
+    4/ create a new file if output not None, or overwrite padmetSpec
 
 ::
-    
+
     usage:
         padmet_medium.py --padmetSpec=FILE
         padmet_medium.py --padmetSpec=FILE -r [--output=FILE] [-v]
         padmet_medium.py --padmetSpec=FILE --seeds=FILE [--padmetRef=FILE] [--output=FILE] [-v]
-    
+
     options:
         -h --help     Show help.
         --padmetSpec=FILE    path to the padmet file to update
@@ -37,9 +37,9 @@ Description:
         -v   print info
 
 """
+import docopt
 from padmet.classes import PadmetSpec
 from padmet.classes import PadmetRef
-import docopt
 
 def main():
     args = docopt.docopt(__doc__)
@@ -50,7 +50,7 @@ def main():
         seeds = None
     padmet = PadmetSpec(args["--padmetSpec"])
     if args["--padmetRef"]:
-        padmetRef  = PadmetRef(args["--padmetRef"])
+        padmetRef = PadmetRef(args["--padmetRef"])
     else:
         padmetRef = None
     output = args["--output"]
@@ -59,7 +59,7 @@ def main():
 
     if output is None:
         output = args["--padmetSpec"]
-    
+
     if not remove and not seeds:
         g_m = padmet.get_growth_medium()
         print("List of growth medium:")
@@ -81,7 +81,7 @@ def manage_medium(padmet, new_growth_medium=None, padmetRef=None, verbose=False)
     Parameters
     ----------
     padmet: padmet.classes.PadmetSpec
-        padmet to udpate
+        padmet to update
     new_growth_medium: list
         list of compound id representing the medium
     padmetRef: padmet.classes.PadmetRef
@@ -92,18 +92,17 @@ def manage_medium(padmet, new_growth_medium=None, padmetRef=None, verbose=False)
     Returns
     -------
     padmet.classes.PadmetSpec:
-        New padmet after udpating medium
+        New padmet after updating medium
     """
     if new_growth_medium:
-        padmet.set_growth_medium(new_growth_medium = new_growth_medium, padmetRef = padmetRef, verbose = verbose)
+        padmet.set_growth_medium(new_growth_medium=new_growth_medium, padmetRef=padmetRef, verbose=verbose)
     else:
-        padmet.remove_growth_medium(verbose = verbose)
+        padmet.remove_growth_medium(verbose=verbose)
     return padmet
-        
-    
-if __name__ == "__main__":
-    main()  
 
-                
+
+if __name__ == "__main__":
+    main()
+
     
     
