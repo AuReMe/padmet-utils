@@ -163,7 +163,7 @@ def orthogroups_to_sbml(orthogroups_file, all_model_sbml, output_folder, study_i
         for row in reader:
             orth_id = row['Orthogroup']
             row.pop('Orthogroup')
-            new_dict = dict([(name, set(genes.split(","))) for (name, genes) in list(row.items()) if genes])
+            new_dict = dict([(name, set([gene_id.split("_isoform")[0] for gene_id in set(genes.split(","))])) for (name, genes) in list(row.items()) if genes])
             dict_orthogroups[orth_id] = new_dict
             all_orgs.update(new_dict.keys())
     #check all sbml
