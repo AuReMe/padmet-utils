@@ -1,3 +1,4 @@
 *.pyc
 docs/_build/*
-*/__pycache__/*
+*/__pycache__/
+padmet_utils.egg-info/

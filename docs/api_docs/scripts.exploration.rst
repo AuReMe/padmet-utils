@@ -8,15 +8,20 @@ Description:
 compare\_padmet
 ==========================================
 
-.. automodule:: scripts.exploration.compare_padmet
+.. automodule:: padmet_utils.exploration.compare_padmet
     :members:
     :undoc-members:
     :show-inheritance:
 
 compare\_sbml
 ========================================
+
 Description:
-    compare reactions in two sbml
+    compare reactions in two sbml.
+
+    Returns if a reaction is missing
+
+    And if a reaction with the same id is using different species or different reversibility
 
 ::
 
@@ -31,7 +36,7 @@ Description:
 compare\_sbml\_padmet
 ================================================
 
-.. automodule:: scripts.exploration.compare_sbml_padmet
+.. automodule:: padmet_utils.exploration.compare_sbml_padmet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,10 +44,35 @@ compare\_sbml\_padmet
 convert\_sbml\_db
 ============================================
 
-.. automodule:: scripts.exploration.convert_sbml_db
+.. automodule:: padmet_utils.exploration.convert_sbml_db
     :members:
     :undoc-members:
     :show-inheritance:
+
+dendrogram\_reactions\_distance
+============================================
+
+Description:
+    Use reactions.csv file from compare_padmet.py to create a dendrogram using a Jaccard distance.
+    
+    From the matrix absence/presence of reactions in different species computes a Jaccard distance between these species.
+    Apply a hierarchical clustering on these data with a complete linkage. Then create a dendrogram.
+    Apply also intervene to create an upset graph on the data.
+
+
+::
+
+    usage:
+        dendrogram_reactions_distance.py --reactions=FILE --output=FILE [--padmetRef=STR] [--pvclust] [--upset=INT] [-v]
+    
+    option:
+        -h --help    Show help.
+        -r --reactions=FILE    pathname of the file containing reactions in each species of the comparison.
+        -o --output=FOLDER    path to the output folder.
+        --pvclust    launch pvclust dendrogram using R
+        --padmetRef=STR    path to the padmet Ref file
+        -u --upset=INT    number of cluster in the upset graph.
+        -v    verbose mode.
 
 flux\_analysis
 =========================================
@@ -68,19 +98,23 @@ Description:
 get\_pwy\_from\_rxn
 ==============================================
 
-.. automodule:: scripts.exploration.get_pwy_from_rxn
+.. automodule:: padmet_utils.exploration.get_pwy_from_rxn
     :members:
     :undoc-members:
     :show-inheritance:
 
 padmet\_stats
 ========================================
-#TODO
+
+.. automodule:: padmet_utils.exploration.get_pwy_from_rxn
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 report\_network
 ==========================================
 
-.. automodule:: scripts.exploration.report_network
+.. automodule:: padmet_utils.exploration.report_network
     :members:
     :undoc-members:
     :show-inheritance:
@@ -88,7 +122,7 @@ report\_network
 visu\_path
 =====================================
 
-.. automodule:: scripts.exploration.visu_path
+.. automodule:: padmet_utils.exploration.visu_path
     :members:
     :undoc-members:
     :show-inheritance:
