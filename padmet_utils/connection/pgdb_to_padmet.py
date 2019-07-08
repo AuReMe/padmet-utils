@@ -1158,7 +1158,8 @@ def map_gene_id(dict_protein_gene_id, map_gene_ids):
     for prot_id in dict_protein_gene_id:
         mapped_gene_ids = set()
         for gene_id in dict_protein_gene_id[prot_id]:
-            mapped_gene_ids.add(map_gene_ids[gene_id])
+            if gene_id in map_gene_ids:
+                mapped_gene_ids.add(map_gene_ids[gene_id])
         mapped_dict_protein_gene_id[prot_id] = mapped_gene_ids
 
     return mapped_dict_protein_gene_id
