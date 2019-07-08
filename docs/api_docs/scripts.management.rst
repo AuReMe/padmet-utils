@@ -8,7 +8,7 @@ Description:
 manual\_curation
 ==========================================
 
-.. automodule:: scripts.management.manual_curation
+.. automodule:: padmet_utils.management.manual_curation
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ manual\_curation
 padmet\_compart
 =========================================
 
-.. automodule:: scripts.management.padmet_compart
+.. automodule:: padmet_utils.management.padmet_compart
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ padmet\_compart
 padmet\_medium
 ========================================
 
-.. automodule:: scripts.management.padmet_medium
+.. automodule:: padmet_utils.management.padmet_medium
     :members:
     :undoc-members:
     :show-inheritance:

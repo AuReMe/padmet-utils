@@ -8,7 +8,7 @@ Description:
 compare\_padmet
 ==========================================
 
-.. automodule:: scripts.exploration.compare_padmet
+.. automodule:: padmet_utils.exploration.compare_padmet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ Description:
 compare\_sbml\_padmet
 ================================================
 
-.. automodule:: scripts.exploration.compare_sbml_padmet
+.. automodule:: padmet_utils.exploration.compare_sbml_padmet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,7 +39,7 @@ compare\_sbml\_padmet
 convert\_sbml\_db
 ============================================
 
-.. automodule:: scripts.exploration.convert_sbml_db
+.. automodule:: padmet_utils.exploration.convert_sbml_db
     :members:
     :undoc-members:
     :show-inheritance:
@@ -68,7 +68,7 @@ Description:
 get\_pwy\_from\_rxn
 ==============================================
 
-.. automodule:: scripts.exploration.get_pwy_from_rxn
+.. automodule:: padmet_utils.exploration.get_pwy_from_rxn
     :members:
     :undoc-members:
     :show-inheritance:
@@ -80,7 +80,7 @@ padmet\_stats
 report\_network
 ==========================================
 
-.. automodule:: scripts.exploration.report_network
+.. automodule:: padmet_utils.exploration.report_network
     :members:
     :undoc-members:
     :show-inheritance:
@@ -88,7 +88,7 @@ report\_network
 visu\_path
 =====================================
 
-.. automodule:: scripts.exploration.visu_path
+.. automodule:: padmet_utils.exploration.visu_path
     :members:
     :undoc-members:
     :show-inheritance:
