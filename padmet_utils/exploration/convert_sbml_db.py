@@ -9,6 +9,7 @@ Description:
         the files must be named as 'reac_xref.tsv' and 'chem_xref.tsv'
         or set manually the different path of the flat files with:
             mnx_reac= path to the flat file for reactions
+            
             mnx_chem= path to the flat file for chemical compounds (species)
 
     To check the database used in a sbml:
@@ -20,13 +21,21 @@ Description:
             to--map=species
 
     To map a sbml and obtain a file of mapping ids to a given database set:
-        to-map: as previously explained
-        db_out: the name of the database target: ['metacyc', 'bigg', 'kegg'] only
-        output: the path to the output file
+        to-map:
+            as previously explained
+        db_out:
+            the name of the database target: ['metacyc', 'bigg', 'kegg'] only
+        output:
+            the path to the output file
+        
         For a given sbml using a specific database.
+        
         Return a dictionnary of mapping.
+        
         the output is a file with line = reaction_id/or species in sbml, reaction_id/species in db_out database
-        ex: For a sbml based on kegg database, db_out=metacyc: the output file will contains for ex:
+        
+        ex:
+            For a sbml based on kegg database, db_out=metacyc: the output file will contains for ex:
         R02283 ACETYLORNTRANSAM-RXN
     
 ::

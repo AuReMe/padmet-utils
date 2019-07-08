@@ -21,14 +21,6 @@ enhanced\_meneco\_output
     :undoc-members:
     :show-inheritance:
 
-enhanced\_sgs\_output
-======================================
-
-.. automodule:: padmet_utils.connection.enhanced_sgs_output
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 extract\_rxn\_with\_gene\_assoc
 ======================================
 
@@ -97,22 +89,6 @@ pgdb\_to\_padmet
 ======================================
 
 .. automodule:: padmet_utils.connection.pgdb_to_padmet
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-post\_pantograph\_gbr
-======================================
-
-.. automodule:: padmet_utils.connection.post_pantograph_gbr
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pre\_pantograph
-======================================
-
-.. automodule:: padmet_utils.connection.pre_pantograph
     :members:
     :undoc-members:
     :show-inheritance:
