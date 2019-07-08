@@ -2,33 +2,52 @@
 """
 Description:
     After running orthofinder on n fasta file, read the output file 'Orthogroups.csv'
+    
     Require a folder 'orthology_based_folder' with this archi:
-    \model_a
-        model_a.sbml
-    \model_b
-        model_b.sbml
+    
+        |-- model_a
+            -- model_a.sbml
+        |-- model_b
+            --model_b.sbml
+
     And the name of the studied organism 'study_id'
+
     1. Read the orthogroups file, extract orthogroups in dict 'all_orthogroups', and all org names
+
     2. In orthology folder search for sbml files 'extension = .sbml'
+
     3. For each models regroup all information in a dict dict_data:
+        
         {'study_id': study_id,
         'model_id' : model_id,
         'sbml_template': path to sbml of model',
         'output': path to the output sbml,
         'verbose': bool, if true print information
         }
-        The output is by default: output_orthofinder_from_'model_id'.sbml
+
+        The output is by default:
+            \output_orthofinder_from_'model_id'.sbml
+
     4. Store all previous dict_data in a list all_dict_data
+
     5. iter on dict from all_dict_data and use function dict_data_to_sbml
 
     Use a dict of data dict_data and dict of orthogroups dict_orthogroup to create sbml files.
+    
     dict_data and dict_orthogroup are obtained with fun orthofinder_to_sbml
+    
     6./ Read dict_orthogroups and check if model associated to dict_data and study org share orthologue
+    
     7./ Read sbml of model, parse all reactions and get genes associated to reaction.
+    
     8./ For each reactions:
+        
         Parse genes associated to sub part (ex: (gene-a and gene-b) or gene-c) = [(gene-a,gene-b), gene-c]
+        
         Check if study org have orthologue with at least one sub part (gene-a, gene-b) or gene-c
+        
         if yes: add the reaction to the new sbml and change genes ids by study org genes ids
+        
         Create the new sbml file.
     
 ::

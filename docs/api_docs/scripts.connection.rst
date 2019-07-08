@@ -13,10 +13,26 @@ biggAPI\_to\_padmet
     :undoc-members:
     :show-inheritance:
 
+check\_orthology\_input
+======================================
+
+.. automodule:: padmet_utils.connection.check_orthology_input
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 enhanced\_meneco\_output
 ======================================
 
 .. automodule:: padmet_utils.connection.enhanced_meneco_output
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+extract\_orthofinder
+======================================
+
+.. automodule:: padmet_utils.connection.extract_orthofinder
     :members:
     :undoc-members:
     :show-inheritance:
