@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Description:
-    compare reactions in two sbml
+    compare reactions in two sbml.
+
+    Returns if a reaction is missing
+
+    And if a reaction with the same id is using different species or different reversibility
 
 ::
 
@@ -57,8 +61,12 @@ def compare_sbml(sbml1_path, sbml2_path):
         rxn_id = rxn1.id
         try:
             rxn2 = sbml_2.reactions.get_by_id(rxn_id)
-            if not compare_rxn(rxn1, rxn2):
-                print("%s is diff" %rxn_id)
+            same_cpd, same_rev =  compare_rxn(rxn1, rxn2)
+            if rxn_id not in all_diff:
+                if not same_cpd:
+                    print("%s use different species" %rxn_id)
+                if not same_rev:
+                    print("%s use different reversibility" %rxn_id)
                 all_diff.add(rxn_id)
         except KeyError:
             pass
@@ -70,9 +78,9 @@ def compare_sbml(sbml1_path, sbml2_path):
             same_cpd, same_rev =  compare_rxn(rxn1, rxn2)
             if rxn_id not in all_diff:
                 if not same_cpd:
-                    print("%s use diff cpds" %rxn_id)
+                    print("%s use different species" %rxn_id)
                 if not same_rev:
-                    print("%s diff rev" %rxn_id)
+                    print("%s use different reversibility" %rxn_id)
                 all_diff.add(rxn_id)
         except KeyError:
             pass
