@@ -93,7 +93,7 @@ def check_ids(model_metabolic, model_faa, cutoff, verbose=False):
     for geneAssoc in (sp.parseNotes(r).get("GENE_ASSOCIATION",[None])[0] for r in listOfReactions)
     if geneAssoc is not None]))
     
-    with open(model_faa, "rU") as f:
+    with open(model_faa, "r") as f:
         model_faa_ids = set([record.id for record in SeqIO.parse(f, "fasta")])
 
     diff_genes = model_metabolic_ids.difference(model_faa_ids)
