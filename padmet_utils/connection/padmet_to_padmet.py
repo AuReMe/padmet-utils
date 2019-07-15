@@ -44,7 +44,8 @@ def padmet_to_padmet(to_add, output, padmetRef=None, verbose=False):
         all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
         padmetFiles = [os.path.join(path, i) for i in all_files if i.endswith(".padmet")]
         if len(padmetFiles) == 0:
-            raise IOError("No padmet found in %s" %path)
+            print("No padmet found in %s" %path)
+            return
     else:
         padmetFiles = to_add.split(";")
     
