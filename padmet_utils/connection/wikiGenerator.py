@@ -149,13 +149,13 @@ def wikiGenerator(padmet, output, wiki_id, padmetRef=None, database=None, log_fi
 
     #Create each categories pages
     for rxn_id, rxn_dict_data in total_padmet_data["reaction"].items():
-        output_file = os.path.join(output, "reactions", rxn_id)
+        output_file = os.path.join(output, "reactions", rxn_id.replace("/", "__47__"))
         create_biological_page("reaction", rxn_id, rxn_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
     for gene_id, gene_dict_data in total_padmet_data["gene"].items():
         output_file = os.path.join(output, "genes", gene_id)
         create_biological_page("gene", gene_id, gene_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
     for pwy_id, pwy_dict_data in total_padmet_data["pathway"].items():
-        output_file = os.path.join(output, "pathways", pwy_id)
+        output_file = os.path.join(output, "pathways", pwy_id.replace("/", "__47__"))
         create_biological_page("pathway", pwy_id, pwy_dict_data, total_padmet_data, ext_link, output_file, padmetRef, verbose)
     for cpd_id, cpd_dict_data in total_padmet_data["metabolite"].items():
         output_file = os.path.join(output, "metabolites", cpd_id)
@@ -398,6 +398,8 @@ def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None,
             #if found, lower to standardize
             category = rec_data_node.misc.get("CATEGORY",["unknown-category"])[0].lower()
             tool = rec_data_node.misc.get("TOOL",["unknown-tool"])[0].lower()
+            if category == "manual" and tool == "unknown-tool":
+                tool = "curation"
             comment = rec_data_node.misc.get("COMMENT",["n.a"])[0].lower()
             source = rec_data_node.misc.get("SOURCE",["unknown-source"])[0].lower()
             if re.findall("^output.*_from_", source):
