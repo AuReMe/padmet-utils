@@ -24,7 +24,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="padmet_utils",
-    version="0.0.6",
+    version="0.0.8",
     author="Dyliss Inria",
     author_email="gem-aureme@inria.fr",
     description="Modules to manage, explore and connect metabolic networks using Padmet and SBML formats",

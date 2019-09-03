@@ -22,8 +22,8 @@ import os
 import sys
 
 from multiprocessing import Pool
-from padmet_utils.scripts.connection.sbmlGenerator import padmet_to_sbml
-from padmet_utils.scripts.connection.sbml_to_padmet import from_sbml_to_padmet
+from padmet_utils.connection.sbmlGenerator import padmet_to_sbml
+from padmet_utils.connection.sbml_to_padmet import from_sbml_to_padmet
 
 def main():
     args = docopt.docopt(__doc__)
