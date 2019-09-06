@@ -78,14 +78,6 @@ import os
 
 def main():
     args = docopt.docopt(__doc__)
-    """
-    verbose = True
-    sbml = "/home/maite/Documents/data/aucome_analysis"
-    orthologue_folder = "/home/maite/Documents/data/aucome_analysis/Orthologues"
-    workflow = "aucome"
-    study_id = "Gracilariopsis_chorda"
-    output_folder = "/home/maite/Documents/data/aucome_analysis/test"
-    """
     verbose = args["-v"]
     sbml = args["--sbml"]
     orthogroups_file = args["--orthogroups"]
@@ -372,7 +364,6 @@ def dict_data_to_sbml(dict_data, dict_orthogroups=None, dict_orthologues=None, s
         for gene_id, gene_dict in dict_orthologues[model_id].items():
             try:
                 sub_dict_orth[gene_id] = gene_dict[study_id]
-                print(gene_id, gene_dict)
             except KeyError:
                 pass
         if not sub_dict_orth:
