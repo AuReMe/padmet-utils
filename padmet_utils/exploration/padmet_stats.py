@@ -54,7 +54,7 @@ def compute_stats(padmet_file_folder):
 
     output_file = open('padmet_stats.tsv', 'w')
     output_writer = csv.writer(output_file, delimiter='\t')
-    output_writer.writerow(['padmet_file', 'pathways', 'reactions', 'genes', 'compounds'])
+    output_writer.writerow(['padmet_file', 'pathways', 'reactions', 'reactions_with_gene_association', 'genes', 'compounds'])
 
     df_orthologs = pa.DataFrame()
     if padmet_type == "dir":
@@ -104,16 +104,18 @@ def padmet_stat(padmet_file):
 
     all_rxns = [node for node in padmetSpec.dicOfNode.values() if node.type == "reaction"]
     all_genes = [node for node in padmetSpec.dicOfNode.values() if node.type == "gene"]
-
+    nb_rxn_with_ga = 0
     for rxn_node in all_rxns:
         total_cpd_id.update([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_node.id] if rlt.type in ["consumes","produces"]])
         pathways_ids = set([rlt.id_out for rlt in padmetSpec.dicOfRelationIn[rxn_node.id] if rlt.type == "is_in_pathway"])
+        if any([rlt for rlt in padmetSpec.dicOfRelationIn[rxn_node.id] if rlt.type == "is_linked_to"]):
+            nb_rxn_with_ga += 1
         total_pwy_id.update(pathways_ids)
 
     all_pwys = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_pwy_id]
     all_cpds = [node for (node_id, node) in padmetSpec.dicOfNode.items() if node_id in total_cpd_id]
 
-    return [padmet_file, len(all_pwys), len(all_rxns), len(all_genes), len(all_cpds)] 
+    return [padmet_file, len(all_pwys), len(all_rxns), nb_rxn_with_ga, len(all_genes), len(all_cpds)] 
 
 
 def orthology_result(padmet_file, padmet_names):
