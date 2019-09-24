@@ -772,16 +772,18 @@ def genes_parser(filePath, padmet, verbose = False):
                 pass
 
     count = 0
-    nb_genes = str(len(list(dict_data.keys())))
+    #nb_genes = str(len(list(dict_data.keys())))
     map_gene_ids = {}
     for current_id, dict_values in dict_data.items():
         try:
             gene_id = dict_values.get("ACCESSION-1",[current_id])[0]
             map_gene_ids[current_id] = gene_id
             count += 1
+            """
             if verbose: 
                 print("\r%s/%s: %s" %(count, nb_genes, gene_id), end="", flush=True)
                 #print(current_id, gene_id)
+            """
             gene_node = Node("gene", gene_id)
             padmet.dicOfNode[gene_id] = gene_node
             try:
