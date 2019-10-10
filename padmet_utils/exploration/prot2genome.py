@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 usage:
-    prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE [--cpu=INT] [blastp] [tblastn] [exonerate]  [debug]
+    prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE [--cpu=INT] [blastp] [tblastn] [debug]
+    prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE --exonerate=PATH  [--cpu=INT] [blastp] [tblastn] [debug]
 
 options:
     --query_faa=FILE #TODO. 
@@ -12,9 +13,9 @@ options:
     --subject_faa=FILE #TODO. 
     --output_folder=FILE #TODO. 
     --cpu=INT     Number of cpu to use for the multiprocessing (if none use 1 cpu). [default: 1]
+    --exonerate=PATH #TODO. 
     blastp #TODO. 
     tblastn #TODO. 
-    exonerate #TODO. 
     debug #TODO. 
     
 """
@@ -37,6 +38,7 @@ import docopt
 def main():
     """
     """
+    global exonerate_path
     args = docopt.docopt(__doc__)
     query_faa = args["--query_faa"]
     query_ids = args["--query_ids"]
@@ -45,10 +47,14 @@ def main():
     subject_faa = args["--subject_faa"]
     output_folder = args["--output_folder"]
     cpu =  int(args["--cpu"])
+    exonerate_path = args["--exonerate"]
     blastp = args["blastp"]
     tblastn = args["tblastn"]
-    exonerate = args["exonerate"]
     debug = args["debug"]
+
+    if exonerate_path:
+        subprocess.run([exonerate_path], shell = True)
+        exonerate = True
 
     #if query_ids is a file, extract all query_ids (1 by line)
     #else, query_ids must represent query_ids sep by ';'
@@ -151,7 +157,6 @@ def runExonerate(query_seq_faa, sseq_seq_faa, output, debug=False):
     """
     print("\tRunning Exonerate %s vs %s" %(os.path.basename(query_seq_faa), os.path.basename(sseq_seq_faa)))
     exonerate_result = {}
-    exonerate_path = "/home/maite/exonerate-2.2.0-x86_64/bin/exonerate"
     cmd_args = '{0} --model protein2genome {1} {2} --score 500 --showquerygff True  \
     --ryo ">%qi length=%ql alnlen=%qal\n>%ti length=%tl alnlen=%tal\n" >> {3}'.format(exonerate_path, query_seq_faa, sseq_seq_faa, output)
     subprocess.run([cmd_args], shell = True)
