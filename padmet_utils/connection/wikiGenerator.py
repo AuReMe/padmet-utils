@@ -170,10 +170,11 @@ def wikiGenerator(padmet, output, wiki_id, padmetRef=None, database=None, log_fi
     if log_file:
         create_log_page(log_file, os.path.join(output, "navigation"))
 
-    """
-    #create_venn()
-    create_main(wiki_id)
-    """
+    if len(padmetFiles) == 1:
+        venn_path = os.path.join(output,"files","venn.png")
+        create_venn(total_padmet_data, venn_path, verbose)
+        main_page_path = os.path.join(output,"navigation","Main_Page")
+        create_main(total_padmet_data, wiki_id, main_page_path, verbose)
 
 def extract_padmet_data(padmetFile, total_padmet_data, global_pwy_rxn_dict=None, padmetRef=None, verbose=False):
     """
@@ -1293,86 +1294,88 @@ def create_navigation_page(total_padmet_data, navigation_folder, verbose=False):
             f.write(line+"\n")
 
 
-def create_venn():
+def create_venn(total_padmet_data, output_file, verbose=False):
     """
     #TODO
     """
     if verbose: print("Venn Diagramm")
-    #'ARGSUCCINSYN-RXN'
-    categories_dict ={}
-    """
-    all_categories = ["orthology","annotation","gap-filling","manual","microbiont"]
-    for category in all_categories:
-        categories_dict[category] = set()
-    """
-    for rxn_id, rxn_src_dict in list(full_sources_dict.items()):
-        for category in list(rxn_src_dict.keys()):
-            try:
-                categories_dict[category].add(rxn_id)
-            except KeyError:
-                categories_dict[category] = set(rxn_id)
-                
-    
-    labels = get_labels(list(categories_dict.values()))
-    fig, ax = venn4(labels, names=list(categories_dict.keys()))
-    fig.savefig(wiki_folder+"files/venn.png")
+               
+    labels = get_labels([i.keys() for i in total_padmet_data["reconstruction"]["category"].values()])
+    fig, ax = venn4(labels, names=list(total_padmet_data["reconstruction"]["category"].keys()))
+    fig.savefig(output_file)
 
 def copy_io_files():
     """
     """
     #toDo in futur
         
-def create_main(wiki_id):
+def create_main(total_padmet_data, wiki_id, output_file, verbose=False):
     """
     #TODO
     """
     if verbose: print("Main page")
     ### create main page
+    all_rxns = len(total_padmet_data["reaction"].keys())
+    all_cpds = len(total_padmet_data["metabolite"].keys())
+    all_pwys = len(total_padmet_data["pathway"].keys())
+    all_genes = len(total_padmet_data["gene"].keys())
+
     for line in main_template:
         main_template[main_template.index(line)] = line.replace("MODEL_ID",wiki_id)
     final_network_index = main_template.index([line for line in main_template if line.startswith("The automatic")][0])
-    main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(len(all_rxns))).replace("NB_CPD", str(len(all_cpds))).replace("NB_PWY", str(len(all_pwys))).replace("NB_GENE", str(len(all_genes)))
-    reconstruct_summary = {"ANNOTATION":0,"ORTHOLOGY":{},"MANUAL":0,"GAP-FILLING":0,"MICROBIONT":0,"HOST":0}
-    for rec_node in [node for node in list(padmetSpec.dicOfNode.values()) if node.type == "reconstructionData"]:
-        cat = rec_node.misc["CATEGORY"][0]
-        if cat == "ORTHOLOGY":
-            source = rec_node.misc["SOURCE"][0].replace("OUTPUT_PANTOGRAPH_","")
-            try:
-                reconstruct_summary["ORTHOLOGY"][source] += 1
-            except KeyError:
-                reconstruct_summary["ORTHOLOGY"][source] = 1
-        else:
-            reconstruct_summary[cat] += 1
-    index = 1
-    if reconstruct_summary["ANNOTATION"] != 0:
-        main_template.insert(final_network_index+index, "* Based on annotation data:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [http://bioinformatics.ai.sri.com/ptools/ Pathway tools]")
-        index += 1
-        main_template.insert(final_network_index+index, "*** Creation of a metabolic network containing "+str(reconstruct_summary["ANNOTATION"])+" reactions")
-        index += 1
-    if reconstruct_summary["ORTHOLOGY"] != 0:
-        main_template.insert(final_network_index+index, "* Based on orthology data:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [http://pathtastic.gforge.inria.fr Pantograph]")
-        index += 1        
-        for k,v in list(reconstruct_summary["ORTHOLOGY"].items()):
-            main_template.insert(final_network_index+index, "*** From template ''"+k+"'' creation of a metabolic network containing: "+str(v)+" reactions")
-            index += 1
-    if reconstruct_summary["MANUAL"] != 0:
-        main_template.insert(final_network_index+index, "* Based on expertise:")
-        index += 1
-        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["MANUAL"])+" reaction(s) added")
-        index += 1
-    if reconstruct_summary["GAP-FILLING"] != 0:
-        main_template.insert(final_network_index+index, "* Based on gap-filling:")
-        index += 1
-        main_template.insert(final_network_index+index, "** Tool: [https://pypi.python.org/pypi/meneco meneco]")
-        index += 1
-        main_template.insert(final_network_index+index, "*** "+str(reconstruct_summary["GAP-FILLING"])+" reaction(s) added")
+    main_template[final_network_index] = main_template[final_network_index].replace("NB_RXN", str(all_rxns)).replace("NB_CPD", str(all_cpds)).replace("NB_PWY", str(all_pwys)).replace("NB_GENE", str(all_genes))
 
-    fileName = wiki_folder+"/navigation/Main_Page"
-    with open(fileName,'w') as f:
+    """
+    index += 1
+
+    index += 1        
+
+    """
+    index = 1
+    for category, rxns in total_padmet_data["reconstruction"]["category"].items():
+        if category == "annotation":
+            main_template.insert(final_network_index+index, "* Based on annotation data:")
+            index += 1
+            main_template.insert(final_network_index+index, "** Creation of a metabolic network containing %s reactions" %len(rxns))
+            index += 1
+        elif category == "orthology":
+            main_template.insert(final_network_index+index, "* Based on orthology data:")
+            index += 1
+            main_template.insert(final_network_index+index, "** Creation of a global metabolic network containing %s reactions" %len(rxns))
+            index += 1
+            for src,v in total_padmet_data["reconstruction"]["source"].items():
+                if src.startswith("output_pantograph_") or src.startswith("output_orthofinder_"):
+                    src = src.replace("output_pantograph_","").replace("output_orthofinder_","")
+                    main_template.insert(final_network_index+index, "*** From template ''"+src+"'' creation of a metabolic network containing: %s reactions"%len(v.keys()))
+                    index += 1
+        elif category == "manual":
+            main_template.insert(final_network_index+index, "* Based on expertise:")
+            index += 1
+            main_template.insert(final_network_index+index, "** %s reaction(s) added"%len(rxns))
+            index += 1
+        elif category == "gap-filling":
+            main_template.insert(final_network_index+index, "* Based on gap-filling:")
+            index += 1
+            main_template.insert(final_network_index+index, "*** %s reaction(s) added"%len(rxns))
+            index += 1
+    main_template.insert(final_network_index+index, "")
+    index += 1
+    main_template.insert(final_network_index+index, "*List of tools used:")
+    index += 1
+    for tool in total_padmet_data["reconstruction"]["tool"].keys():
+        if tool == "pantograph":
+            main_template.insert(final_network_index+index, "** Tool: [http://pathtastic.gforge.inria.fr Pantograph]")
+        elif tool == "pathwaytools":
+            main_template.insert(final_network_index+index, "** Tool: [http://bioinformatics.ai.sri.com/ptools/ PathwayTools]")
+        elif tool == "meneco":
+            main_template.insert(final_network_index+index, "** Tool: [https://pypi.python.org/pypi/meneco Meneco]")
+        elif tool == "orthofinder":
+            main_template.insert(final_network_index+index, "** Tool: [https://github.com/davidemms/OrthoFinder Orthofinder]")
+        index += 1
+        
+            
+
+    with open(output_file,'w') as f:
         for line in main_template:
             f.write(line+"\n")                
 
@@ -1526,7 +1529,7 @@ default_colors = [
 ]
 
 
-main_template = ["== MODEL_IDGEM description ==",
+main_template = ["== MODEL_ID description ==",
      "== Automatic reconstruction with [http://aureme.genouest.org AuReMe] ==",
      "Model summary: [[MEDIA:summary.txt|summary]]",
      "",
@@ -1549,7 +1552,7 @@ def create_log_page(log_file, output_folder):
     #TODO
     """
     cmd_regex = '--cmd=\"(.*)\"'
-    fileName = output_folder+"workflow"
+    fileName = os.path.join(output_folder,"workflow")
     log_page = ["=Workflow command history=","","==Command sequence=="]
     with open(log_file, 'r') as f:
         log_data = [line for line in f.read().splitlines() if not line.startswith("#")]
