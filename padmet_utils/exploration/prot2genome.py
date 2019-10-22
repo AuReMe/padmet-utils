@@ -4,7 +4,15 @@
 usage:
     prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE [--cpu=INT] [blastp] [tblastn] [debug]
     prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE --exonerate=PATH  [--cpu=INT] [blastp] [tblastn] [debug]
+    prot2genome --padmet=FOLDER --output=FOLDER
+    prot2genome --studied_organisms=FOLDER --output=FOLDER
+    prot2genome --run=FOLDER --exonerate=PATH  [--cpu=INT] [blastp] [tblastn] [debug]
 
+    From aucome run fromAucome():
+        -1. Extract specifique reactions in spec_reactions folder with extractReactions()
+        -2. Extract genes from spec_reactions files with extractGenes()
+        -3. Run tblastn + exonerate with runAllAnalysis()
+    
 options:
     --query_faa=FILE #TODO. 
     --query_ids=FILE/STR #TODO. 
@@ -16,17 +24,19 @@ options:
     --exonerate=PATH #TODO. 
     blastp #TODO. 
     tblastn #TODO. 
-    debug #TODO. 
+    debug #TODO.
     
 """
 
 from Bio.Blast.Applications import NcbiblastpCommandline, NcbitblastnCommandline
 from Bio import SearchIO
 from Bio import SeqIO
+from padmet.classes import PadmetSpec
+from multiprocessing import Pool
 import os
 import csv
 import subprocess
-from multiprocessing import Pool
+import itertools
 import docopt
 
 #Utilise gbk to faa, ajouter une option pour faire un fichier fasta une sequence.
@@ -40,56 +50,284 @@ def main():
     """
     global exonerate_path
     args = docopt.docopt(__doc__)
-    query_faa = args["--query_faa"]
-    query_ids = args["--query_ids"]
-    subject_gbk = args["--subject_gbk"]
-    subject_fna = args["--subject_fna"]
-    subject_faa = args["--subject_faa"]
-    output_folder = args["--output_folder"]
-    cpu =  int(args["--cpu"])
     exonerate_path = args["--exonerate"]
+    if exonerate_path:
+        print("Test running exonerate...")
+        subprocess.run([exonerate_path], shell = True)
+        exonerate = True
+
+    run_folder = args["--run"]
+    cpu =  int(args["--cpu"])
     blastp = args["blastp"]
     tblastn = args["tblastn"]
     debug = args["debug"]
 
-    if exonerate_path:
-        subprocess.run([exonerate_path], shell = True)
-        exonerate = True
+    if run_folder:
+        fromAucome(run_folder, cpu, blastp, tblastn, exonerate, debug)
 
-    #if query_ids is a file, extract all query_ids (1 by line)
-    #else, query_ids must represent query_ids sep by ';'
-    if os.path.isfile(query_ids):
-        with open(query_ids, 'r') as f:
-            all_query_seq_ids = f.read().splitlines()
-    else:
-        all_query_seq_ids = query_ids.split(";")
+def fromAucome(run_folder, cpu, blastp=False, tblastn=True, exonerate=True, debug=False):
+    """
+    """
+    prot2genome_folder = os.path.join(run_folder,"prot2genome")
+    padmet_folder = os.path.join(run_folder,"networks","PADMETs")
+    studied_organisms_folder = os.path.join(run_folder,"studied_organisms")
+    spec_reactions_folder = os.path.join(prot2genome_folder, "spec_reactions")
+    reactions_to_add_folder = os.path.join(prot2genome_folder, "reactions_to_add")
+    blast_result_folder = os.path.join(prot2genome_folder, "blast_results")
+    blast_analysis_folder = os.path.join(blast_result_folder, "analysis")
+    tmp_folder = os.path.join(blast_result_folder, "tmp")
 
-    print("%s query ids to search" %len(all_query_seq_ids))
-    #If GBK given and no fna, create fna from genbank
-    if not os.path.exists(subject_fna):
-        SeqIO.convert(subject_gbk, "genbank", subject_fna, "fasta")
-    #Do the same for gbk to fasta ? (must be with padmet-utils for isoforms)
-    #TODO
+    print("Extracting specific reactions...")
+    extractReactions(padmet_folder, spec_reactions_folder)
+    print("Running blast analysis...")
+    mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analysis_folder, tmp_folder, cpu, blastp, tblastn, exonerate, debug)
+    print("Extracting reactions to add...")
+    extractAnalysis(blast_analysis_folder, spec_reactions_folder, reactions_to_add_folder)
 
-    #output file: header: see analysis_header from analysisOutput function
-    analysis_output = os.path.join(output_folder, "blast_analysis.csv")
 
-    pool = Pool(cpu)
-    #list of dict to give to dictWritter
-    all_analysis_result = []
-    #Create a list of dict, each dict is the arg given to runAllAnalysis fct
-    all_dict_args = []
-    for query_seq_id in all_query_seq_ids:
-        dict_args = {"query_seq_id": query_seq_id, "query_faa": query_faa, "subject_faa": subject_faa, "subject_fna": subject_fna, "output_folder": output_folder, "blastp": blastp, "tblastn": tblastn, "exonerate": exonerate, "debug": debug}
-        all_dict_args.append(dict_args)
-    #Run runAllAnalysis in multiproccess.
-    mp_results = pool.map(runAllAnalysis, all_dict_args)
-    for _list in mp_results:
-        all_analysis_result += _list
-    print("Creating output analysis: %s" %analysis_output)
-    #Create output file
-    analysisOutput(all_analysis_result, analysis_output)
+def extractReactions(padmet_folder, output_folder):
+    """
+    """
+    all_padmets = next(os.walk(padmet_folder))[2]
+    all_combi = list(itertools.combinations(all_padmets, 2))
+    #test_combi = [(org_a, org_b) for org_a,org_b in all_combi if org_a in ["Ectocarpus_siliculosus.padmet", "Ectocarpus_subulatus.padmet"] and org_b in ["Ectocarpus_siliculosus.padmet", "Ectocarpus_subulatus.padmet"]]
+    for (org_a, org_b) in all_combi:
+        path_a = os.path.join(padmet_folder,org_a)
+        path_b = os.path.join(padmet_folder,org_b)
+        padmet_a = PadmetSpec(path_a)
+        padmet_b = PadmetSpec(path_b)
+    
+        rxn_spec_to_a = set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]))     
+        rxn_spec_to_b = set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]))     
+    
+        genes_assoc_spec_to_a = set()
+        for rxn_id in rxn_spec_to_a:
+            genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+            genes_assoc_spec_to_a.update(genes_assoc)    
+    
+        genes_assoc_spec_to_b = set()
+        for rxn_id in rxn_spec_to_a:
+            genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+            genes_assoc_spec_to_b.update(genes_assoc)    
+    
+        genes_ids_for_blast = set()
+        output_a = os.path.join(output_folder, "%s_VS_%s.csv"%(os.path.splitext(org_a)[0], os.path.splitext(org_b)[0]))
+        with open(output_a,"w") as csvfile:
+            header = ["reaction_id", "genes_ids", "sources"]
+            dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
+            dict_writer.writeheader()
+            for rxn_id in rxn_spec_to_a:
+                genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+                recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
+                for recData in [padmet_a.dicOfNode[rlt.id_out].misc for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
+                    category = recData["CATEGORY"][0]
+                    if category == "ANNOTATION":
+                        recData_dict["ANNOTATION"] = recData["SOURCE"][0]
+                    elif category == "ORTHOLOGY":
+                        org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
+                        recData_dict["ORTHOLOGY"].add(org_info)
+                if recData_dict["ANNOTATION"] is None:
+                    print("reaction %s from %s has no annotation source" %(rxn_id, org_a))
+                else:
+                    genes_ids_for_blast.update(genes_assoc)
+                    line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
+                    dict_writer.writerow(line)
+    
+        genes_ids_for_blast = set()
+        output_b = os.path.join(output_folder, "%s_VS_%s.csv"%(os.path.splitext(org_b)[0], os.path.splitext(org_a)[0]))
+        with open(output_b,"w") as csvfile:
+            header = ["reaction_id", "genes_ids", "sources"]
+            dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
+            dict_writer.writeheader()
+            for rxn_id in rxn_spec_to_b:
+                genes_assoc = set([rlt.id_out for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+                recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
+                for recData in [padmet_b.dicOfNode[rlt.id_out].misc for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
+                    category = recData["CATEGORY"][0]
+                    if category == "ANNOTATION":
+                        recData_dict["ANNOTATION"] = recData["SOURCE"][0]
+                    elif category == "ORTHOLOGY":
+                        org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
+                        recData_dict["ORTHOLOGY"].add(org_info)
+                if recData_dict["ANNOTATION"] is None:
+                    print("reaction %s from %s has no annotation source" %(rxn_id, org_b))
+                else:
+                    genes_ids_for_blast.update(genes_assoc)
+                    line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
+                    dict_writer.writerow(line)
 
+def mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analysis_folder, tmp_folder, cpu, blastp, tblastn, exonerate, debug):
+    """
+    """
+    for rxn_file in [os.path.join(spec_reactions_folder, i) for i in next(os.walk(spec_reactions_folder))[2]]:
+        all_query_seq_ids = extractGenes(rxn_file)
+        org_a, org_b = os.path.basename(rxn_file).replace(".csv","").split("_VS_")
+        analysis_output = os.path.join(blast_analysis_folder, "%s_VS_%s.csv"%(org_a, org_b))
+        query_faa = os.path.join(studied_organisms_folder, org_a, "%s.faa"%org_a)
+        subject_gbk = os.path.join(studied_organisms_folder, org_b, "%s.gbk"%org_b)
+        subject_faa = os.path.join(studied_organisms_folder, org_b, "%s.faa"%org_b)
+        subject_fna = os.path.join(studied_organisms_folder, org_b, "%s.fna"%org_b)
+        #If GBK given and no fna, create fna from genbank
+        if not os.path.exists(subject_fna):
+            SeqIO.convert(subject_gbk, "genbank", subject_fna, "fasta")
+
+        #Create a list of dict, each dict is the arg given to runAllAnalysis fct
+        print("Extracting all data for %s vs %s" %(org_a, org_b))
+        print("%s query ids to search" %len(all_query_seq_ids))
+
+        all_dict_args = []
+        for query_seq_id in all_query_seq_ids:
+            dict_args = {"query_seq_id": query_seq_id, "query_faa": query_faa, "subject_faa": subject_faa, "subject_fna": subject_fna, "output_folder": tmp_folder, "blastp": blastp, "tblastn": tblastn, "exonerate": exonerate, "debug": debug}
+            all_dict_args.append(dict_args)
+        #list of dict to give to dictWritter
+        all_analysis_result = []
+        #Run runAllAnalysis in multiproccess.
+        pool = Pool(cpu)
+        mp_results = pool.map(runAllAnalysis, all_dict_args)
+        for _list in mp_results:
+            all_analysis_result += _list
+        print("Creating output analysis: %s" %analysis_output)
+        #Create output file
+        analysisOutput(all_analysis_result, analysis_output)        
+
+def createPadmet():
+    """
+    """
+    
+def extractAnalysis(blast_analysis_folder, spec_reactions_folder, reactions_to_add_folder):
+    """
+    """
+    # {org_id: {org_id:set(genes_ids,...), }, }
+    orthologue_dict = {}
+    for analysis_file in [os.path.join(blast_analysis_folder, i) for i in next(os.walk(blast_analysis_folder))[2]]:
+        org_b, org_a = os.path.basename(analysis_file).replace(".csv","").split("_VS_")
+        try:
+            orthologue_dict[org_a][org_b] = set()
+        except KeyError:
+            orthologue_dict[org_a] = {org_b: set()}
+
+        with open(analysis_file, 'r') as csvfile:
+            reader = csv.DictReader(csvfile, delimiter="\t")
+            for line in reader:
+                if line['exonerate_score'] and line['tblastn_bitscore']:
+                    orthologue_dict[org_a][org_b].add(line['query_seq_id'])
+
+    # {org_id: {reaction_id:{org_id:{total_genes: set(genes_ids), orthologues: set(genes_ids)}}}
+    reactions_dict = {}
+    for rxn_file in [os.path.join(spec_reactions_folder, i) for i in next(os.walk(spec_reactions_folder))[2]]:
+        org_b, org_a = os.path.basename(rxn_file).replace(".csv","").split("_VS_")
+        if org_a not in reactions_dict.keys():
+            reactions_dict[org_a] = dict()
+        all_orthologues = orthologue_dict[org_a][org_b]
+        with open(rxn_file, 'r') as csvfile:
+            reader = csv.DictReader(csvfile, delimiter="\t")
+            for line in reader:
+                reaction_id = line['reaction_id']
+                genes_ids = set(line['genes_ids'].split(";"))
+                orthologues = genes_ids.intersection(all_orthologues)
+                try:
+                    reactions_dict[org_a][reaction_id][org_b] = {'total_genes': genes_ids, 'orthologues': orthologues}
+                except KeyError:
+                    reactions_dict[org_a][reaction_id] = {org_b: {'total_genes': genes_ids, 'orthologues': orthologues}}
+                    
+    for org_a, org_dict in reactions_dict.items():
+        output_file = os.path.join(reactions_to_add_folder, "%s.csv"%org_a)
+        with open(output_file, 'w') as csvfile:
+            fieldnames = ['reaction_id', 'rate', 'in_org', 'org_with_orthologues']
+            writer = csv.DictWriter(csvfile,fieldnames, delimiter="\t")
+            writer.writeheader()
+            total_rxn_to_add = 0
+            total_rxn = len(org_dict.keys())
+            for reaction_id, reaction_dict in org_dict.items():
+                total_org = set(reaction_dict.keys())
+                org_with_orthologues = set([org_b for org_b, org_b_dict in reaction_dict.items() if org_b_dict['total_genes'] == org_b_dict['orthologues']])
+                try:
+                    rate = round(float(len(total_org)/len(org_with_orthologues)),2)
+                    total_rxn_to_add += 1
+                except ZeroDivisionError:
+                    rate = 0
+                line = {'reaction_id': reaction_id, 'rate': rate, 'in_org': ";".join(total_org), 'org_with_orthologues': ";".join(org_with_orthologues)}
+                writer.writerow(line)
+            print("%s: %s/%s reactions to add"%(org_a, total_rxn_to_add, total_rxn))
+            
+            
+        
+                
+
+
+                
+
+
+def extractGenes(reactions_file):
+    """
+    """
+    all_query_seq_ids = set()
+    with open(reactions_file, 'r') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter="\t")
+        [all_query_seq_ids.update(line["genes_ids"].split(";")) for line in reader]
+    return all_query_seq_ids
+
+
+def runAllAnalysis(dict_args):
+    """
+    """
+    query_seq_id = dict_args["query_seq_id"]
+    query_faa = dict_args["query_faa"]
+    subject_faa = dict_args["subject_faa"]
+    subject_fna = dict_args["subject_fna"]
+    output_folder = dict_args["output_folder"]
+    blastp = dict_args["blastp"]
+    tblastn = dict_args["tblastn"]
+    exonerate = dict_args["exonerate"]
+    debug = dict_args["debug"]
+        
+    
+    with open(query_faa, "r") as faa:
+        query_seqs = [seq_record for seq_record in SeqIO.parse(faa, "fasta") if seq_record.id.startswith(query_seq_id+"_isoform") or seq_record.id == query_seq_id]
+    if len(query_seqs) > 1:
+        print("/!\ Isoforms found for %s: %s"%(query_seq_id, [i.name for i in query_seqs]))
+    analysis_result = list()
+    for query_seq in query_seqs:
+        query_seq_id = query_seq.id
+        query_seq_faa = os.path.join(output_folder,query_seq_id+".faa")
+        if not os.path.exists(query_seq_faa):
+            SeqIO.write(query_seq, query_seq_faa, "fasta")
+        current_result ={"query_seq_id": query_seq_id,}
+    
+        # Run BLASTP and parse the output
+        if blastp:
+            blastp_result = runBlastp(query_seq_faa, subject_faa, debug=debug)
+            if blastp_result:
+                current_result.update(blastp_result)
+        # Run TBLASTN and parse the output
+        if tblastn:
+            tblastn_result = runTblastn(query_seq_faa, subject_fna, debug=debug)
+            if tblastn_result:
+                current_result.update(tblastn_result)
+        
+        # Run exonerate, parse output
+        if exonerate:
+            if not tblastn:
+                IOError("must run tblastn to be able to run exonerate")
+            _tblastn_hit = True
+            try:
+                exonerate_target_id = current_result["tblastn_sseqid"]
+            except KeyError:
+                _tblastn_hit = False
+                if debug:
+                    print("No hit from tblastn, can't run exonerate")
+            if _tblastn_hit:
+                sseq_seq_faa = os.path.join(output_folder,exonerate_target_id+".fna")
+                if not os.path.exists(sseq_seq_faa):
+                    with open(subject_fna, "r") as fna:
+                        sseq_seq = [seq_record for seq_record in SeqIO.parse(fna, "fasta") if seq_record.id == exonerate_target_id][0]
+                        SeqIO.write(sseq_seq, sseq_seq_faa, "fasta")
+                exonerate_output = os.path.join(output_folder, "exonerate_output_%s_vs_%s.txt"%(query_seq_id, exonerate_target_id))
+                exonerate_result = runExonerate(query_seq_faa, sseq_seq_faa, exonerate_output, debug=debug)
+                current_result.update(exonerate_result)
+        analysis_result.append(current_result)
+
+    return analysis_result
 
 def runBlastp(query_seq_faa, subject_faa, header=["sseqid", "evalue", "bitscore"], debug=False):
     """
@@ -182,68 +420,6 @@ def runExonerate(query_seq_faa, sseq_seq_faa, output, debug=False):
             print("\t\tNo HSP")
     return exonerate_result
 
-
-def runAllAnalysis(dict_args):
-    """
-    """
-    query_seq_id = dict_args["query_seq_id"]
-    query_faa = dict_args["query_faa"]
-    subject_faa = dict_args["subject_faa"]
-    subject_fna = dict_args["subject_fna"]
-    output_folder = dict_args["output_folder"]
-    blastp = dict_args["blastp"]
-    tblastn = dict_args["tblastn"]
-    exonerate = dict_args["exonerate"]
-    debug = dict_args["debug"]
-        
-    
-    with open(query_faa, "r") as faa:
-        query_seqs = [seq_record for seq_record in SeqIO.parse(faa, "fasta") if seq_record.id.startswith(query_seq_id+"_isoform") or seq_record.id == query_seq_id]
-    if len(query_seqs) > 1:
-        print("/!\ Isoforms found for %s: %s"%(query_seq_id, [i.name for i in query_seqs]))
-    analysis_result = list()
-    for query_seq in query_seqs:
-        query_seq_id = query_seq.id
-        query_seq_faa = os.path.join(output_folder,query_seq_id+".faa")
-        if not os.path.exists(query_seq_faa):
-            SeqIO.write(query_seq, query_seq_faa, "fasta")
-        current_result ={"query_seq_id": query_seq_id,}
-    
-        # Run BLASTP and parse the output
-        if blastp:
-            blastp_result = runBlastp(query_seq_faa, subject_faa, debug=debug)
-            if blastp_result:
-                current_result.update(blastp_result)
-        # Run TBLASTN and parse the output
-        if tblastn:
-            tblastn_result = runTblastn(query_seq_faa, subject_fna, debug=debug)
-            if tblastn_result:
-                current_result.update(tblastn_result)
-        
-        # Run exonerate, parse output
-        if exonerate:
-            if not tblastn:
-                IOError("must run tblastn to be able to run exonerate")
-            _tblastn_hit = True
-            try:
-                exonerate_target_id = current_result["tblastn_sseqid"]
-            except KeyError:
-                _tblastn_hit = False
-                if debug:
-                    print("No hit from tblastn, can't run exonerate")
-            if _tblastn_hit:
-                sseq_seq_faa = os.path.join(output_folder,exonerate_target_id+".fna")
-                if not os.path.exists(sseq_seq_faa):
-                    with open(subject_fna, "r") as fna:
-                        sseq_seq = [seq_record for seq_record in SeqIO.parse(fna, "fasta") if seq_record.id == exonerate_target_id][0]
-                        SeqIO.write(sseq_seq, sseq_seq_faa, "fasta")
-                exonerate_output = os.path.join(output_folder, "exonerate_output_%s_vs_%s.txt"%(query_seq_id, exonerate_target_id))
-                exonerate_result = runExonerate(query_seq_faa, sseq_seq_faa, exonerate_output, debug=debug)
-                current_result.update(exonerate_result)
-        analysis_result.append(current_result)
-
-    return analysis_result
-
 def analysisOutput(analysis_result, analysis_output):
     """
     """
@@ -252,6 +428,22 @@ def analysisOutput(analysis_result, analysis_output):
         dict_writer = csv.DictWriter(csvfile, fieldnames=analysis_header, delimiter="\t")
         dict_writer.writeheader()            
         dict_writer.writerows(analysis_result)    
+
+
+
+
+def iterAnalysis():
+    """
+    """
+    run_path = "/home/maite/Documents/data/aucome_analysis/prot2genome"
+    reactions_spec_path = os.path.join(run_path, "reactions_spec")
+    tmp_path = os.path.join(run_path, "tmp")
+    genes_match_path = os.path.join(run_path, "genes_match")
+    studied_organisms_path = "/home/maite/Documents/data/aucome_analysis/V9/studied_organisms"
+    padmet_path = ""
+    extractReactions(padmet_path, reactions_spec_path)
+    
+    
 
 if __name__ == "__main__":
     main()    
