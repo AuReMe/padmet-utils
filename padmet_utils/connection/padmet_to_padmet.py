@@ -20,8 +20,8 @@ Description:
         --padmetRef=FILE    path to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
         -v   print info
 """
-from padmet.classes import PadmetSpec, PadmetRef
-import os
+from padmet.utils.classes import PadmetRef
+from padmet.utils.connection import padmet_to_padmet
 import docopt
 
 def main():
@@ -33,36 +33,7 @@ def main():
     output = args["--output"]
     verbose = args["-v"]
     to_add = args["--to_add"]
-    padmet_to_padmet(to_add, output, padmetRef, verbose)
-
-def padmet_to_padmet(to_add, output, padmetRef=None, verbose=False):
-    """
-    
-    """
-    if os.path.isdir(to_add):
-        path = to_add
-        all_files = [i for i in next(os.walk(path))[2] if not i.startswith(".~lock")]
-        padmetFiles = [os.path.join(path, i) for i in all_files if i.endswith(".padmet")]
-        if len(padmetFiles) == 0:
-            print("No padmet found in %s" %path)
-            return
-    else:
-        padmetFiles = to_add.split(";")
-    
-    padmet_init_file = padmetFiles[0]
-    padmet_init = PadmetSpec(padmet_init_file)
-    padmetFiles.pop(0)
-
-    for padmet_update_file in padmetFiles:
-        if verbose:
-            print("Updating %s from %s" %(os.path.basename(padmet_init_file),os.path.basename(padmet_update_file)))
-        padmet_update = PadmetSpec(padmet_update_file)
-        padmet_init.updateFromPadmet(padmet_update)
-
-    if verbose:
-        print("Generated file: %s" %output)
-    padmet_init.generateFile(output)
-        
+    padmet_to_padmet.padmet_to_padmet(to_add, output, padmetRef, verbose)
 
 if __name__ == "__main__":
     main()
