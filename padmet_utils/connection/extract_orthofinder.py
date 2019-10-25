@@ -392,7 +392,7 @@ def dict_data_to_sbml(dict_data, dict_orthogroups=None, dict_orthologues=None, s
             to_compare_ga_subsets = list(gbr.compile_input(ga_for_gbr))
         else:
             ga_for_gbr = re.sub(r"\(|\)" , "", ga_for_gbr)
-            to_compare_ga_subsets = list([ga_for_gbr])
+            to_compare_ga_subsets = [[ga_for_gbr]]
         
         study_ga_subsets = []
         """
