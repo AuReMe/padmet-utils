@@ -78,9 +78,9 @@ def fromAucome(run_folder, cpu, blastp=False, tblastn=True, exonerate=True, debu
     tmp_folder = os.path.join(blast_result_folder, "tmp")
 
     print("Extracting specific reactions...")
-    extractReactions(padmet_folder, spec_reactions_folder)
+    #extractReactions(padmet_folder, spec_reactions_folder)
     print("Running blast analysis...")
-    mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analysis_folder, tmp_folder, cpu, blastp, tblastn, exonerate, debug)
+    #mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analysis_folder, tmp_folder, cpu, blastp, tblastn, exonerate, debug)
     print("Extracting reactions to add...")
     extractAnalysis(blast_analysis_folder, spec_reactions_folder, reactions_to_add_folder)
 
@@ -94,73 +94,73 @@ def extractReactions(padmet_folder, output_folder):
     for (org_a, org_b) in all_combi:
         path_a = os.path.join(padmet_folder,org_a)
         path_b = os.path.join(padmet_folder,org_b)
-        padmet_a = PadmetSpec(path_a)
-        padmet_b = PadmetSpec(path_b)
-    
-        rxn_spec_to_a = set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]))     
-        rxn_spec_to_b = set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]))     
-    
-        genes_assoc_spec_to_a = set()
-        for rxn_id in rxn_spec_to_a:
-            genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
-            genes_assoc_spec_to_a.update(genes_assoc)    
-    
-        genes_assoc_spec_to_b = set()
-        for rxn_id in rxn_spec_to_a:
-            genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
-            genes_assoc_spec_to_b.update(genes_assoc)    
-    
-        genes_ids_for_blast = set()
         output_a = os.path.join(output_folder, "%s_VS_%s.csv"%(os.path.splitext(org_a)[0], os.path.splitext(org_b)[0]))
-        with open(output_a,"w") as csvfile:
-            header = ["reaction_id", "genes_ids", "sources"]
-            dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
-            dict_writer.writeheader()
+        output_b = os.path.join(output_folder, "%s_VS_%s.csv"%(os.path.splitext(org_b)[0], os.path.splitext(org_a)[0]))
+        if not os.path.isfile(output_a) and not os.path.isfile(output_b):
+            padmet_a = PadmetSpec(path_a)
+            padmet_b = PadmetSpec(path_b)
+        
+            rxn_spec_to_a = set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]))     
+            rxn_spec_to_b = set([node.id for node in padmet_b.dicOfNode.values() if node.type == "reaction"]).difference(set([node.id for node in padmet_a.dicOfNode.values() if node.type == "reaction"]))     
+        
+            genes_assoc_spec_to_a = set()
             for rxn_id in rxn_spec_to_a:
                 genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
-                recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
-                for recData in [padmet_a.dicOfNode[rlt.id_out].misc for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
-                    category = recData["CATEGORY"][0]
-                    if category == "ANNOTATION":
-                        recData_dict["ANNOTATION"] = recData["SOURCE"][0]
-                    elif category == "ORTHOLOGY":
-                        org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
-                        recData_dict["ORTHOLOGY"].add(org_info)
-                if recData_dict["ANNOTATION"] is None:
-                    print("reaction %s from %s has no annotation source" %(rxn_id, org_a))
-                else:
-                    genes_ids_for_blast.update(genes_assoc)
-                    line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
-                    dict_writer.writerow(line)
-    
-        genes_ids_for_blast = set()
-        output_b = os.path.join(output_folder, "%s_VS_%s.csv"%(os.path.splitext(org_b)[0], os.path.splitext(org_a)[0]))
-        with open(output_b,"w") as csvfile:
-            header = ["reaction_id", "genes_ids", "sources"]
-            dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
-            dict_writer.writeheader()
-            for rxn_id in rxn_spec_to_b:
-                genes_assoc = set([rlt.id_out for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
-                recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
-                for recData in [padmet_b.dicOfNode[rlt.id_out].misc for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
-                    category = recData["CATEGORY"][0]
-                    if category == "ANNOTATION":
-                        recData_dict["ANNOTATION"] = recData["SOURCE"][0]
-                    elif category == "ORTHOLOGY":
-                        org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
-                        recData_dict["ORTHOLOGY"].add(org_info)
-                if recData_dict["ANNOTATION"] is None:
-                    print("reaction %s from %s has no annotation source" %(rxn_id, org_b))
-                else:
-                    genes_ids_for_blast.update(genes_assoc)
-                    line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
-                    dict_writer.writerow(line)
+                genes_assoc_spec_to_a.update(genes_assoc)    
+        
+            genes_assoc_spec_to_b = set()
+            for rxn_id in rxn_spec_to_a:
+                genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+                genes_assoc_spec_to_b.update(genes_assoc)    
+        
+            genes_ids_for_blast = set()
+            with open(output_a,"w") as csvfile:
+                header = ["reaction_id", "genes_ids", "sources"]
+                dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
+                dict_writer.writeheader()
+                for rxn_id in rxn_spec_to_a:
+                    genes_assoc = set([rlt.id_out for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+                    recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
+                    for recData in [padmet_a.dicOfNode[rlt.id_out].misc for rlt in padmet_a.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
+                        category = recData["CATEGORY"][0]
+                        if category == "ANNOTATION":
+                            recData_dict["ANNOTATION"] = recData["SOURCE"][0]
+                        elif category == "ORTHOLOGY":
+                            org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
+                            recData_dict["ORTHOLOGY"].add(org_info)
+                    if recData_dict["ANNOTATION"] is None:
+                        print("reaction %s from %s has no annotation source" %(rxn_id, org_a))
+                    else:
+                        genes_ids_for_blast.update(genes_assoc)
+                        line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
+                        dict_writer.writerow(line)
+        
+            genes_ids_for_blast = set()
+            with open(output_b,"w") as csvfile:
+                header = ["reaction_id", "genes_ids", "sources"]
+                dict_writer = csv.DictWriter(csvfile, fieldnames=header, delimiter="\t")
+                dict_writer.writeheader()
+                for rxn_id in rxn_spec_to_b:
+                    genes_assoc = set([rlt.id_out for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "is_linked_to"])
+                    recData_dict = {"ANNOTATION":None, "ORTHOLOGY": set()}
+                    for recData in [padmet_b.dicOfNode[rlt.id_out].misc for rlt in padmet_b.dicOfRelationIn[rxn_id] if rlt.type == "has_reconstructionData"]:
+                        category = recData["CATEGORY"][0]
+                        if category == "ANNOTATION":
+                            recData_dict["ANNOTATION"] = recData["SOURCE"][0]
+                        elif category == "ORTHOLOGY":
+                            org_info = recData["SOURCE"][0].replace("OUTPUT_ORTHOFINDER_FROM_","")
+                            recData_dict["ORTHOLOGY"].add(org_info)
+                    if recData_dict["ANNOTATION"] is None:
+                        print("reaction %s from %s has no annotation source" %(rxn_id, org_b))
+                    else:
+                        genes_ids_for_blast.update(genes_assoc)
+                        line = {"reaction_id": rxn_id, "genes_ids": ";".join(genes_assoc), "sources": "ANNOTATION+"+";".join(recData_dict["ORTHOLOGY"])}
+                        dict_writer.writerow(line)
 
 def mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analysis_folder, tmp_folder, cpu, blastp, tblastn, exonerate, debug):
     """
     """
     for rxn_file in [os.path.join(spec_reactions_folder, i) for i in next(os.walk(spec_reactions_folder))[2]]:
-        all_query_seq_ids = extractGenes(rxn_file)
         org_a, org_b = os.path.basename(rxn_file).replace(".csv","").split("_VS_")
         analysis_output = os.path.join(blast_analysis_folder, "%s_VS_%s.csv"%(org_a, org_b))
         query_faa = os.path.join(studied_organisms_folder, org_a, "%s.faa"%org_a)
@@ -171,24 +171,35 @@ def mp_runAnalysis(spec_reactions_folder, studied_organisms_folder, blast_analys
         if not os.path.exists(subject_fna):
             SeqIO.convert(subject_gbk, "genbank", subject_fna, "fasta")
 
-        #Create a list of dict, each dict is the arg given to runAllAnalysis fct
-        print("Extracting all data for %s vs %s" %(org_a, org_b))
-        print("%s query ids to search" %len(all_query_seq_ids))
+        if not os.path.isfile(analysis_output):
+            all_query_seq_ids = extractGenes(rxn_file)
+            #Create a list of dict, each dict is the arg given to runAllAnalysis fct
+            print("Extracting all data for %s vs %s" %(org_a, org_b))
+            print("%s query ids to search" %len(all_query_seq_ids))
+    
+            all_dict_args = []
+            for query_seq_id in all_query_seq_ids:
+                dict_args = {"query_seq_id": query_seq_id, "query_faa": query_faa, "subject_faa": subject_faa, "subject_fna": subject_fna, "output_folder": tmp_folder, "blastp": blastp, "tblastn": tblastn, "exonerate": exonerate, "debug": debug}
+                all_dict_args.append(dict_args)
+            #list of dict to give to dictWritter
+            all_analysis_result = []
+            #Run runAllAnalysis in multiproccess.
+            pool = Pool(cpu)
+            mp_results = pool.map(runAllAnalysis, all_dict_args)
+            for _list in mp_results:
+                all_analysis_result += _list
+            print("Creating output analysis: %s" %analysis_output)
+            pool.close()
+            #Create output file
+            analysisOutput(all_analysis_result, analysis_output)
+            cleanTmp(tmp_folder)
 
-        all_dict_args = []
-        for query_seq_id in all_query_seq_ids:
-            dict_args = {"query_seq_id": query_seq_id, "query_faa": query_faa, "subject_faa": subject_faa, "subject_fna": subject_fna, "output_folder": tmp_folder, "blastp": blastp, "tblastn": tblastn, "exonerate": exonerate, "debug": debug}
-            all_dict_args.append(dict_args)
-        #list of dict to give to dictWritter
-        all_analysis_result = []
-        #Run runAllAnalysis in multiproccess.
-        pool = Pool(cpu)
-        mp_results = pool.map(runAllAnalysis, all_dict_args)
-        for _list in mp_results:
-            all_analysis_result += _list
-        print("Creating output analysis: %s" %analysis_output)
-        #Create output file
-        analysisOutput(all_analysis_result, analysis_output)        
+def cleanTmp(tmp_folder):
+    """
+    """
+    for the_file in os.listdir(tmp_folder):
+        file_path = os.path.join(tmp_folder, the_file)
+        os.unlink(file_path)
 
 def createPadmet():
     """
@@ -232,6 +243,7 @@ def extractAnalysis(blast_analysis_folder, spec_reactions_folder, reactions_to_a
                     
     for org_a, org_dict in reactions_dict.items():
         output_file = os.path.join(reactions_to_add_folder, "%s.csv"%org_a)
+        """
         with open(output_file, 'w') as csvfile:
             fieldnames = ['reaction_id', 'rate', 'in_org', 'org_with_orthologues']
             writer = csv.DictWriter(csvfile,fieldnames, delimiter="\t")
@@ -241,14 +253,25 @@ def extractAnalysis(blast_analysis_folder, spec_reactions_folder, reactions_to_a
             for reaction_id, reaction_dict in org_dict.items():
                 total_org = set(reaction_dict.keys())
                 org_with_orthologues = set([org_b for org_b, org_b_dict in reaction_dict.items() if org_b_dict['total_genes'] == org_b_dict['orthologues']])
-                try:
-                    rate = round(float(len(total_org)/len(org_with_orthologues)),2)
+
+                rate = round(float(len(org_with_orthologues)/len(total_org)),2)
+                if rate == 1.0:
                     total_rxn_to_add += 1
-                except ZeroDivisionError:
-                    rate = 0
                 line = {'reaction_id': reaction_id, 'rate': rate, 'in_org': ";".join(total_org), 'org_with_orthologues': ";".join(org_with_orthologues)}
                 writer.writerow(line)
             print("%s: %s/%s reactions to add"%(org_a, total_rxn_to_add, total_rxn))
+        """
+        with open(output_file, 'w') as csvfile:
+            fieldnames = ['idRef', 'Comment', 'Genes', 'Action']
+            writer = csv.DictWriter(csvfile,fieldnames, delimiter="\t")
+            writer.writeheader()
+            for reaction_id, reaction_dict in org_dict.items():
+                total_org = set(reaction_dict.keys())
+                org_with_orthologues = set([org_b for org_b, org_b_dict in reaction_dict.items() if org_b_dict['total_genes'] == org_b_dict['orthologues']])
+                rate = round(float(len(org_with_orthologues)/len(total_org)),2)
+                if rate > 0.0:
+                    line = {'idRef': reaction_id, 'Comment': 'Has Orthologues with %s'%";".join(org_with_orthologues),'Action':'add'}
+                    writer.writerow(line)
             
             
         
@@ -415,7 +438,7 @@ def runExonerate(query_seq_faa, sseq_seq_faa, output, debug=False):
                         print(hsp)
             print("\t\tMax score: %s"%best_hsp.score)
         exonerate_result = {"exonerate_score": best_hsp.score, "exonerate_hit_range": best_hsp.hit_range}
-    except RuntimeError:
+    except (RuntimeError, IndexError) as e:
         if debug:
             print("\t\tNo HSP")
     return exonerate_result
