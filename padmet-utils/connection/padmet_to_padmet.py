@@ -20,7 +20,7 @@ Description:
         --padmetRef=FILE    path to the padmet file representing to the database of reference (ex: metacyc_18.5.padmet)
         -v   print info
 """
-from padmet.utils.classes import PadmetRef
+from padmet.classes import PadmetRef
 from padmet.utils.connection import padmet_to_padmet
 import docopt
 
