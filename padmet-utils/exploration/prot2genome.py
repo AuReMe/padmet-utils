@@ -6,7 +6,7 @@ usage:
     prot2genome --query_faa=FILE --query_ids=FILE/STR --subject_gbk=FILE --subject_fna=FILE --subject_faa=FILE --output_folder=FILE --exonerate=PATH  [--cpu=INT] [blastp] [tblastn] [debug]
     prot2genome --padmet=FOLDER --output=FOLDER
     prot2genome --studied_organisms=FOLDER --output=FOLDER
-    prot2genome --run=FOLDER --exonerate=PATH  [--cpu=INT] [blastp] [tblastn] [debug]
+    prot2genome --run=FOLDER --exonerate=PATH  --padmetRef=FILE [--cpu=INT] [blastp] [tblastn] [debug]
 
     From aucome run fromAucome():
         -1. Extract specifique reactions in spec_reactions folder with extractReactions()
@@ -51,12 +51,13 @@ def main():
 
     run_folder = args["--run"]
     cpu =  int(args["--cpu"])
+    padmetRef = args["--padmetRef"]
     blastp = args["blastp"]
     tblastn = args["tblastn"]
     debug = args["debug"]
 
     if run_folder:
-        prot2genome.fromAucome(run_folder, cpu, blastp, tblastn, exonerate, debug)
+        prot2genome.fromAucome(run_folder, cpu, padmetRef, blastp, tblastn, exonerate, debug)
 
 if __name__ == "__main__":
     main()    
