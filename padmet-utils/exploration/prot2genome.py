@@ -45,7 +45,6 @@ def main():
 
     print("Test running exonerate...")
     subprocess.run(["exonerate"], shell = True)
-    exonerate = True
 
     run_folder = args["--run"]
     cpu =  int(args["--cpu"])
@@ -53,7 +52,7 @@ def main():
     debug = args["debug"]
 
     if run_folder:
-        prot2genome.fromAucome(run_folder, cpu, padmetRef, blastp=True, tblastn=True, exonerate=True, debug)
+        prot2genome.fromAucome(run_folder, cpu, padmetRef, blastp=True, tblastn=True, exonerate=True, debug=debug)
 
 if __name__ == "__main__":
     main()    
