@@ -28,9 +28,9 @@ Description:
 ::
     
     usage:
-        sbml_to_padmet.py --sbml=FILE --padmetRef=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
-        sbml_to_padmet.py --sbml=FILE --padmetSpec=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
-        sbml_to_padmet.py --sbml=FILE --padmetSpec=FILE [--padmetRef=FILE] [--output=FILE] [--mapping=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v] [-f]
+        sbml_to_padmet.py --sbml=DIR/FILE --padmetRef=FILE [--output=FILE] [--db=STR] [--version=STR] [-v]
+        sbml_to_padmet.py --sbml=DIR/FILE --padmetSpec=FILE [--output=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v]
+        sbml_to_padmet.py --sbml=DIR/FILE --padmetSpec=FILE  --padmetRef=FILE  [--mapping=DIR/FILE] [--mapping_tag=STR] [--output=FILE] [--source_tool=STR] [--source_category=STR] [--source_id=STR] [-v] [-f]
     
     options:
         -h --help     Show help.
@@ -39,6 +39,7 @@ Description:
         --sbml=FILE    1 sbml file to convert into padmetSpec (ex: my_network.xml/sbml) OR a directory with n SBML
         --output=FILE   pathanme to the new padmet file
         --mapping=FILE    dictionnary of association id_origin id_ref
+        --mapping_tag=STR    if sbml is a folder, use a tag to define mapping files ex: org1.sbml and org1_dict.csv, '_dict.csv' will be the mapping tag. [default: _dict.csv]
         --db=STR    database name
         --version=STR    database version
         -v   print info
@@ -59,14 +60,14 @@ def main():
     padmetSpec_file = args["--padmetSpec"]
     source_tool = args["--source_tool"]
     source_category = args["--source_category"]
-    source_id = args["--source_id"]
     mapping = args["--mapping"]
+    mapping_tag = args["--mapping_tag"]
 
-    padmet = sbml_to_padmet.from_sbml_to_padmet(sbml, padmetSpec_file, padmetRef_file, source_tool, source_category, source_id, mapping, db, version, verbose)
-    if output:
-        padmet.generateFile(output)
+
+    if padmetSpec_file:
+        sbml_to_padmet.sbml_to_padmetSpec(sbml, padmetSpec_file, padmetRef_file=padmetRef_file, output=output, mapping=mapping, mapping_tag=mapping_tag, source_tool=source_tool, source_category=source_category, db=db, version=version, verbose=verbose)
     else:
-        padmet.generateFile(padmetSpec_file)
+        sbml_to_padmet.sbml_to_padmetRef(sbml, padmetRef_file, output, db, version, verbose)
 
 if __name__ == "__main__":
     main()
