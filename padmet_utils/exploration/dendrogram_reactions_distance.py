@@ -39,7 +39,7 @@ def main():
     pvclust = args['--pvclust']
     #verbose = args['-v']
 
-    dendrogram_reactions_distance.reaction_figure_creation(reaction_pathname, upset_cluster, output_pathname, padmet_ref_file, pvclust)
+    dendrogram_reactions_distance.reaction_figure_creation(reaction_pathname, output_pathname, upset_cluster, padmet_ref_file, pvclust)
 
 
 
