@@ -33,7 +33,6 @@ import docopt
 from padmet.utils.connection import biggAPI_to_padmet
 
 def main():
-    global list_of_relation
     #parsing args
     args = docopt.docopt(__doc__)
     output = args["--output"]
