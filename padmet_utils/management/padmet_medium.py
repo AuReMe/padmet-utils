@@ -40,6 +40,7 @@ Description:
 import docopt
 from padmet.classes import PadmetSpec
 from padmet.classes import PadmetRef
+from padmet.utils.management import padmet_medium
 
 def main():
     args = docopt.docopt(__doc__)
@@ -68,37 +69,8 @@ def main():
         else:
             print("[]")
     else:
-        manage_medium(padmet, seeds, padmetRef, verbose)
+        padmet_medium.manage_medium(padmet, seeds, padmetRef, verbose)
         padmet.generateFile(output)
-
-def manage_medium(padmet, new_growth_medium=None, padmetRef=None, verbose=False):
-    """
-    Manage medium of a padmet. If new_growth_medium give, use this list of compound
-    to define the new medium and create transport and exchange reactions.
-    if padmetRef given, use the information from padmetRef to create the missing compound.
-    If no new_growth_medium given: remove the current medium in the padmet.
-
-    Parameters
-    ----------
-    padmet: padmet.classes.PadmetSpec
-        padmet to update
-    new_growth_medium: list
-        list of compound id representing the medium
-    padmetRef: padmet.classes.PadmetRef
-        padmet containing the database of reference
-    verbose: bool
-        if True print information
-
-    Returns
-    -------
-    padmet.classes.PadmetSpec:
-        New padmet after updating medium
-    """
-    if new_growth_medium:
-        padmet.set_growth_medium(new_growth_medium=new_growth_medium, padmetRef=padmetRef, verbose=verbose)
-    else:
-        padmet.remove_growth_medium(verbose=verbose)
-    return padmet
 
 
 if __name__ == "__main__":

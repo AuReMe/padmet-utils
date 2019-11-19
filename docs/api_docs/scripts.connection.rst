@@ -119,20 +119,11 @@ sbmlGenerator
 
 sbml\_to\_curation\_form
 ======================================
-Description:
-    extract all reactions from a sbml file to the form used in aureme for curation.
 
-::
-
-    usage:
-        sbml_to_curation_form.py --sbml=FILE --output=FILE --comment=STR [--rxn_id=ID]
-    
-    options:
-        -h --help     Show help.
-        --sbml=FILE    path of the sbml.
-        --output=FILE    form containing the reaction extracted, form used for manual curation in aureme.
-        --rxn_id=FILE    id of one reaction or n reactions sep by ';', if None try to extract the reaction with objective coefficient == 1.
-        --comment=STR    comment associated to the reactions in the form. Used to track sources of curation in aureme.
+.. automodule:: padmet_utils.connection.sbml_to_curation_form
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 sbml\_to\_padmet
 ======================================
