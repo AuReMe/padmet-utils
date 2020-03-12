@@ -100,7 +100,7 @@ Description:
 
     usage:
         pgdb_to_padmet.py --pgdb=DIR --output=FILE [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [--enhance]
-        pgdb_to_padmet.py --pgdb=DIR --output=FILE --extract-gene [--no-orphan]  [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [--enhance]
+        pgdb_to_padmet.py --pgdb=DIR --output=FILE --extract-gene [--no-orphan] [--keep-self-rxn] [--version=V] [--db=ID] [--padmetRef=FILE] [--source=STR] [-v] [--enhance]
     
     options:
         -h --help     Show help.
@@ -111,8 +111,9 @@ Description:
         --padmetRef=FILE    padmet of reference.
         --source=STR    Tag associated to the source of the reactions, used to ensure traceability [default: GENOME].
         --enhance    use the metabolic-reactions.xml file to enhance the database.
-        --extract-gene    use the genes_file (use if its a specie's pgdb, if metacyc, do not use).
-        --no-orhpan    use the genes_file (use if its a specie's pgdb, if metacyc, do not use).
+        --extract-gene    extract genes from genes_file (use if its a specie's pgdb, if metacyc, do not use).
+        --no-orhpan    remove reactions without gene associaiton (use if its a specie's pgdb, if metacyc, do not use).
+        --keep-self-rxn    remove reactions with no reactants (use if its a specie's pgdb, if metacyc, do not use).
         -v   print info.
 
 """
@@ -132,9 +133,18 @@ def main():
     enhanced_db = args["--enhance"]
     extract_gene = args["--extract-gene"]
     no_orphan = args["--no-orphan"]
+    keep_self_producing_rxn = args["--keep-self-rxn"]
     padmetRef_file = args["--padmetRef"]
     verbose = args["-v"]
-    padmet = pgdb_to_padmet.from_pgdb_to_padmet(pgdb_folder, db , version, source, extract_gene, no_orphan, enhanced_db, padmetRef_file, verbose)
+
+    if keep_self_producing_rxn:
+        no_self_producing_rxn = False
+    else:
+        no_self_producing_rxn = True
+
+    padmet = pgdb_to_padmet.from_pgdb_to_padmet(pgdb_folder=pgdb_folder, db=db , version=version, source=source, extract_gene=extract_gene,
+                                                no_orphan=no_orphan, no_self_producing_rxn=no_self_producing_rxn, enhanced_db=enhanced_db,
+                                                padmetRef_file=padmetRef_file, verbose=verbose)
     padmet.generateFile(output)
 
 if __name__ == "__main__":
